@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Autisme-test (AQ-50) — Hjernebarometeret</title>
+<meta name="description" content="Gratis autisme-screening baseret på AQ-50 (Baron-Cohen et al., 2001). 50 spørgsmål, 5 domæner, detaljeret resultat.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,500&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/styles.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#faf9f7;--bg-card:#fff;--bg-warm:#f5f2ee;--bg-dark:#1c1b1a;
+  --text:#1c1b1a;--text-2:#5a5650;--text-3:#8a857e;--text-4:#b5b0a8;
+  --border:#e8e5e0;--border-2:#d5d0c9;--accent:#2c5f4b;--accent-light:#e8f0ec;
+  --autism:#3a7d5e;--autism-bg:#eaf5ef;
+  --serif:'Source Serif 4',Georgia,serif;--sans:'Figtree',system-ui,sans-serif;
+}
+html,body,#root{min-height:100%;width:100%;margin:0}
+body{background:var(--bg);font-family:var(--sans);color:var(--text);-webkit-font-smoothing:antialiased;font-size:15px;line-height:1.6}
+::selection{background:var(--autism);color:#fff}
+#root{padding-top:64px}
+button{font-family:inherit;cursor:pointer}
+@media(max-width:600px){
+  #root .aq-intro-card{margin:12px!important}
+  #root .aq-intro-header{padding:32px 24px 28px!important}
+  #root .aq-intro-body{padding:24px!important}
+  #root .aq-intro-footer{padding:16px 24px 28px!important}
+  #root .aq-result-header{padding:32px 24px 24px!important}
+  #root .aq-result-section{padding:24px!important}
+  #root .aq-result-disclaimer{padding:20px 24px!important}
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div id="site-nav" data-test-mode="true"></div>
+<div id="root"></div>
+<div id="site-footer"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
+<script src="shared/nav.js"></script>
+<script src="shared/footer.js"></script>
+<script src="shared/auth.js"></script>
+<script type="text/babel">
+const {useState, useEffect, useRef} = React;
+
+const questions = [
+  { id: 1, text: "Jeg foretrækker at gøre ting sammen med andre, fremfor alene.", domain: "social", reverse: true },
+  { id: 2, text: "Jeg foretrækker at gøre ting på den samme måde igen og igen.", domain: "switching", reverse: false },
+  { id: 3, text: "Hvis jeg forsøger at forestille mig noget, er det meget nemt for mig at skabe et billede i mit hoved.", domain: "imagination", reverse: true },
+  { id: 4, text: "Jeg bliver ofte så opslugt af én ting, at jeg mister overblikket over andre ting.", domain: "switching", reverse: false },
+  { id: 5, text: "Jeg lægger ofte mærke til små lyde, som andre ikke bemærker.", domain: "detail", reverse: false },
+  { id: 6, text: "Jeg lægger typisk mærke til nummerplader eller lignende informationsstrenge.", domain: "detail", reverse: false },
+  { id: 7, text: "Andre fortæller mig ofte, at det jeg har sagt er uhøfligt, selvom jeg mener det er høfligt.", domain: "communication", reverse: false },
+  { id: 8, text: "Når jeg læser en historie, kan jeg nemt forestille mig, hvordan personerne ser ud.", domain: "imagination", reverse: true },
+  { id: 9, text: "Jeg er fascineret af datoer.", domain: "detail", reverse: false },
+  { id: 10, text: "I en social gruppe kan jeg nemt følge med i flere forskellige samtaler på én gang.", domain: "social", reverse: true },
+  { id: 11, text: "Jeg synes sociale situationer er nemme.", domain: "social", reverse: true },
+  { id: 12, text: "Jeg har en tendens til at lægge mærke til detaljer, som andre overser.", domain: "detail", reverse: false },
+  { id: 13, text: "Jeg vil hellere gå på biblioteket end til en fest.", domain: "social", reverse: false },
+  { id: 14, text: "Jeg synes det er let at finde på historier.", domain: "imagination", reverse: true },
+  { id: 15, text: "Jeg føler mig mere draget mod mennesker end mod ting.", domain: "social", reverse: true },
+  { id: 16, text: "Jeg har en tendens til at have meget stærke interesser, som gør mig ked af det, hvis jeg ikke kan forfølge dem.", domain: "switching", reverse: false },
+  { id: 17, text: "Jeg nyder social smalltalk.", domain: "communication", reverse: true },
+  { id: 18, text: "Når jeg taler, er det ikke altid let for andre at komme til orde.", domain: "communication", reverse: false },
+  { id: 19, text: "Jeg er fascineret af tal.", domain: "detail", reverse: false },
+  { id: 20, text: "Når jeg læser en historie, synes jeg det er svært at gennemskue personernes intentioner.", domain: "imagination", reverse: false },
+  { id: 21, text: "Jeg nyder ikke at læse fiktion.", domain: "imagination", reverse: false },
+  { id: 22, text: "Jeg synes det er svært at få nye venner.", domain: "social", reverse: false },
+  { id: 23, text: "Jeg lægger hele tiden mærke til mønstre i ting.", domain: "detail", reverse: false },
+  { id: 24, text: "Jeg vil hellere i teatret end på museum.", domain: "imagination", reverse: true },
+  { id: 25, text: "Det generer mig ikke, hvis min daglige rutine bliver forstyrret.", domain: "switching", reverse: true },
+  { id: 26, text: "Jeg oplever ofte, at jeg ikke ved, hvordan jeg skal holde en samtale i gang.", domain: "communication", reverse: false },
+  { id: 27, text: "Jeg finder det nemt at 'læse mellem linjerne', når nogen taler til mig.", domain: "communication", reverse: true },
+  { id: 28, text: "Jeg fokuserer normalt mere på det overordnede billede end på de små detaljer.", domain: "detail", reverse: true },
+  { id: 29, text: "Jeg er ikke særlig god til at huske telefonnumre.", domain: "detail", reverse: true },
+  { id: 30, text: "Jeg lægger normalt ikke mærke til små ændringer i en situation eller en persons udseende.", domain: "detail", reverse: false },
+  { id: 31, text: "Jeg ved ikke, hvordan jeg skal opdage, om en person, der lytter til mig, keder sig.", domain: "communication", reverse: false },
+  { id: 32, text: "Jeg synes det er let at gøre flere ting på én gang.", domain: "switching", reverse: true },
+  { id: 33, text: "Når jeg taler i telefon, er jeg ikke sikker på, hvornår det er min tur til at tale.", domain: "communication", reverse: false },
+  { id: 34, text: "Jeg nyder at gøre ting spontant.", domain: "switching", reverse: true },
+  { id: 35, text: "Jeg er ofte den sidste til at forstå pointen i en vittighed.", domain: "communication", reverse: false },
+  { id: 36, text: "Jeg finder det let at regne ud, hvad nogen tænker eller føler, bare ved at se på deres ansigt.", domain: "communication", reverse: true },
+  { id: 37, text: "Hvis der er en afbrydelse, kan jeg hurtigt vende tilbage til det, jeg var i gang med.", domain: "switching", reverse: true },
+  { id: 38, text: "Jeg er god til social smalltalk.", domain: "communication", reverse: true },
+  { id: 39, text: "Folk fortæller mig ofte, at jeg bliver ved med at tale om det samme emne.", domain: "communication", reverse: false },
+  { id: 40, text: "Da jeg var ung, nød jeg at lege forestillingslege med andre børn.", domain: "imagination", reverse: true },
+  { id: 41, text: "Jeg kan lide at indsamle information om kategorier af ting (f.eks. biltyper, fugle, tog, planter).", domain: "detail", reverse: false },
+  { id: 42, text: "Jeg finder det svært at forestille mig, hvordan det ville være at være en anden person.", domain: "imagination", reverse: false },
+  { id: 43, text: "Jeg planlægger gerne omhyggeligt de aktiviteter, jeg deltager i.", domain: "switching", reverse: false },
+  { id: 44, text: "Jeg nyder sociale begivenheder.", domain: "social", reverse: true },
+  { id: 45, text: "Jeg synes det er svært at gennemskue folks intentioner.", domain: "communication", reverse: false },
+  { id: 46, text: "Nye situationer gør mig nervøs.", domain: "social", reverse: false },
+  { id: 47, text: "Jeg nyder at møde nye mennesker.", domain: "social", reverse: true },
+  { id: 48, text: "Jeg er en god diplomat.", domain: "social", reverse: true },
+  { id: 49, text: "Jeg er ikke særlig god til at huske folks fødselsdage.", domain: "detail", reverse: true },
+  { id: 50, text: "Jeg finder det meget nemt at lege 'som-om'-lege med børn.", domain: "imagination", reverse: true },
+];
+
+const domainLabels = { social: "Sociale færdigheder", switching: "Opmærksomhedsskift", detail: "Opmærksomhed på detaljer", communication: "Kommunikation", imagination: "Forestillingsevne" };
+const domainDescriptions = { social: "Måler tryghed og lethed i sociale situationer, herunder præference for social aktivitet og komfort med social interaktion.", switching: "Måler evnen til at skifte fokus mellem opgaver, tilpasningsevne ved ændringer i rutiner og håndtering af uventede hændelser.", detail: "Vedrører øget fokus på detaljer og mønstre i omgivelserne, ofte med udelukkelse af det større billede.", communication: "Evaluerer evnen til effektivt at kommunikere med andre, inkl. samtaleførsel og forståelse af sociale signaler.", imagination: "Fokuserer på forestillingsevne, herunder evnen til at danne mentale billeder og forstå hypotetiske scenarier." };
+const domainIcons = { social: "👥", switching: "🔄", detail: "🔍", communication: "💬", imagination: "💭" };
+
+const profileData = {
+  high: { title: "Markant autistisk profil", subtitle: "Score 32–50 — Klinisk signifikant niveau", summary: "Din score placerer dig i det interval, hvor ca. 80% af klinisk diagnosticerede autistiske voksne befinder sig (Baron-Cohen et al., 2001). Kun ca. 2% af den generelle kontrolgruppe scorer i dette interval. Din profil indikerer en kognitiv og perceptuel stil, der markant adskiller sig fra den neurotypiske norm — dette er ikke i sig selv en svaghed, men en anderledes neurologisk arkitektur med specifikke styrker og udfordringer.", strengths: [{ title: "Hyper-systemisering og mønstergenkendelse", text: "Forskning af Baron-Cohen et al. (2009) viser, at autistiske hjerner er prædisponerede for exceptionel mønstergenkendelse og systemisk tænkning." }, { title: "Skærpet detaljeperception", text: "Mottron et al. (2006) dokumenterede 'Enhanced Perceptual Functioning' — en forstærket sansemæssig perception, der gør det muligt at opfange detaljer, andre overser." }, { title: "Konsistens og moralsk integritet", text: "Forskning viser, at autistiske personer er mere konsistente i deres adfærd på tværs af kontekster (Woods & Estes, 2023)." }, { title: "Dyb fokusering (hyperfokus)", text: "Evnen til intens, vedvarende koncentration omkring emner af interesse er en veldokumenteret autistisk styrke." }], challenges: [{ title: "Social navigation og 'Theory of Mind'", text: "Automatisk inferens om andres mentale tilstande kan være mindre intuitiv (Baron-Cohen, 1995)." }, { title: "Eksekutive funktioner og fleksibilitet", text: "Op mod 80% af autistiske voksne oplever udfordringer med eksekutive funktioner (Wallace et al., 2016)." }, { title: "Sensorisk overbelastning", text: "Sensorisk hypersensitivitet er neurologisk dokumenteret i autisme (Baron-Cohen et al., 2009)." }, { title: "Camouflering og udbrændthed", text: "Mange autistiske voksne engagerer sig i 'masking', hvilket er forbundet med øget risiko for angst og depression." }], exercises: [{ title: "Mindfulness-baseret stressreduktion (MBSR)", text: "Et systematisk review fra 2024 (Simione et al.) bekræfter, at mindfulness reducerer angst og stress hos autistiske voksne." }, { title: "Struktureret daglig rutine med visuel støtte", text: "Brug time-blocking, farvekodet kalender og daglige tjeklister." }, { title: "Energiregnskab (social energi-budgettering)", text: "Kortlæg dine daglige aktiviteter som energi-givende eller energi-drænende." }, { title: "Kognitiv adfærdsterapi (CBT) — autisme-tilpasset", text: "Sizoo & Kuiper (2017) dokumenterede, at både CBT og MBSR reducerer angst- og depressionssymptomer." }], careers: "Forskning peger på, at autistiske styrker gør følgende fagområder naturligt velegnede: softwareudvikling, dataanalyse, videnskabelig forskning, matematik, kreative fag, revisorarbejde og tekniske specialistfunktioner." },
+  elevated: { title: "Forhøjet autistisk profil", subtitle: "Score 26–31 — Over screeningtærskel", summary: "Din score overstiger den kliniske screeningtærskel på 26 (Woodbury-Smith et al., 2005). Du befinder dig i en gråzone, hvor dine autistiske træk er klinisk signifikante.", strengths: [{ title: "Analytisk og systematisk tænkning", text: "Du har sandsynligvis en stærkere end gennemsnitlig tendens til systematisk informationsbehandling." }, { title: "Dybde i interesseområder", text: "Fokuserede interesser kan kanaliseres til professionel ekspertise (Murray et al., 2005)." }, { title: "Pålidelighed og direkte kommunikation", text: "Autistisk-kongruent kommunikation er kendetegnet ved ærlighed og præcision." }], challenges: [{ title: "Social energiforvaltning", text: "Social interaktion kan kræve betydelig kognitiv indsats (Livingston et al., 2019)." }, { title: "Fleksibilitet ved uventede ændringer", text: "Uventede planændringer kan forårsage disproportionel stress." }, { title: "Sensorisk følsomhed", text: "Udvalgte sensoriske domæner med forhøjet følsomhed." }], exercises: [{ title: "Selvobservations-journaling", text: "Hold dagbog over situationer, der dræner eller genoplader dig." }, { title: "Sensorisk profil-kortlægning", text: "Udarbejd et personligt sensorisk profil baseret på Dunn's framework." }, { title: "Strukturerede sociale scripts", text: "Forbered samtale-scripts. PEERS-programmet (Laugeson, 2014) viser forbedrede resultater." }, { title: "Mindfulness og kropsbevidsthed", text: "En meta-analyse fra 2024 bekræfter, at mindfulness forbedrer opmærksomhed og arbejdshukommelse." }], careers: "Projektledelse i tekniske domæner, UX-research, datavidenskab, teknisk skrivning, forskning og akademia." },
+  average: { title: "Typisk neurokognitiv profil", subtitle: "Score 17–25 — Normalområdet", summary: "Din score ligger inden for normalområdet (gennemsnit ca. 16,4; Ruzich et al., 2015). En score i dette interval udelukker ikke autisme.", strengths: [{ title: "Balanceret kognitiv profil", text: "Balance mellem detaljeorientering og helhedstænkning (Happé & Frith, 2006)." }, { title: "Social fleksibilitet", text: "Sociale situationer kræver generelt ikke uforholdsmæssig kognitiv energi." }, { title: "Adaptiv opmærksomhedsstyring", text: "Både fokuseret dybdearbejde og fleksibel omstilling." }], challenges: [{ title: "Specifikke subkliniske træk", text: "Domæner med forhøjet score (6+) kan indikere specifikke autistiske træk." }, { title: "Kontekstafhængig belastning", text: "Under stress kan subkliniske træk forstærkes." }], exercises: [{ title: "Styrkebaseret selvforståelse", text: "Undersøg dine domænescores for at identificere styrker." }, { title: "Generel kognitiv sundhed", text: "Fysisk aktivitet (30+ min/dag), søvnhygiejne og sociale relationer." }], careers: "Stor fleksibilitet i karrierevalg." },
+  low: { title: "Lav autistisk profil", subtitle: "Score 0–16 — Under populationsgennemsnittet", summary: "Din score ligger under gennemsnittet. En lav AQ-score udelukker ikke autisme — camouflering kan påvirke resultatet (Hull et al., 2017).", strengths: [{ title: "Intuitiv social navigation", text: "Ubesværet i sociale situationer." }, { title: "Kognitiv fleksibilitet", text: "God evne til at håndtere uventede ændringer." }, { title: "Global processering", text: "Stærk helhedstænkning (Frith, 1989)." }], challenges: [{ title: "Potentiel camouflering", text: "Hvis du søgte denne test pga. oplevede udfordringer, er camouflering mulig." }], exercises: [{ title: "Overvej komorbide tilstande", text: "ADHD, angst og sensorisk processeringsforstyrrelse kan overlappe." }, { title: "Selvrefleksion over kompensation", text: "Reflektér over, om du 'performer' social adfærd." }], careers: "Ingen specifikke autisme-relaterede karriereovervejelser." },
+};
+
+const domainFeedback = {
+  social: { high: { s: "Stærkt behov for alene-tid og dybe en-til-en-relationer.", c: "Sociale situationer med mange mennesker kan være belastende.", t: "Prioritér kvalitet over kvantitet i sociale relationer." }, elevated: { s: "Fungerer bedst i velkendte sociale miljøer.", c: "Uformelle sammenhænge kan være drænende.", t: "Brug 'sociale pauser' til mikro-restitution." } },
+  switching: { high: { s: "Præference for rutine er en styrke i kontekster der kræver konsistens.", c: "Uventede ændringer kan udløse stress.", t: "Brug visuelle tidsplaner og overgangsritualer." }, elevated: { s: "God balance mellem struktur og fleksibilitet.", c: "Under stress falder evnen til at håndtere ændringer.", t: "Etablér faste 'ankre' i din dag." } },
+  detail: { high: { s: "Exceptionel detaljeperception (Mottron et al., 2006).", c: "Informationsoverload.", t: "Brug 'zoom ud'-øvelser og Pomodoro-teknik." }, elevated: { s: "Stærkere detaljeorientering end gennemsnittet.", c: "Perfektionisme under pres.", t: "Sæt deadlines for 'godt nok'." } },
+  communication: { high: { s: "Direkte, ærlig og præcis kommunikation.", c: "Implicitte sociale regler kræver bevidst dekodning.", t: "Bed om eksplicit kommunikation." }, elevated: { s: "Styrker i formel kommunikation.", c: "Small talk kræver mere energi.", t: "Forbered 2–3 'sikre' samtaleemner." } },
+  imagination: { high: { s: "Stærkere systemisering og faktuel tænkning.", c: "Perspektivtagning kan kræve analytisk indsats.", t: "Brug strukturerede metoder." }, elevated: { s: "Blanding af systematisk og narrativ tænkning.", c: "Hypotetiske diskussioner kan frustrere.", t: "Bed om konkrete eksempler." } },
+};
+
+const options = [{ label: "Helt enig", value: "da" }, { label: "Delvist enig", value: "sa" }, { label: "Delvist uenig", value: "sd" }, { label: "Helt uenig", value: "dd" }];
+
+function scoreQ(q, a) { if (!a) return 0; return q.reverse ? (a === "sd" || a === "dd" ? 1 : 0) : (a === "da" || a === "sa" ? 1 : 0); }
+function getCat(t) { if (t >= 32) return "high"; if (t >= 26) return "elevated"; if (t >= 17) return "average"; return "low"; }
+const CS = { high: { color: "#c0392b", bg: "#fdf0ef", border: "#e6a09a" }, elevated: { color: "#d68910", bg: "#fef9e7", border: "#f0d78c" }, average: { color: "#2c7a3e", bg: "#eafaf1", border: "#a3d9b1" }, low: { color: "#2471a3", bg: "#ebf5fb", border: "#a9cfe3" } };
+function getDL(s) { if (s >= 7) return "high"; if (s >= 5) return "elevated"; return null; }
+function getDI(s) { if (s >= 8) return { label: "Meget høj", color: "#c0392b" }; if (s >= 6) return { label: "Forhøjet", color: "#d68910" }; if (s >= 4) return { label: "Moderat", color: "#7d8c42" }; return { label: "Lav", color: "#2471a3" }; }
+
+function Bar({ value, max, color }) { return (<div style={{ width: "100%", height: 8, background: "#e8e5e0", borderRadius: 4, overflow: "hidden" }}><div style={{ width: (value / max) * 100 + "%", height: "100%", background: color, borderRadius: 4, transition: "width 0.6s cubic-bezier(0.22,1,0.36,1)" }} /></div>); }
+function Sec({ icon, title, children }) { return (<div className="aq-result-section" style={{ background: "#fff", border: "1px solid #e8e5e0", borderTop: "none", padding: "32px 40px" }}><div style={{ fontFamily: "var(--serif)", fontSize: 12, letterSpacing: 2, textTransform: "uppercase", color: "#8a857e", marginBottom: 20, display: "flex", alignItems: "center", gap: 8, fontWeight: 600 }}>{icon && <span style={{ fontSize: 16 }}>{icon}</span>}{title}</div>{children}</div>); }
+function Card({ title, text, accent }) { return (<div style={{ borderLeft: "3px solid " + (accent || "#3a7d5e"), padding: "16px 20px", marginBottom: 16, background: "#f5f2ee", borderRadius: "0 8px 8px 0" }}><div style={{ fontFamily: "var(--serif)", fontSize: 15, fontWeight: 600, color: "#1c1b1a", marginBottom: 6 }}>{title}</div><div style={{ fontSize: 13.5, lineHeight: 1.7, color: "#5a5650" }}>{text}</div></div>); }
+
+function AutismeTest() {
+  const [phase, setPhase] = useState("intro");
+  const [answers, setAnswers] = useState({});
+  const [cQ, setCQ] = useState(0);
+  const [gender, setGender] = useState(null);
+  const [anim, setAnim] = useState("in");
+  const ans = Object.keys(answers).length;
+  const prog = (ans / 50) * 100;
+
+  function hA(id, v) { setAnswers(p => ({ ...p, [id]: v })); if (cQ < 49) { setAnim("out"); setTimeout(() => { setCQ(p => p + 1); setAnim("in"); }, 200); } }
+  function gB() { if (cQ > 0) { setAnim("out"); setTimeout(() => { setCQ(p => p - 1); setAnim("in"); }, 200); } }
+  function calc() { let t = 0; const d = { social: 0, switching: 0, detail: 0, communication: 0, imagination: 0 }; questions.forEach(q => { const s = scoreQ(q, answers[q.id]); t += s; d[q.domain] += s; }); return { t, d }; }
+
+  if (phase === "intro") {
+    return (
+      <div style={{ minHeight: "calc(100vh - 64px)", background: "var(--bg)", fontFamily: "var(--sans)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+        <div className="aq-intro-card" style={{ maxWidth: 680, width: "100%", background: "#fff", borderRadius: 14, border: "1px solid var(--border)", boxShadow: "0 2px 12px rgba(0,0,0,0.04)", overflow: "hidden" }}>
+          <div className="aq-intro-header" style={{ background: "var(--bg-dark)", color: "#faf9f7", padding: "48px 40px 40px" }}>
+            <div style={{ fontSize: 11, letterSpacing: 3, textTransform: "uppercase", opacity: 0.5, marginBottom: 16, fontWeight: 600 }}>Klinisk screeningsværktøj</div>
+            <h1 style={{ fontFamily: "var(--serif)", fontSize: 32, fontWeight: 600, lineHeight: 1.2, margin: 0 }}>Autism Spectrum Quotient</h1>
+            <div style={{ fontSize: 15, marginTop: 12, opacity: 0.7 }}>AQ-50 · Baron-Cohen et al. (2001)</div>
+          </div>
+          <div className="aq-intro-body" style={{ padding: "36px 40px" }}>
+            <p style={{ fontSize: 15, lineHeight: 1.8, color: "var(--text-2)", margin: "0 0 20px" }}><strong style={{color:"var(--text)"}}>Autism Spectrum Quotient (AQ)</strong> er et videnskabeligt valideret screeningsværktøj udviklet ved Cambridge Autism Research Centre. 50 spørgsmål fordelt på 5 domæner.</p>
+            <div style={{ background: "var(--bg-warm)", border: "1px solid var(--border)", borderRadius: 10, padding: "20px 24px", margin: "24px 0" }}>
+              <div style={{ fontSize: 10, letterSpacing: 2, textTransform: "uppercase", color: "var(--text-3)", marginBottom: 12, fontWeight: 700 }}>Nøgletal</div>
+              <div style={{ display: "flex", gap: 32, flexWrap: "wrap" }}>
+                {[{ n: "16,4", l: "Gns. kontrol" }, { n: "26+", l: "Screeningtærskel" }, { n: "32+", l: "Klinisk tærskel" }, { n: "35,8", l: "Gns. autistisk" }].map((d, i) => (<div key={i} style={{ flex: "1 1 120px" }}><div style={{ fontFamily: "var(--serif)", fontSize: 24, fontWeight: 700, color: "var(--text)" }}>{d.n}</div><div style={{ fontSize: 12, color: "var(--text-3)", marginTop: 4 }}>{d.l}</div></div>))}
+              </div>
+            </div>
+            <div style={{ background: "#fef9e7", border: "1px solid #f0d78c", borderRadius: 10, padding: "16px 20px", margin: "24px 0", fontSize: 13, lineHeight: 1.7, color: "#7d6608" }}><strong>Bemærk:</strong> Screeningsredskab — ikke klinisk diagnose. Kun en kvalificeret fagperson kan diagnosticere autisme.</div>
+            <div style={{ margin: "28px 0 8px" }}>
+              <div style={{ fontSize: 10, letterSpacing: 2, textTransform: "uppercase", color: "var(--text-3)", marginBottom: 12, fontWeight: 700 }}>Angiv køn (normdata)</div>
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                {[{ v: "male", l: "Mand" }, { v: "female", l: "Kvinde" }, { v: "other", l: "Andet" }].map(g => (<button key={g.v} onClick={() => setGender(g.v)} style={{ flex: 1, minWidth: 100, padding: "14px 16px", border: gender === g.v ? "2px solid var(--bg-dark)" : "1px solid var(--border-2)", borderRadius: 10, background: gender === g.v ? "var(--bg-dark)" : "#fff", color: gender === g.v ? "#faf9f7" : "var(--text-2)", fontSize: 14, cursor: "pointer", fontFamily: "var(--sans)", fontWeight: 500, transition: "all .2s" }}>{g.l}</button>))}
+              </div>
+            </div>
+          </div>
+          <div className="aq-intro-footer" style={{ padding: "20px 40px 36px", borderTop: "1px solid var(--border)", display: "flex", justifyContent: "flex-end" }}>
+            <button onClick={() => gender && setPhase("test")} disabled={!gender} style={{ padding: "14px 40px", fontSize: 15, background: gender ? "var(--bg-dark)" : "var(--border-2)", color: gender ? "#fff" : "var(--text-3)", border: "none", borderRadius: 10, cursor: gender ? "pointer" : "default", fontFamily: "var(--sans)", fontWeight: 600, transition: "all .25s" }}>Start testen →</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === "test") {
+    const q = questions[cQ]; const ca = answers[q.id]; const cf = ans === 50;
+    return (
+      <div style={{ minHeight: "calc(100vh - 64px)", background: "var(--bg)", fontFamily: "var(--sans)", display: "flex", flexDirection: "column" }}>
+        <div style={{ background: "var(--bg-dark)", color: "#faf9f7", padding: "16px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 64, zIndex: 10 }}>
+          <div><span style={{ fontSize: 14, opacity: 0.6 }}>AQ-50</span><span style={{ margin: "0 12px", opacity: 0.3 }}>·</span><span style={{ fontSize: 14 }}>{ans}/50</span></div>
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}><div style={{ width: 160, height: 4, background: "rgba(255,255,255,0.15)", borderRadius: 2, overflow: "hidden" }}><div style={{ width: prog + "%", height: "100%", background: "#3a7d5e", borderRadius: 2, transition: "width 0.4s" }} /></div><span style={{ fontSize: 13, opacity: 0.6 }}>{Math.round(prog)}%</span></div>
+        </div>
+        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 20px" }}>
+          <div style={{ maxWidth: 640, width: "100%", opacity: anim === "in" ? 1 : 0, transform: anim === "in" ? "translateY(0)" : "translateY(12px)", transition: "all 0.2s" }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "var(--autism-bg)", padding: "6px 14px", borderRadius: 20, fontSize: 12, color: "var(--autism)", marginBottom: 20, fontWeight: 600, letterSpacing: 0.5, textTransform: "uppercase" }}>{domainIcons[q.domain]} {domainLabels[q.domain]}</div>
+            <div style={{ marginBottom: 36 }}>
+              <div style={{ fontFamily: "var(--serif)", fontSize: 64, fontWeight: 700, color: "var(--border)", lineHeight: 1, marginBottom: 8 }}>{String(q.id).padStart(2, "0")}</div>
+              <p style={{ fontFamily: "var(--serif)", fontSize: 22, lineHeight: 1.5, color: "var(--text)", margin: 0 }}>{q.text}</p>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {options.map(o => { const sel = ca === o.value; return (<button key={o.value} onClick={() => hA(q.id, o.value)} style={{ display: "flex", alignItems: "center", gap: 16, padding: "18px 24px", background: sel ? "var(--bg-dark)" : "#fff", color: sel ? "#faf9f7" : "var(--text-2)", border: sel ? "2px solid var(--bg-dark)" : "1px solid var(--border-2)", borderRadius: 10, cursor: "pointer", fontSize: 16, textAlign: "left", fontFamily: "var(--sans)", width: "100%", fontWeight: 500, transition: "all .15s" }}><div style={{ width: 20, height: 20, borderRadius: 10, border: sel ? "6px solid #3a7d5e" : "2px solid var(--text-4)", background: sel ? "var(--bg-dark)" : "#fff", flexShrink: 0, transition: "all .15s" }} />{o.label}</button>); })}
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 32, paddingTop: 20, borderTop: "1px solid var(--border)" }}>
+              <button onClick={gB} disabled={cQ === 0} style={{ padding: "10px 20px", fontSize: 14, background: "transparent", border: "1px solid var(--border-2)", color: cQ === 0 ? "var(--text-4)" : "var(--text-2)", borderRadius: 8, cursor: cQ === 0 ? "default" : "pointer", fontFamily: "var(--sans)", fontWeight: 500 }}>← Forrige</button>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
+                {Array.from({ length: 50 }, (_, i) => (<div key={i} onClick={() => { setAnim("out"); setTimeout(() => { setCQ(i); setAnim("in"); }, 150); }} style={{ width: i === cQ ? 8 : 4, height: i === cQ ? 8 : 4, borderRadius: "50%", background: answers[i + 1] ? "var(--bg-dark)" : i === cQ ? "var(--autism)" : "var(--border-2)", cursor: "pointer", transition: "all .15s" }} />))}
+              </div>
+              {cQ < 49 ? (<button onClick={() => { if (ca) { setAnim("out"); setTimeout(() => { setCQ(p => p + 1); setAnim("in"); }, 200); } }} disabled={!ca} style={{ padding: "10px 20px", fontSize: 14, background: ca ? "var(--bg-dark)" : "transparent", color: ca ? "#fff" : "var(--text-4)", border: ca ? "none" : "1px solid var(--border-2)", borderRadius: 8, cursor: ca ? "pointer" : "default", fontFamily: "var(--sans)", fontWeight: 500 }}>Næste →</button>) : (<button onClick={() => cf && setPhase("results")} disabled={!cf} style={{ padding: "12px 28px", fontSize: 15, background: cf ? "var(--bg-dark)" : "transparent", color: cf ? "#fff" : "var(--text-4)", border: cf ? "none" : "1px solid var(--border-2)", borderRadius: 10, cursor: cf ? "pointer" : "default", fontFamily: "var(--sans)", fontWeight: 600 }}>Se resultater</button>)}
+            </div>
+            {!cf && cQ === 49 && <div style={{ marginTop: 16, fontSize: 13, color: "var(--text-3)", textAlign: "center" }}>Du mangler {50 - ans} spørgsmål.</div>}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === "results") {
+    const { t: total, d: ds } = calc();
+    const cat = getCat(total); const cs = CS[cat]; const pr = profileData[cat];
+    const cm = gender === "male" ? 17.8 : gender === "female" ? 15.4 : 16.4;
+    const catLabel = cat === "high" ? "Markant" : cat === "elevated" ? "Forhøjet" : cat === "average" ? "Typisk" : "Lav";
+
+    return (
+      <div style={{ minHeight: "calc(100vh - 64px)", background: "var(--bg)", fontFamily: "var(--sans)", padding: "40px 20px" }}>
+        <div style={{ maxWidth: 740, margin: "0 auto" }}>
+          <div className="aq-result-header" style={{ background: "var(--bg-dark)", color: "#faf9f7", padding: "40px 40px 32px", borderRadius: "14px 14px 0 0" }}>
+            <div style={{ fontSize: 11, letterSpacing: 3, textTransform: "uppercase", opacity: 0.5, marginBottom: 12, fontWeight: 600 }}>Resultatrapport · AQ-50</div>
+            <h1 style={{ fontFamily: "var(--serif)", fontSize: 28, fontWeight: 600, margin: 0 }}>Autism Spectrum Quotient</h1>
+            <div style={{ fontSize: 14, opacity: 0.6, marginTop: 8 }}>Baron-Cohen et al. (2001) · Cambridge Autism Research Centre</div>
+          </div>
+
+          <div style={{ background: "#fff", border: "1px solid var(--border)", borderTop: "none", padding: "36px 40px" }}>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 36, flexWrap: "wrap" }}>
+              <div style={{ textAlign: "center", minWidth: 140 }}>
+                <div style={{ fontFamily: "var(--serif)", fontSize: 72, fontWeight: 700, color: cs.color, lineHeight: 1 }}>{total}</div>
+                <div style={{ fontSize: 14, color: "var(--text-3)", marginTop: 4 }}>af 50</div>
+                <div style={{ marginTop: 12, display: "inline-block", padding: "6px 16px", borderRadius: 20, background: cs.bg, border: "1px solid " + cs.border, color: cs.color, fontSize: 13, fontWeight: 600 }}>{catLabel}</div>
+              </div>
+              <div style={{ flex: 1, minWidth: 280 }}>
+                <div style={{ fontFamily: "var(--serif)", fontSize: 18, fontWeight: 600, color: "var(--text)", marginBottom: 4 }}>{pr.title}</div>
+                <div style={{ fontSize: 13, color: "var(--text-3)", marginBottom: 16 }}>{pr.subtitle}</div>
+                <div style={{ position: "relative", height: 40, marginBottom: 8 }}>
+                  <div style={{ position: "absolute", top: 16, left: 0, right: 0, height: 8, background: "linear-gradient(to right, #a9cfe3 0%, #a3d9b1 33%, #f0d78c 60%, #e6a09a 100%)", borderRadius: 4 }} />
+                  <div style={{ position: "absolute", top: 4, left: Math.min((total / 50) * 100, 98) + "%", transform: "translateX(-50%)", transition: "left 1s cubic-bezier(0.22,1,0.36,1)" }}><div style={{ width: 20, height: 20, borderRadius: "50%", background: "var(--bg-dark)", border: "3px solid #fff", boxShadow: "0 2px 6px rgba(0,0,0,0.2)" }} /></div>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--text-3)" }}><span>0</span><span>Gns. ({cm})</span><span>Screen (26)</span><span>Klinisk (32)</span><span>50</span></div>
+              </div>
+            </div>
+          </div>
+
+          <Sec icon="📋" title="Samlet vurdering"><p style={{ fontSize: 14.5, lineHeight: 1.8, color: "var(--text-2)", margin: 0 }}>{pr.summary}</p></Sec>
+
+          <Sec icon="📊" title="Domæneanalyse">
+            <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+              {Object.entries(ds).map(([d, s]) => { const di = getDI(s); return (<div key={d}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}><div style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ fontSize: 18 }}>{domainIcons[d]}</span><span style={{ fontFamily: "var(--serif)", fontSize: 15, fontWeight: 600, color: "var(--text)" }}>{domainLabels[d]}</span></div><div style={{ display: "flex", alignItems: "center", gap: 10 }}><span style={{ fontSize: 12, padding: "3px 10px", borderRadius: 12, background: di.color + "18", color: di.color, fontWeight: 600 }}>{di.label}</span><span style={{ fontFamily: "var(--serif)", fontSize: 18, fontWeight: 700, color: "var(--text)" }}>{s}<span style={{ fontSize: 12, fontWeight: 400, color: "var(--text-3)" }}>/10</span></span></div></div><Bar value={s} max={10} color={di.color} /><p style={{ fontSize: 12, color: "var(--text-3)", margin: "6px 0 0", lineHeight: 1.5 }}>{domainDescriptions[d]}</p></div>); })}
+            </div>
+          </Sec>
+
+          <Sec icon="💪" title="Dine styrker">
+            {pr.strengths.map((s, i) => <Card key={i} title={s.title} text={s.text} accent="#2c7a3e" />)}
+          </Sec>
+
+          <Sec icon="⚡" title="Udfordringer">
+            {pr.challenges.map((c, i) => <Card key={i} title={c.title} text={c.text} accent={cs.color} />)}
+          </Sec>
+
+          {Object.entries(ds).some(([, s]) => s >= 5) && (
+            <Sec icon="🎯" title="Domænespecifik feedback">
+              {Object.entries(ds).map(([d, s]) => { const lv = getDL(s); if (!lv) return null; const fb = domainFeedback[d]?.[lv]; if (!fb) return null; return (<div key={d} style={{ marginBottom: 24, background: "var(--bg-warm)", border: "1px solid var(--border)", borderRadius: 10, padding: "20px 24px" }}><div style={{ fontFamily: "var(--serif)", fontSize: 15, fontWeight: 600, color: "var(--text)", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}><span>{domainIcons[d]}</span> {domainLabels[d]} ({s}/10)</div><div style={{ fontSize: 13.5, lineHeight: 1.7, color: "var(--text-2)" }}><div style={{ marginBottom: 8 }}><strong style={{ color: "#2c7a3e" }}>Styrke:</strong> {fb.s}</div><div style={{ marginBottom: 8 }}><strong style={{ color: "#d68910" }}>Udfordring:</strong> {fb.c}</div><div><strong style={{ color: "#2471a3" }}>Anbefaling:</strong> {fb.t}</div></div></div>); })}
+            </Sec>
+          )}
+
+          <Sec icon="🧠" title="Evidensbaserede øvelser">
+            {pr.exercises.map((e, i) => <Card key={i} title={e.title} text={e.text} accent="#2471a3" />)}
+          </Sec>
+
+          <Sec icon="💼" title="Faglige styrkeområder"><p style={{ fontSize: 14.5, lineHeight: 1.8, color: "var(--text-2)", margin: 0 }}>{pr.careers}</p></Sec>
+
+          <Sec icon="📈" title="Normative referencedata">
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+              <thead><tr style={{ borderBottom: "2px solid var(--text)" }}><th style={{ textAlign: "left", padding: "8px 0", fontWeight: 600 }}>Gruppe</th><th style={{ textAlign: "center", padding: "8px 0", fontWeight: 600 }}>Gns.</th><th style={{ textAlign: "center", padding: "8px 0", fontWeight: 600 }}>Din</th></tr></thead>
+              <tbody>{[{ g: "Generel befolkning", s: "16,4" }, { g: "Screeningtærskel", s: "26" }, { g: "Klinisk tærskel", s: "32" }, { g: "Autistiske voksne", s: "35,8" }].map((r, i) => (<tr key={i} style={{ borderBottom: "1px solid var(--border)" }}><td style={{ padding: "10px 0", color: "var(--text-2)" }}>{r.g}</td><td style={{ textAlign: "center", padding: "10px 0", color: "var(--text-3)", fontFamily: "var(--serif)" }}>{r.s}</td><td style={{ textAlign: "center", padding: "10px 0", fontWeight: 700, color: cs.color, fontFamily: "var(--serif)" }}>{total}</td></tr>))}</tbody>
+            </table>
+          </Sec>
+
+          <Sec icon="📚" title="Videnskabelige referencer">
+            <div style={{ fontSize: 12, lineHeight: 1.8, color: "var(--text-3)" }}>
+              {["Baron-Cohen, S., et al. (2001). The Autism-Spectrum Quotient (AQ). J. Autism Dev. Disord., 31(1), 5–17.", "Baron-Cohen, S., et al. (2009). Talent in autism: hyper-systemizing. Phil. Trans. R. Soc. B, 364, 1377–1383.", "Mottron, L., et al. (2006). Enhanced perceptual functioning. J. Autism Dev. Disord., 36(1), 27–43.", "Lundqvist & Lindner (2017). AQ Rasch Validation. J. Autism Dev. Disord., 47, 2080–2091.", "Woods & Estes (2023). SASSI. Frontiers in Psychiatry, 14.", "Simione et al. (2024). MBIs for ASD. Brain Sciences, 14(10), 1001.", "Sizoo & Kuiper (2017). CBT and MBSR for adults with ASD. Res. Autism Spectr. Disord., 36, 34–46.", "Happé & Frith (2006). Weak coherence account. J. Autism Dev. Disord., 36, 5–25.", "Wallace et al. (2016). Executive Functions. J. Autism Dev. Disord., 46, 3575–3589.", "Ruzich et al. (2015). AQ meta-review. Mol. Autism, 6, 2."].map((r, i) => <p key={i} style={{ margin: "0 0 4px" }}>{r}</p>)}
+            </div>
+          </Sec>
+
+          <div className="aq-result-disclaimer" style={{ background: "#fef9e7", border: "1px solid #f0d78c", borderTop: "none", padding: "24px 40px", borderRadius: "0 0 14px 14px" }}>
+            <p style={{ fontSize: 13, lineHeight: 1.7, color: "#7d6608", margin: 0 }}><strong>Ansvarsfraskrivelse:</strong> Screeningsredskab — ikke klinisk diagnose. Individuel variation er betydelig. I Danmark kan din læge henvise til specialiseret autismeudredning.</p>
+          </div>
+
+          <div style={{ textAlign: "center", marginTop: 32 }}>
+            <button onClick={() => { setAnswers({}); setCQ(0); setGender(null); setPhase("intro"); }} style={{ padding: "14px 36px", fontSize: 15, background: "transparent", border: "1.5px solid var(--border-2)", color: "var(--text-2)", borderRadius: 10, cursor: "pointer", fontFamily: "var(--sans)", fontWeight: 500 }}>Tag testen igen</button>
+          </div>
+
+          <div style={{ textAlign: "center", marginTop: 32, marginBottom: 40 }}>
+            <p style={{ fontFamily: "var(--serif)", fontSize: 16, fontWeight: 500, color: "var(--text)", marginBottom: 16 }}>Andre tests du måske er interesseret i</p>
+            <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+              <a href="adhd-screening.html" style={{ padding: "10px 20px", background: "#eaf1f7", color: "#2e6b9e", borderRadius: 8, fontSize: 13, fontWeight: 600, textDecoration: "none" }}>⚡ ADHD-screening</a>
+              <a href="iq-test.html" style={{ padding: "10px 20px", background: "#f0ebf5", color: "#6b4c9a", borderRadius: 8, fontSize: 13, fontWeight: 600, textDecoration: "none" }}>◈ IQ-test</a>
+            </div>
+          </div>
+
+          <div style={{ textAlign: "center", marginBottom: 40, fontSize: 12, color: "var(--text-4)" }}>AQ-50 · Baron-Cohen et al. (2001) · Dansk oversættelse til screeningsformål</div>
+        </div>
+      </div>
+    );
+  }
+  return null;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<AutismeTest/>);
+</script>
+</body>
+</html>

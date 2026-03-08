@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Gratis stress- og udbrændthedstest. Baseret på PSS-10 og burnout-forskning. 30 spørgsmål, 6 dimensioner. Se dit stressniveau og din risiko for udbrændthed.">
+<title>Stress & Udbrændthed — Hjernebarometeret.dk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,500&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/styles.css">
+<style>
+:root {
+  --bg: #faf9f7;
+  --bg-card: #fff;
+  --bg-card-hover: rgba(0,0,0,.02);
+  --bg-warm: #f5f2ee;
+  --bg-dark: #1c1b1a;
+  --text: #1c1b1a;
+  --text-2: #5a5650;
+  --text-3: #8a857e;
+  --text-4: #b5b0a8;
+  --text-dim: #5a5650;
+  --text-muted: #8a857e;
+  --border: #e8e5e0;
+  --border-2: #d5d0c9;
+  --accent: #c2553a;
+  --accent-glow: rgba(194,85,58,0.08);
+  --accent-dim: #a8452d;
+  --green: #5cb85c;
+  --yellow: #e8c547;
+  --orange: #e8873c;
+  --red: #d9534f;
+  --dim-stress: #6a9fdf;
+  --dim-helpless: #e85d7a;
+  --dim-efficacy: #5cb85c;
+  --dim-exhaust: #e8873c;
+  --dim-cynicism: #7b68ee;
+  --dim-accomplish: #3cb7a0;
+  --radius: 12px;
+  --radius-lg: 20px;
+  --serif: 'Source Serif 4', Georgia, serif;
+  --sans: 'Figtree', system-ui, sans-serif;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  padding-top: 64px;
+}
+
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* ── LANG TOGGLE ── */
+.lang-toggle {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  background: transparent;
+  border: 1px solid var(--border);
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.lang-toggle:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── PROGRESS BAR ── */
+.progress-wrap {
+  position: sticky;
+  top: 64px;
+  z-index: 99;
+  background: var(--bg);
+  padding: 12px 0 8px;
+}
+.progress-bar-bg {
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-dim), var(--accent));
+  border-radius: 2px;
+  transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  width: 0%;
+}
+.progress-text {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 6px;
+  text-align: right;
+}
+
+/* ── SCREENS ── */
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* ── INTRO ── */
+.intro {
+  padding: 60px 0 80px;
+  text-align: center;
+  position: relative;
+}
+.intro-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  padding: 4px 14px;
+  border-radius: 20px;
+  margin-bottom: 28px;
+  font-weight: 600;
+}
+.intro h1 {
+  font-family: var(--serif);
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  margin-bottom: 18px;
+}
+.intro h1 em {
+  font-style: italic;
+  color: var(--accent);
+}
+.intro p.lead {
+  font-size: 1.05rem;
+  color: var(--text-dim);
+  max-width: 520px;
+  margin: 0 auto 36px;
+}
+.intro-meta {
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+}
+.intro-meta span {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+.intro-meta span strong {
+  color: var(--text-dim);
+  font-weight: 500;
+}
+.btn-start {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 14px 36px;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.25s;
+  font-family: inherit;
+}
+.btn-start:hover {
+  background: #d4623f;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 30px rgba(194,85,58,0.25);
+}
+.intro-science {
+  margin-top: 60px;
+  text-align: left;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+}
+.intro-science h3 {
+  font-family: var(--serif);
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+.intro-science p {
+  font-size: 0.88rem;
+  color: var(--text-dim);
+  line-height: 1.7;
+}
+
+/* ── DIMENSION PREVIEW ── */
+.dim-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 32px;
+}
+.dim-preview {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  text-align: center;
+}
+.dim-dot-preview {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  margin: 0 auto 8px;
+}
+.dim-preview h4 { font-size: 0.82rem; font-weight: 600; margin-bottom: 3px; }
+.dim-preview p { font-size: 0.72rem; color: var(--text-muted); }
+
+/* ── QUESTION ── */
+.question-screen { padding: 40px 0 100px; }
+.q-number {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 6px;
+}
+.q-section {
+  font-size: 0.68rem;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+.q-text {
+  font-family: var(--serif);
+  font-size: clamp(1.2rem, 3.5vw, 1.55rem);
+  font-weight: 500;
+  line-height: 1.4;
+  margin-bottom: 36px;
+  letter-spacing: -0.01em;
+  min-height: 80px;
+}
+.likert {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.likert-option {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+  font-size: 0.92rem;
+  color: var(--text);
+  text-align: left;
+  width: 100%;
+}
+.likert-option:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent);
+}
+.likert-option.selected {
+  background: var(--accent-glow);
+  border-color: var(--accent);
+}
+.likert-dot {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--text-muted);
+  flex-shrink: 0;
+  transition: all 0.2s;
+  position: relative;
+}
+.likert-option.selected .likert-dot {
+  border-color: var(--accent);
+  background: var(--accent);
+  box-shadow: inset 0 0 0 3px var(--bg-card);
+}
+.q-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 32px;
+  gap: 12px;
+}
+.btn-nav {
+  padding: 10px 22px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-dim);
+  transition: all 0.2s;
+}
+.btn-nav:hover:not(:disabled) { border-color: var(--text-dim); color: var(--text); }
+.btn-nav:disabled { opacity: 0.3; cursor: default; }
+.btn-nav.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.btn-nav.primary:hover:not(:disabled) { background: #d4623f; }
+.btn-nav.primary:disabled { opacity: 0.4; }
+.keyboard-hint {
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 20px;
+}
+.keyboard-hint kbd {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.68rem;
+}
+
+/* ── CALCULATING ── */
+.calculating-screen {
+  padding: 120px 0;
+  text-align: center;
+}
+.calc-spinner {
+  width: 48px; height: 48px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 24px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.calc-steps {
+  max-width: 260px;
+  margin: 24px auto 0;
+  text-align: left;
+}
+.calc-step {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  transition: color 0.3s;
+}
+.calc-step.active { color: var(--accent); }
+.calc-step.done { color: var(--green); }
+.calc-step-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--text-muted); flex-shrink: 0;
+  transition: background 0.3s;
+}
+.calc-step.active .calc-step-dot { background: var(--accent); animation: pulse 1s infinite; }
+.calc-step.done .calc-step-dot { background: var(--green); }
+@keyframes pulse { 0%,100%{opacity:.4} 50%{opacity:1} }
+
+/* ── RESULTS ── */
+.results-screen { padding: 40px 0 80px; }
+.results-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.level-badge {
+  display: inline-block;
+  padding: 5px 16px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 14px;
+}
+.results-header h2 {
+  font-family: var(--serif);
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin-bottom: 8px;
+}
+.results-header p {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  max-width: 500px;
+  margin: 0 auto;
+  line-height: 1.65;
+}
+
+/* Score circle */
+.score-display { text-align: center; margin: 24px 0 32px; }
+.score-circle {
+  width: 130px; height: 130px;
+  border-radius: 50%;
+  margin: 0 auto 12px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  border: 3px solid;
+}
+.score-num {
+  font-family: var(--serif);
+  font-size: 2.4rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.score-max { font-size: 0.82rem; color: var(--text-muted); }
+
+/* Interpretation */
+.score-interpretation {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin: 0 0 32px;
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  line-height: 1.7;
+  text-align: center;
+}
+
+/* Radar */
+.radar-section {
+  margin: 32px 0;
+  text-align: center;
+}
+.radar-section h3 {
+  font-family: var(--serif);
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.radar-section .subtitle {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+/* Subscale cards */
+.subscale-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 32px 0;
+}
+.subscale-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.subscale-card:hover { border-color: var(--border-2); }
+.sc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.sc-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sc-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.sc-score {
+  font-family: var(--serif);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+.sc-bar {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+.sc-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 1s ease;
+}
+.sc-level {
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.sc-desc {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  line-height: 1.65;
+  max-height: 0;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+.subscale-card.expanded .sc-desc {
+  max-height: 600px;
+  padding-top: 12px;
+}
+
+/* Paywall */
+.paywall-card {
+  background: linear-gradient(135deg, #f8f6f3 0%, #faf9f7 100%);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-lg);
+  padding: 32px 24px;
+  text-align: center;
+  margin: 48px 0 32px;
+  position: relative;
+  overflow: hidden;
+}
+.paywall-card::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: radial-gradient(circle at center, rgba(194,85,58,0.04) 0%, transparent 60%);
+  pointer-events: none;
+}
+.paywall-card h3 {
+  font-family: var(--serif);
+  font-size: 1.3rem;
+  margin-bottom: 10px;
+  font-weight: 600;
+  position: relative;
+}
+.paywall-card > p {
+  color: var(--text-dim);
+  font-size: 0.88rem;
+  margin-bottom: 20px;
+  position: relative;
+}
+.price-tag {
+  font-family: var(--serif);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 4px;
+  position: relative;
+}
+.price-tag small {
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--text-dim);
+}
+.compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 24px 0;
+  font-size: 0.82rem;
+  position: relative;
+}
+.compare-table th {
+  text-align: left;
+  padding: 10px 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+  border-bottom: 1px solid var(--border);
+}
+.compare-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  color: var(--text-dim);
+}
+.compare-table td:nth-child(2),
+.compare-table td:nth-child(3) { text-align: center; }
+.compare-table th:nth-child(2),
+.compare-table th:nth-child(3) { text-align: center; }
+.check { color: var(--accent); font-weight: 600; }
+.cross { color: var(--text-muted); }
+.btn-buy {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 13px 32px;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.25s;
+  position: relative;
+}
+.btn-buy:hover {
+  background: #d4623f;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 30px rgba(194,85,58,0.25);
+}
+.btn-sub-alt {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 0.82rem;
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: inherit;
+  position: relative;
+}
+
+/* Cross-sell */
+.cross-sell {
+  margin-top: 48px;
+  text-align: center;
+}
+.cross-sell h3 {
+  font-family: var(--serif);
+  font-size: 1.1rem;
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+.cross-sell-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+.cross-sell-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 16px;
+  text-decoration: none;
+  color: var(--text);
+  transition: all 0.2s;
+  display: block;
+}
+.cross-sell-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+.cross-sell-card .emoji { font-size: 1.5rem; margin-bottom: 8px; }
+.cross-sell-card .name { font-weight: 600; font-size: 0.88rem; margin-bottom: 4px; }
+.cross-sell-card .sub { font-size: 0.76rem; color: var(--text-muted); }
+
+/* Disclaimer */
+.footer-disc {
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  padding: 24px 0 16px;
+  line-height: 1.7;
+}
+
+/* Animations */
+@keyframes fadeUp {
+  from { opacity:0; transform: translateY(16px); }
+  to { opacity:1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp 0.5s ease forwards; }
+
+@media (max-width: 600px) {
+  .dim-grid { grid-template-columns: 1fr; }
+  .cross-sell-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .intro { padding: 40px 0 60px; }
+  .intro-meta { gap: 16px; }
+  .subscale-card { padding: 18px; }
+  .paywall-card { padding: 24px 18px; }
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div id="site-nav" data-test-mode="true"></div>
+
+<!-- ═══════ INTRO ═══════ -->
+<div id="introScreen" class="screen active">
+  <div class="container intro">
+    <button class="lang-toggle" onclick="toggleLang()" id="langBtn" style="position:absolute;top:20px;right:20px;">EN 🇬🇧</button>
+    <div class="intro-badge" data-da="Stress & Udbrændthed" data-en="Stress & Burnout">Stress & Udbrændthed</div>
+    <h1 data-da="Er du i <em>balance</em>?" data-en="Are you in <em>balance</em>?">Er du i <em>balance</em>?</h1>
+    <p class="lead" data-da="En videnskabelig vurdering af dit stressniveau og risiko for udbrændthed. Baseret på PSS-10 og burnout-forskning med over 40 års evidens." data-en="A scientific assessment of your stress level and burnout risk. Based on PSS-10 and burnout research with 40+ years of evidence.">En videnskabelig vurdering af dit stressniveau og risiko for udbrændthed. Baseret på PSS-10 og burnout-forskning med over 40 års evidens.</p>
+    <div class="intro-meta">
+      <span><strong>30</strong> <span data-da="spørgsmål" data-en="questions">spørgsmål</span></span>
+      <span><strong>5-8</strong> <span data-da="minutter" data-en="minutes">minutter</span></span>
+      <span><strong>6</strong> <span data-da="dimensioner" data-en="dimensions">dimensioner</span></span>
+      <span><strong data-da="Gratis" data-en="Free">Gratis</strong> <span data-da="resultat" data-en="result">resultat</span></span>
+    </div>
+    <button class="btn-start" onclick="startTest()">
+      <span data-da="Start testen" data-en="Start test">Start testen</span> →
+    </button>
+    <div class="intro-science">
+      <h3 data-da="🔬 Videnskabeligt grundlag" data-en="🔬 Scientific foundation">🔬 Videnskabeligt grundlag</h3>
+      <p data-da="Testen kombinerer to af de mest validerede instrumenter inden for stressforskning: <strong>Perceived Stress Scale (PSS-10)</strong> af Cohen et al. (1983) — verdens mest anvendte stress-skala med over 25.000 citationer — og dimensioner fra <strong>Maslach Burnout Inventory</strong>, guldstandarden for måling af udbrændthed siden 1981. Tilsammen vurderer de dit oplevede stressniveau, mestringsevne, emotionel udmattelse, kynisme og præstationsevne." data-en="This test combines two of the most validated instruments in stress research: <strong>Perceived Stress Scale (PSS-10)</strong> by Cohen et al. (1983) — the world's most used stress scale with 25,000+ citations — and dimensions from the <strong>Maslach Burnout Inventory</strong>, the gold standard for measuring burnout since 1981.">Testen kombinerer to af de mest validerede instrumenter inden for stressforskning: <strong>Perceived Stress Scale (PSS-10)</strong> af Cohen et al. (1983) — verdens mest anvendte stress-skala med over 25.000 citationer — og dimensioner fra <strong>Maslach Burnout Inventory</strong>, guldstandarden for måling af udbrændthed siden 1981. Tilsammen vurderer de dit oplevede stressniveau, mestringsevne, emotionel udmattelse, kynisme og præstationsevne.</p>
+      <div class="dim-grid">
+        <div class="dim-preview">
+          <div class="dim-dot-preview" style="background:var(--dim-helpless)"></div>
+          <h4 data-da="Oplevet hjælpeløshed" data-en="Perceived helplessness">Oplevet hjælpeløshed</h4>
+          <p data-da="Manglende kontrol" data-en="Lack of control">Manglende kontrol</p>
+        </div>
+        <div class="dim-preview">
+          <div class="dim-dot-preview" style="background:var(--dim-efficacy)"></div>
+          <h4 data-da="Mestringsevne" data-en="Self-efficacy">Mestringsevne</h4>
+          <p data-da="Evne til at håndtere" data-en="Ability to cope">Evne til at håndtere</p>
+        </div>
+        <div class="dim-preview">
+          <div class="dim-dot-preview" style="background:var(--dim-exhaust)"></div>
+          <h4 data-da="Emotionel udmattelse" data-en="Emotional exhaustion">Emotionel udmattelse</h4>
+          <p data-da="Energitømning" data-en="Energy depletion">Energitømning</p>
+        </div>
+        <div class="dim-preview">
+          <div class="dim-dot-preview" style="background:var(--dim-cynicism)"></div>
+          <h4 data-da="Kynisme & distance" data-en="Cynicism & detachment">Kynisme & distance</h4>
+          <p data-da="Mental afkobling" data-en="Mental disconnection">Mental afkobling</p>
+        </div>
+      </div>
+    </div>
+    <p style="text-align:center;font-size:0.78rem;color:var(--text-muted);margin-top:28px;line-height:1.6;" data-da="Denne test er ikke et diagnostisk værktøj og erstatter ikke professionel vurdering. Ingen data gemmes. Dine svar forbliver på din enhed." data-en="This test is not a diagnostic tool and does not replace professional evaluation. No data is stored. Your answers remain on your device.">Denne test er ikke et diagnostisk værktøj og erstatter ikke professionel vurdering. Ingen data gemmes. Dine svar forbliver på din enhed.</p>
+  </div>
+</div>
+
+<!-- ═══════ QUESTION ═══════ -->
+<div id="questionScreen" class="screen">
+  <div class="container">
+    <div class="progress-wrap">
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-text" id="progressText">1 / 30</div>
+    </div>
+    <div class="question-screen">
+      <div class="q-number" id="qNumber"></div>
+      <div class="q-section" id="qSection"></div>
+      <div class="q-text" id="qText"></div>
+      <div class="likert" id="likertOptions"></div>
+      <div class="q-nav">
+        <button class="btn-nav" id="btnPrev" onclick="prevQuestion()" data-da="← Tilbage" data-en="← Back">← Tilbage</button>
+        <button class="btn-nav primary" id="btnNext" onclick="nextQuestion()" disabled data-da="Næste →" data-en="Next →">Næste →</button>
+      </div>
+      <div class="keyboard-hint" data-da="<kbd>1</kbd>–<kbd>5</kbd> vælg · <kbd>Enter</kbd> næste · <kbd>←</kbd> tilbage" data-en="<kbd>1</kbd>–<kbd>5</kbd> select · <kbd>Enter</kbd> next · <kbd>←</kbd> back">
+        <kbd>1</kbd>–<kbd>5</kbd> vælg · <kbd>Enter</kbd> næste · <kbd>←</kbd> tilbage
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ CALCULATING ═══════ -->
+<div id="calcScreen" class="screen">
+  <div class="container calculating-screen">
+    <div class="calc-spinner"></div>
+    <p data-da="Analyserer dine svar..." data-en="Analyzing your answers...">Analyserer dine svar...</p>
+    <div class="calc-steps">
+      <div class="calc-step" id="step1"><div class="calc-step-dot"></div><span data-da="Scorer PSS-10 dimensioner" data-en="Scoring PSS-10 dimensions">Scorer PSS-10 dimensioner</span></div>
+      <div class="calc-step" id="step2"><div class="calc-step-dot"></div><span data-da="Beregner burnout-profil" data-en="Computing burnout profile">Beregner burnout-profil</span></div>
+      <div class="calc-step" id="step3"><div class="calc-step-dot"></div><span data-da="Sammenligner med normalbefolkning" data-en="Comparing to population norms">Sammenligner med normalbefolkning</span></div>
+      <div class="calc-step" id="step4"><div class="calc-step-dot"></div><span data-da="Genererer din profil" data-en="Generating your profile">Genererer din profil</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ RESULTS ═══════ -->
+<div id="resultsScreen" class="screen">
+  <div class="container results-screen" id="resultsContainer"></div>
+</div>
+
+<div id="site-footer"></div>
+
+<script src="shared/nav.js"></script>
+<script src="shared/footer.js"></script>
+<script src="shared/auth.js"></script>
+
+<script>
+// ═══════════════════════════════════════════
+//  LANGUAGE
+// ═══════════════════════════════════════════
+let lang = 'da';
+
+function toggleLang() {
+  lang = lang === 'da' ? 'en' : 'da';
+  document.getElementById('langBtn').textContent = lang === 'da' ? 'EN 🇬🇧' : 'DA 🇩🇰';
+  document.querySelectorAll('[data-da]').forEach(el => {
+    el.innerHTML = el.getAttribute('data-' + lang);
+  });
+  if (currentQ >= 0 && document.getElementById('questionScreen').classList.contains('active')) {
+    renderQuestion();
+  }
+}
+function t(da, en) { return lang === 'da' ? da : en; }
+
+// ═══════════════════════════════════════════
+//  QUESTIONS — PSS-10 + Burnout Dimensions
+// ═══════════════════════════════════════════
+const items = [
+  // PSS-10: Perceived Helplessness subscale (items 1,2,3,6,9,10)
+  { id:1, da:"I den sidste måned, hvor ofte har du været oprørt over noget der skete uventet?", en:"In the last month, how often have you been upset because of something that happened unexpectedly?", domain:"helplessness", reverse:false, scale:"pss" },
+  { id:2, da:"I den sidste måned, hvor ofte har du følt at du ikke kunne kontrollere de vigtige ting i dit liv?", en:"In the last month, how often have you felt unable to control the important things in your life?", domain:"helplessness", reverse:false, scale:"pss" },
+  { id:3, da:"I den sidste måned, hvor ofte har du følt dig nervøs eller stresset?", en:"In the last month, how often have you felt nervous or stressed?", domain:"helplessness", reverse:false, scale:"pss" },
+  // PSS-10: Self-Efficacy subscale (items 4,5,7,8)
+  { id:4, da:"I den sidste måned, hvor ofte har du følt dig sikker på din evne til at håndtere dine personlige problemer?", en:"In the last month, how often have you felt confident about your ability to handle your personal problems?", domain:"efficacy", reverse:true, scale:"pss" },
+  { id:5, da:"I den sidste måned, hvor ofte har du følt at tingene gik din vej?", en:"In the last month, how often have you felt that things were going your way?", domain:"efficacy", reverse:true, scale:"pss" },
+  // PSS-10 continued
+  { id:6, da:"I den sidste måned, hvor ofte har du oplevet at du ikke kunne overkomme alt det du skulle?", en:"In the last month, how often have you found that you could not cope with all the things you had to do?", domain:"helplessness", reverse:false, scale:"pss" },
+  { id:7, da:"I den sidste måned, hvor ofte har du kunnet kontrollere irritationsmomenter i dit liv?", en:"In the last month, how often have you been able to control irritations in your life?", domain:"efficacy", reverse:true, scale:"pss" },
+  { id:8, da:"I den sidste måned, hvor ofte har du følt at du havde styr på tingene?", en:"In the last month, how often have you felt that you were on top of things?", domain:"efficacy", reverse:true, scale:"pss" },
+  { id:9, da:"I den sidste måned, hvor ofte er du blevet vred over ting der lå uden for din kontrol?", en:"In the last month, how often have you been angered because of things that happened that were outside of your control?", domain:"helplessness", reverse:false, scale:"pss" },
+  { id:10, da:"I den sidste måned, hvor ofte har du følt at vanskelighederne hobede sig op så du ikke kunne klare dem?", en:"In the last month, how often have you felt that difficulties were piling up so high that you could not overcome them?", domain:"helplessness", reverse:false, scale:"pss" },
+
+  // BURNOUT: Emotional Exhaustion
+  { id:11, da:"Jeg føler mig følelsesmæssigt drænet af mit daglige liv.", en:"I feel emotionally drained by my daily life.", domain:"exhaustion", reverse:false, scale:"burnout" },
+  { id:12, da:"Jeg føler mig brugt op ved slutningen af dagen.", en:"I feel used up at the end of the day.", domain:"exhaustion", reverse:false, scale:"burnout" },
+  { id:13, da:"Jeg føler mig træt når jeg vågner om morgenen og skal møde endnu en dag.", en:"I feel tired when I get up in the morning and have to face another day.", domain:"exhaustion", reverse:false, scale:"burnout" },
+  { id:14, da:"Det føles som om mit arbejde/dagligliv dræner al min energi.", en:"It feels like my work/daily life drains all my energy.", domain:"exhaustion", reverse:false, scale:"burnout" },
+  { id:15, da:"Jeg føler mig udbrændt af mine daglige forpligtelser.", en:"I feel burned out by my daily obligations.", domain:"exhaustion", reverse:false, scale:"burnout" },
+  { id:16, da:"Jeg har stadig energi til at gøre ting jeg nyder, efter en typisk dag.", en:"I still have energy to do things I enjoy after a typical day.", domain:"exhaustion", reverse:true, scale:"burnout" },
+  { id:17, da:"Jeg føler mig som om jeg kører på tomgang.", en:"I feel like I'm running on empty.", domain:"exhaustion", reverse:false, scale:"burnout" },
+
+  // BURNOUT: Cynicism/Depersonalization
+  { id:18, da:"Jeg har mistet entusiasmen for ting der plejede at betyde noget for mig.", en:"I have lost my enthusiasm for things that used to matter to me.", domain:"cynicism", reverse:false, scale:"burnout" },
+  { id:19, da:"Jeg er blevet mere kynisk overfor om mine indsatser gør en forskel.", en:"I have become more cynical about whether my efforts make a difference.", domain:"cynicism", reverse:false, scale:"burnout" },
+  { id:20, da:"Jeg distancerer mig følelsesmæssigt fra mennesker omkring mig.", en:"I emotionally distance myself from people around me.", domain:"cynicism", reverse:false, scale:"burnout" },
+  { id:21, da:"Jeg tvivler på meningen med det jeg bruger min tid på.", en:"I doubt the meaning of what I spend my time on.", domain:"cynicism", reverse:false, scale:"burnout" },
+  { id:22, da:"Jeg føler mig stadig engageret og motiveret i min hverdag.", en:"I still feel engaged and motivated in my daily life.", domain:"cynicism", reverse:true, scale:"burnout" },
+  { id:23, da:"Jeg oplever en voksende ligegyldighed overfor mine forpligtelser.", en:"I experience a growing indifference toward my obligations.", domain:"cynicism", reverse:false, scale:"burnout" },
+
+  // BURNOUT: Personal Accomplishment
+  { id:24, da:"Jeg føler at jeg udretter meningsfulde ting i mit liv.", en:"I feel I accomplish meaningful things in my life.", domain:"accomplishment", reverse:true, scale:"burnout" },
+  { id:25, da:"Jeg kan effektivt løse de problemer der opstår i min hverdag.", en:"I can effectively solve the problems that arise in my daily life.", domain:"accomplishment", reverse:true, scale:"burnout" },
+  { id:26, da:"Jeg føler at jeg gør en positiv forskel for de mennesker omkring mig.", en:"I feel I make a positive difference to the people around me.", domain:"accomplishment", reverse:true, scale:"burnout" },
+  { id:27, da:"Jeg er stolt af det arbejde og de indsatser jeg leverer.", en:"I am proud of the work and efforts I deliver.", domain:"accomplishment", reverse:true, scale:"burnout" },
+  { id:28, da:"Jeg føler mig kompetent til at håndtere mine daglige opgaver.", en:"I feel competent in handling my daily tasks.", domain:"accomplishment", reverse:true, scale:"burnout" },
+  { id:29, da:"Jeg har svært ved at se resultater af mine anstrengelser.", en:"I find it hard to see results from my efforts.", domain:"accomplishment", reverse:false, scale:"burnout" },
+  { id:30, da:"Jeg føler mig energisk og handlekraftig.", en:"I feel energetic and capable of taking action.", domain:"accomplishment", reverse:true, scale:"burnout" }
+];
+
+// Likert labels
+const pssLabels = {
+  da: ["Aldrig","Næsten aldrig","Sommetider","Ret ofte","Meget ofte"],
+  en: ["Never","Almost never","Sometimes","Fairly often","Very often"]
+};
+const burnoutLabels = {
+  da: ["Helt uenig","Uenig","Neutral","Enig","Helt enig"],
+  en: ["Strongly disagree","Disagree","Neutral","Agree","Strongly agree"]
+};
+
+// ═══════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════
+let answers = {};
+let currentQ = 0;
+let shuffledItems = [];
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function startTest() {
+  const pssItems = items.filter(i => i.scale === 'pss');
+  const burnoutItems = items.filter(i => i.scale === 'burnout');
+  shuffle(pssItems);
+  shuffle(burnoutItems);
+  shuffledItems = [...pssItems, ...burnoutItems];
+  currentQ = 0;
+  answers = {};
+  showScreen('questionScreen');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const item = shuffledItems[currentQ];
+  const total = shuffledItems.length;
+  const pct = (currentQ / total) * 100;
+
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = (currentQ + 1) + ' / ' + total;
+  document.getElementById('qNumber').textContent = t('Spørgsmål ', 'Question ') + (currentQ + 1);
+
+  const sectionNames = {
+    pss: { da: 'Perceived Stress Scale (PSS-10)', en: 'Perceived Stress Scale (PSS-10)' },
+    burnout: { da: 'Udbrændthedsvurdering', en: 'Burnout Assessment' }
+  };
+  document.getElementById('qSection').textContent = sectionNames[item.scale][lang];
+  document.getElementById('qText').textContent = item[lang];
+
+  const labels = item.scale === 'pss' ? pssLabels[lang] : burnoutLabels[lang];
+  const container = document.getElementById('likertOptions');
+  container.innerHTML = '';
+  labels.forEach(function(label, i) {
+    var btn = document.createElement('button');
+    btn.className = 'likert-option' + (answers[item.id] === (i + 1) ? ' selected' : '');
+    btn.innerHTML = '<div class="likert-dot"></div>' + label;
+    btn.onclick = function() { selectAnswer(item.id, i + 1); };
+    container.appendChild(btn);
+  });
+
+  document.getElementById('btnNext').disabled = !answers[item.id];
+  var btnNextEl = document.getElementById('btnNext');
+  if (currentQ === total - 1) {
+    btnNextEl.textContent = t('Se resultat →', 'See result →');
+  } else {
+    btnNextEl.innerHTML = btnNextEl.getAttribute('data-' + lang);
+  }
+}
+
+function selectAnswer(itemId, val) {
+  answers[itemId] = val;
+  document.querySelectorAll('.likert-option').forEach(function(opt, i) {
+    opt.classList.toggle('selected', i === val - 1);
+  });
+  document.getElementById('btnNext').disabled = false;
+}
+
+function nextQuestion() {
+  if (document.getElementById('btnNext').disabled) return;
+  if (currentQ < shuffledItems.length - 1) {
+    currentQ++;
+    renderQuestion();
+  } else {
+    showLoading();
+  }
+}
+
+function prevQuestion() {
+  if (currentQ > 0) {
+    currentQ--;
+    renderQuestion();
+  }
+}
+
+// Keyboard
+document.addEventListener('keydown', function(e) {
+  if (!document.getElementById('questionScreen').classList.contains('active')) return;
+  if (e.key >= '1' && e.key <= '5') {
+    selectAnswer(shuffledItems[currentQ].id, parseInt(e.key));
+  }
+  if (e.key === 'Enter') nextQuestion();
+  if (e.key === 'ArrowLeft') prevQuestion();
+});
+
+// ═══════════════════════════════════════════
+//  LOADING ANIMATION
+// ═══════════════════════════════════════════
+function showLoading() {
+  showScreen('calcScreen');
+  var steps = ['step1','step2','step3','step4'];
+  steps.forEach(function(s, i) {
+    setTimeout(function() {
+      document.getElementById(s).classList.add('active');
+      if (i > 0) { document.getElementById(steps[i-1]).classList.remove('active'); document.getElementById(steps[i-1]).classList.add('done'); }
+    }, i * 700);
+  });
+  setTimeout(function() {
+    document.getElementById('step4').classList.remove('active');
+    document.getElementById('step4').classList.add('done');
+    calculateAndShowResults();
+  }, 3200);
+}
+
+// ═══════════════════════════════════════════
+//  SCORING
+// ═══════════════════════════════════════════
+function calculateAndShowResults() {
+  // PSS-10 scoring
+  var pssTotal = 0;
+  var helplessness = 0;
+  var efficacy = 0;
+  var helpIds = [1,2,3,6,9,10];
+  var effIds = [4,5,7,8];
+
+  for (var id = 1; id <= 10; id++) {
+    var raw = (answers[id] || 3) - 1; // 0-4
+    var item = items.find(function(i) { return i.id === id; });
+    var scored = item.reverse ? (4 - raw) : raw;
+    pssTotal += scored;
+    if (helpIds.indexOf(id) >= 0) helplessness += scored;
+    if (effIds.indexOf(id) >= 0) efficacy += scored;
+  }
+
+  // Burnout scoring
+  var exhaustion = 0, exhaustionMax = 0;
+  var cynicism = 0, cynicismMax = 0;
+  var accomplishment = 0, accomplishmentMax = 0;
+
+  for (var id2 = 11; id2 <= 30; id2++) {
+    var raw2 = (answers[id2] || 3) - 1;
+    var item2 = items.find(function(i) { return i.id === id2; });
+    var scored2 = item2.reverse ? (4 - raw2) : raw2;
+    if (item2.domain === 'exhaustion') { exhaustion += scored2; exhaustionMax += 4; }
+    if (item2.domain === 'cynicism') { cynicism += scored2; cynicismMax += 4; }
+    if (item2.domain === 'accomplishment') { accomplishment += scored2; accomplishmentMax += 4; }
+  }
+
+  // Percentages
+  var pssPct = Math.round((pssTotal / 40) * 100);
+  var helpPct = Math.round((helplessness / 24) * 100);
+  var effPct = Math.round((efficacy / 16) * 100);
+  var exhPct = Math.round((exhaustion / exhaustionMax) * 100);
+  var cynPct = Math.round((cynicism / cynicismMax) * 100);
+  var accPct = Math.round((accomplishment / accomplishmentMax) * 100);
+
+  // Level
+  var level, levelColor, levelBg;
+  if (pssTotal <= 13) { level = t('Lavt stressniveau','Low stress level'); levelColor = 'var(--green)'; levelBg = 'rgba(92,184,92,0.1)'; }
+  else if (pssTotal <= 20) { level = t('Moderat stress','Moderate stress'); levelColor = 'var(--yellow)'; levelBg = 'rgba(232,197,71,0.1)'; }
+  else if (pssTotal <= 26) { level = t('Forhøjet stress','Elevated stress'); levelColor = 'var(--orange)'; levelBg = 'rgba(232,135,60,0.1)'; }
+  else { level = t('Højt stressniveau','High stress level'); levelColor = 'var(--red)'; levelBg = 'rgba(217,83,79,0.1)'; }
+
+  // Burnout profile
+  var burnoutProfile, profileDesc;
+  if (exhPct < 40 && cynPct < 40 && accPct < 40) {
+    burnoutProfile = t('Engageret','Engaged');
+    profileDesc = t('Du viser tegn på god balance mellem energi, engagement og præstationsevne. Du håndterer dine daglige forpligtelser uden væsentlig udmattelse.','You show signs of good balance between energy, engagement and performance. You handle daily obligations without significant exhaustion.');
+  } else if (exhPct >= 60 && cynPct < 40 && accPct < 40) {
+    burnoutProfile = t('Overbelastet','Overextended');
+    profileDesc = t('Du oplever høj emotionel udmattelse, men fastholder dit engagement og din præstationsevne. Risiko for at udmattelsen eskalerer hvis mønstret fortsætter.','You experience high emotional exhaustion but maintain engagement and performance. Risk of escalation if the pattern continues.');
+  } else if (exhPct < 40 && cynPct >= 60) {
+    burnoutProfile = t('Afkoblet','Disengaged');
+    profileDesc = t('Du oplever mental distance og kynisme, men uden den dybe udmattelse. Dette kan være et tidligt stadie eller en beskyttelsesmekanisme.','You experience mental distance and cynicism but without deep exhaustion. This can be an early stage or a protective mechanism.');
+  } else if (exhPct < 40 && accPct >= 60) {
+    burnoutProfile = t('Ineffektiv','Ineffective');
+    profileDesc = t('Du oplever reduceret præstationsevne og tvivl på dine resultater, men uden den fulde emotionelle udmattelse.','You experience reduced performance and doubt in your results, but without full emotional exhaustion.');
+  } else if (exhPct >= 50 && cynPct >= 50) {
+    burnoutProfile = t('Udbrændthed','Burnout');
+    profileDesc = t('Du viser tegn på udbrændthed med en kombination af emotionel udmattelse, kynisme og reduceret præstationsevne. Det anbefales at søge professionel støtte.','You show signs of burnout with a combination of emotional exhaustion, cynicism and reduced performance. Seeking professional support is recommended.');
+  } else {
+    burnoutProfile = t('Moderat belastet','Moderately strained');
+    profileDesc = t('Du oplever moderat belastning på tværs af flere dimensioner. Forebyggende tiltag kan hjælpe med at forhindre yderligere eskalering.','You experience moderate strain across multiple dimensions. Preventive measures can help prevent further escalation.');
+  }
+
+  // Subscale data
+  var subscales = [
+    { key:'pss', name:t('Samlet stress (PSS-10)','Overall Stress (PSS-10)'), score:pssTotal, max:40, pct:pssPct, color:'var(--dim-stress)',
+      level: pssTotal<=13?t('Lav','Low'):pssTotal<=20?t('Moderat','Moderate'):pssTotal<=26?t('Forhøjet','Elevated'):t('Høj','High'),
+      levelColor: pssTotal<=13?'var(--green)':pssTotal<=20?'var(--yellow)':pssTotal<=26?'var(--orange)':'var(--red)',
+      desc: t('Din samlede PSS-10-score måler hvor uforudsigelig, ukontrollerbar og overbelastet du opfatter dit liv. Gennemsnittet i befolkningen er ca. 13. Scores over 20 indikerer forhøjet stress associeret med højere kortisolniveauer, supprimeret immunforsvar og dårligere søvnkvalitet (Cohen & Janicki-Deverts, 2012).','Your total PSS-10 score measures how unpredictable, uncontrollable and overloaded you perceive your life. The population average is about 13. Scores above 20 indicate elevated stress associated with higher cortisol, suppressed immune function and poorer sleep (Cohen & Janicki-Deverts, 2012).')
+    },
+    { key:'helplessness', name:t('Oplevet hjælpeløshed','Perceived Helplessness'), score:helplessness, max:24, pct:helpPct, color:'var(--dim-helpless)',
+      level: helpPct<35?t('Lav','Low'):helpPct<55?t('Moderat','Moderate'):helpPct<75?t('Forhøjet','Elevated'):t('Høj','High'),
+      levelColor: helpPct<35?'var(--green)':helpPct<55?'var(--yellow)':helpPct<75?'var(--orange)':'var(--red)',
+      desc: t('Måler dine følelser af manglende kontrol over omstændigheder og egne reaktioner. Høj hjælpeløshed er stærkt forbundet med depressive symptomer og angst. Kognitive strategier som reframing og problemfokuseret coping kan reducere denne dimension.','Measures your feelings of lack of control over circumstances and your own reactions. High helplessness is strongly linked to depressive symptoms and anxiety. Cognitive strategies like reframing and problem-focused coping can reduce this dimension.')
+    },
+    { key:'efficacy', name:t('Manglende mestringsevne','Lack of Self-Efficacy'), score:efficacy, max:16, pct:effPct, color:'var(--dim-efficacy)',
+      level: effPct<35?t('Lav','Low'):effPct<55?t('Moderat','Moderate'):effPct<75?t('Forhøjet','Elevated'):t('Høj','High'),
+      levelColor: effPct<35?'var(--green)':effPct<55?'var(--yellow)':effPct<75?'var(--orange)':'var(--red)',
+      desc: t('Måler din oplevede manglende evne til at håndtere problemer. Lav self-efficacy er en stærk prædiktor for stress-relaterede helbredsproblemer. Mastery-oplevelser — at gennemføre udfordrende opgaver succesfuldt — er den mest effektive vej til at styrke self-efficacy (Bandura, 1997).','Measures your perceived inability to handle problems. Low self-efficacy is a strong predictor of stress-related health issues. Mastery experiences — successfully completing challenging tasks — is the most effective way to strengthen self-efficacy (Bandura, 1997).')
+    },
+    { key:'exhaustion', name:t('Emotionel udmattelse','Emotional Exhaustion'), score:exhaustion, max:exhaustionMax, pct:exhPct, color:'var(--dim-exhaust)',
+      level: exhPct<35?t('Lav','Low'):exhPct<55?t('Moderat','Moderate'):exhPct<75?t('Forhøjet','Elevated'):t('Høj','High'),
+      levelColor: exhPct<35?'var(--green)':exhPct<55?'var(--yellow)':exhPct<75?'var(--orange)':'var(--red)',
+      desc: t('Kernekomponenten i udbrændthed. Måler følelsen af at være følelsesmæssigt opbrugt og drænet. Høj emotionel udmattelse er forbundet med forhøjet kortisol, kronisk træthed og søvnproblemer. Det er ofte den første dimension der eskalerer ved udbrændthed (Maslach & Leiter, 2016).','The core component of burnout. Measures feeling emotionally depleted and drained. High emotional exhaustion is linked to elevated cortisol, chronic fatigue and sleep problems. It is often the first dimension to escalate in burnout (Maslach & Leiter, 2016).')
+    },
+    { key:'cynicism', name:t('Kynisme & distance','Cynicism & Detachment'), score:cynicism, max:cynicismMax, pct:cynPct, color:'var(--dim-cynicism)',
+      level: cynPct<35?t('Lav','Low'):cynPct<55?t('Moderat','Moderate'):cynPct<75?t('Forhøjet','Elevated'):t('Høj','High'),
+      levelColor: cynPct<35?'var(--green)':cynPct<55?'var(--yellow)':cynPct<75?'var(--orange)':'var(--red)',
+      desc: t('Måler mental afkobling, ligegyldighed og distance fra dine forpligtelser. Kynisme fungerer som en psykisk beskyttelsesmekanisme mod udmattelse, men forværrer langsigtede konsekvenser. Genopbygning af mening og formål er centralt for at reducere denne dimension.','Measures mental disconnection, indifference and distance from your obligations. Cynicism functions as a psychological defense mechanism against exhaustion but worsens long-term consequences. Rebuilding meaning and purpose is central to reducing this dimension.')
+    },
+    { key:'accomplishment', name:t('Reduceret præstation','Reduced Accomplishment'), score:accomplishment, max:accomplishmentMax, pct:accPct, color:'var(--dim-accomplish)',
+      level: accPct<35?t('Lav','Low'):accPct<55?t('Moderat','Moderate'):accPct<75?t('Forhøjet','Elevated'):t('Høj','High'),
+      levelColor: accPct<35?'var(--green)':accPct<55?'var(--yellow)':accPct<75?'var(--orange)':'var(--red)',
+      desc: t('Måler følelser af inkompetence og manglende resultater. Når denne dimension er høj, kan det skyldes enten reelle præstationsfald pga. udmattelse, eller en forvridning i selvopfattelse. Regelmæssig anerkendelse og synliggørelse af konkrete resultater kan modvirke denne oplevelse.','Measures feelings of incompetence and lack of results. When this dimension is high, it can stem from actual performance decline due to exhaustion, or a distortion in self-perception. Regular recognition and visibility of concrete results can counteract this experience.')
+    }
+  ];
+
+  // Build radar SVG
+  var radarSvg = buildRadar([
+    { label: t('Stress','Stress'), pct: pssPct, color:'var(--dim-stress)' },
+    { label: t('Hjælpeløshed','Helplessness'), pct: helpPct, color:'var(--dim-helpless)' },
+    { label: t('Self-efficacy↓','Self-efficacy↓'), pct: effPct, color:'var(--dim-efficacy)' },
+    { label: t('Udmattelse','Exhaustion'), pct: exhPct, color:'var(--dim-exhaust)' },
+    { label: t('Kynisme','Cynicism'), pct: cynPct, color:'var(--dim-cynicism)' },
+    { label: t('Præstation↓','Performance↓'), pct: accPct, color:'var(--dim-accomplish)' }
+  ]);
+
+  // Interpretation text
+  var interpText;
+  if (pssTotal <= 13) interpText = t('Din PSS-10-score er under gennemsnittet (13) for normalbefolkningen. Du oplever et relativt lavt stressniveau og håndterer livets udfordringer godt.','Your PSS-10 score is below the population average (13). You experience relatively low stress and handle life\'s challenges well.');
+  else if (pssTotal <= 20) interpText = t('Din PSS-10-score er over gennemsnittet (13) og i den moderate zone. Du oplever mærkbar stress i hverdagen. Forebyggende stresshåndtering anbefales.','Your PSS-10 score is above the average (13) and in the moderate zone. You experience noticeable daily stress. Preventive stress management is recommended.');
+  else if (pssTotal <= 26) interpText = t('Din PSS-10-score er forhøjet. Forskning viser at scores i dette interval er associeret med forhøjet kortisol, supprimeret immunforsvar og dårligere søvnkvalitet. Aktiv stresshåndtering anbefales.','Your PSS-10 score is elevated. Research shows scores in this range are associated with elevated cortisol, suppressed immune function and poorer sleep. Active stress management is recommended.');
+  else interpText = t('Din PSS-10-score er i den høje zone (>26). Dette er forbundet med markant forhøjet risiko for stressrelaterede helbredsproblemer. Det anbefales at søge professionel støtte og implementere stressreducerende tiltag.','Your PSS-10 score is in the high zone (>26). This is associated with significantly elevated risk of stress-related health issues. Seeking professional support and implementing stress-reducing measures is recommended.');
+
+  // Build results HTML
+  var html = '' +
+    '<div class="results-header fade-up">' +
+      '<div class="level-badge" style="background:' + levelBg + ';color:' + levelColor + '">' + level + '</div>' +
+      '<h2>' + burnoutProfile + '</h2>' +
+      '<p>' + profileDesc + '</p>' +
+    '</div>' +
+    '<div class="score-display fade-up">' +
+      '<div class="score-circle" style="border-color:' + levelColor + ';background:' + levelBg + '">' +
+        '<div class="score-num" style="color:' + levelColor + '">' + pssTotal + '</div>' +
+        '<div class="score-max">/ 40 PSS</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="score-interpretation fade-up">' + interpText + '</div>' +
+    '<div class="radar-section fade-up">' +
+      '<h3>' + t('Din stressprofil','Your Stress Profile') + '</h3>' +
+      '<p class="subtitle">' + t('6 dimensioner · Klik på en dimension for detaljer','6 dimensions · Click a dimension for details') + '</p>' +
+      radarSvg +
+    '</div>' +
+    '<div class="subscale-cards">';
+
+  subscales.forEach(function(s) {
+    html += '<div class="subscale-card fade-up" onclick="this.classList.toggle(\'expanded\')">' +
+      '<div class="sc-header">' +
+        '<div class="sc-name"><div class="sc-dot" style="background:' + s.color + '"></div>' + s.name + '</div>' +
+        '<div class="sc-score">' + s.pct + '%</div>' +
+      '</div>' +
+      '<div class="sc-bar"><div class="sc-fill" style="width:' + s.pct + '%;background:' + s.color + '"></div></div>' +
+      '<div class="sc-level" style="color:' + s.levelColor + '">' + s.level + '</div>' +
+      '<div class="sc-desc">' + s.desc + '</div>' +
+    '</div>';
+  });
+
+  html += '</div>';
+
+  // Paywall
+  html += '<div class="paywall-card fade-up">' +
+    '<h3>' + t('Få din fulde stressrapport','Get your full stress report') + '</h3>' +
+    '<p>' + t('Dybdegående analyse med personlige anbefalinger og handlingsplan','In-depth analysis with personalized recommendations and action plan') + '</p>' +
+    '<div class="price-tag">49 kr <small>' + t('engangskøb','one-time') + '</small></div>' +
+    '<table class="compare-table"><thead><tr>' +
+      '<th>' + t('Indhold','Content') + '</th>' +
+      '<th>' + t('Gratis','Free') + '</th>' +
+      '<th>' + t('Rapport','Report') + '</th>' +
+    '</tr></thead><tbody>' +
+      '<tr><td>' + t('PSS-10 totalscore','PSS-10 total score') + '</td><td class="check">✓</td><td class="check">✓</td></tr>' +
+      '<tr><td>' + t('Burnout-profil','Burnout profile') + '</td><td class="check">✓</td><td class="check">✓</td></tr>' +
+      '<tr><td>' + t('6-dimensionel radar','6-dimension radar') + '</td><td class="check">✓</td><td class="check">✓</td></tr>' +
+      '<tr><td>' + t('Dimensionsforklaringer','Dimension explanations') + '</td><td class="check">✓</td><td class="check">✓</td></tr>' +
+      '<tr><td>' + t('Percentil-rangering','Percentile ranking') + '</td><td class="cross">—</td><td class="check">✓</td></tr>' +
+      '<tr><td>' + t('Alderskorrigeret sammenligning','Age-adjusted comparison') + '</td><td class="cross">—</td><td class="check">✓</td></tr>' +
+      '<tr><td>' + t('Detaljeret burnout-analyse','Detailed burnout analysis') + '</td><td class="cross">—</td><td class="check">✓</td></tr>' +
+      '<tr><td>' + t('Personlig handlingsplan','Personal action plan') + '</td><td class="cross">—</td><td class="check">✓</td></tr>' +
+      '<tr><td>' + t('Coping-strategier for din profil','Coping strategies for your profile') + '</td><td class="cross">—</td><td class="check">✓</td></tr>' +
+      '<tr><td>' + t('Stressreducerende øvelser','Stress-reducing exercises') + '</td><td class="cross">—</td><td class="check">✓</td></tr>' +
+      '<tr><td>' + t('Søvn- & restitutionsguide','Sleep & recovery guide') + '</td><td class="cross">—</td><td class="check">✓</td></tr>' +
+      '<tr><td>' + t('Rød-flag markering','Red-flag markers') + '</td><td class="cross">—</td><td class="check">✓</td></tr>' +
+      '<tr><td>' + t('PDF til din læge','PDF for your doctor') + '</td><td class="cross">—</td><td class="check">✓</td></tr>' +
+      '<tr><td>' + t('Samtaleguide til lægen','Doctor conversation guide') + '</td><td class="cross">—</td><td class="check">✓</td></tr>' +
+    '</tbody></table>' +
+    '<button class="btn-buy">' + t('Køb rapport — 49 kr','Buy report — 49 kr') + '</button>' +
+    '<br><button class="btn-sub-alt">' + t('Eller: Ubegrænset adgang — 89 kr/md','Or: Unlimited access — 89 kr/mo') + '</button>' +
+  '</div>';
+
+  // Cross-sell
+  html += '<div class="cross-sell fade-up">' +
+    '<h3>' + t('Relaterede tests','Related tests') + '</h3>' +
+    '<div class="cross-sell-grid">' +
+      '<a href="adhd-screening.html" class="cross-sell-card"><div class="emoji">⚡</div><div class="name">' + t('ADHD-screening','ADHD Screening') + '</div><div class="sub">' + t('Stress og ADHD deler mange symptomer','Stress and ADHD share many symptoms') + '</div></a>' +
+      '<a href="personlighedstest.html" class="cross-sell-card"><div class="emoji">🌟</div><div class="name">' + t('Personlighedstest','Personality Test') + '</div><div class="sub">' + t('Neuroticisme påvirker stressoplevelse','Neuroticism affects stress perception') + '</div></a>' +
+      '<a href="autisme-test.html" class="cross-sell-card"><div class="emoji">🧩</div><div class="name">' + t('Autisme-test','Autism Test') + '</div><div class="sub">' + t('Sensorisk overbelastning og stress','Sensory overload and stress') + '</div></a>' +
+    '</div>' +
+  '</div>';
+
+  // Retake
+  html += '<div style="text-align:center;margin:40px 0"><button class="btn-start" onclick="location.reload()">' +
+    t('Tag testen igen →','Take the test again →') + '</button></div>';
+
+  // Disclaimer
+  html += '<div class="footer-disc">PSS-10 · Cohen, Kamarck & Mermelstein (1983) · ' + t('Burnout-dimensioner inspireret af MBI (Maslach & Jackson, 1981)','Burnout dimensions inspired by MBI (Maslach & Jackson, 1981)') +
+    '<br>' + t('Denne test er ikke et diagnostisk værktøj. Søg professionel hjælp ved vedvarende symptomer.','This test is not a diagnostic tool. Seek professional help for persistent symptoms.') + '</div>';
+
+  document.getElementById('resultsContainer').innerHTML = html;
+  showScreen('resultsScreen');
+}
+
+// ═══════════════════════════════════════════
+//  RADAR SVG
+// ═══════════════════════════════════════════
+function buildRadar(dims) {
+  var cx = 180, cy = 170, R = 120;
+  var n = dims.length;
+  var angleStep = (Math.PI * 2) / n;
+  var startAngle = -Math.PI / 2;
+
+  var svg = '<div style="display:flex;justify-content:center;overflow:visible"><svg width="360" height="360" viewBox="0 0 360 360">';
+
+  // Grid rings
+  for (var r = 1; r <= 4; r++) {
+    var radius = (R / 4) * r;
+    var points = [];
+    for (var i = 0; i < n; i++) {
+      var a = startAngle + i * angleStep;
+      points.push((cx + radius * Math.cos(a)).toFixed(1) + ',' + (cy + radius * Math.sin(a)).toFixed(1));
+    }
+    svg += '<polygon points="' + points.join(' ') + '" fill="none" stroke="var(--border)" stroke-width="1" opacity="' + (r === 4 ? 0.6 : 0.3) + '"/>';
+  }
+
+  // Axis lines
+  for (var j = 0; j < n; j++) {
+    var a2 = startAngle + j * angleStep;
+    svg += '<line x1="' + cx + '" y1="' + cy + '" x2="' + (cx + R * Math.cos(a2)).toFixed(1) + '" y2="' + (cy + R * Math.sin(a2)).toFixed(1) + '" stroke="var(--border)" stroke-width="1" opacity="0.3"/>';
+  }
+
+  // Data polygon
+  var dataPoints = [];
+  for (var k = 0; k < n; k++) {
+    var a3 = startAngle + k * angleStep;
+    var rd = (dims[k].pct / 100) * R;
+    dataPoints.push((cx + rd * Math.cos(a3)).toFixed(1) + ',' + (cy + rd * Math.sin(a3)).toFixed(1));
+  }
+  svg += '<polygon points="' + dataPoints.join(' ') + '" fill="' + 'rgba(194,85,58,0.1)' + '" stroke="var(--accent)" stroke-width="2"/>';
+
+  // Data points + labels
+  for (var m = 0; m < n; m++) {
+    var a4 = startAngle + m * angleStep;
+    var rd2 = (dims[m].pct / 100) * R;
+    var px = cx + rd2 * Math.cos(a4);
+    var py = cy + rd2 * Math.sin(a4);
+    svg += '<circle cx="' + px.toFixed(1) + '" cy="' + py.toFixed(1) + '" r="5" fill="var(--accent)" stroke="var(--bg)" stroke-width="2"/>';
+
+    var lx = cx + (R + 28) * Math.cos(a4);
+    var ly = cy + (R + 28) * Math.sin(a4);
+    var anchor = lx < cx - 10 ? 'end' : lx > cx + 10 ? 'start' : 'middle';
+    svg += '<text x="' + lx.toFixed(1) + '" y="' + ly.toFixed(1) + '" text-anchor="' + anchor + '" fill="var(--text-3)" font-size="11" font-family="Figtree,sans-serif">' + dims[m].label + '</text>';
+    svg += '<text x="' + lx.toFixed(1) + '" y="' + (ly + 15).toFixed(1) + '" text-anchor="' + anchor + '" fill="var(--accent)" font-size="13" font-weight="700" font-family="Source Serif 4,serif">' + dims[m].pct + '%</text>';
+  }
+
+  svg += '</svg></div>';
+  return svg;
+}
+</script>
+</body>
+</html>

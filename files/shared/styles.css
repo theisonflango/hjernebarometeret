@@ -1,0 +1,84 @@
+/* Hjernebarometeret — Shared Nav & Footer Styles */
+
+/* ═══ NAV ═══ */
+.sn{display:flex;justify-content:space-between;align-items:center;padding:0 clamp(20px,4vw,48px);height:64px;position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(250,249,247,.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid transparent;transition:border-color .3s}
+.sn.scrolled{border-bottom-color:var(--border)}
+.sn-logo{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-size:18px;font-weight:600;letter-spacing:-.02em;text-decoration:none;color:var(--text)}
+.sn-logo svg{flex-shrink:0}
+.sn-right{display:flex;align-items:center;gap:4px}
+.sn-link{font-size:13px;font-weight:500;color:var(--text-3);padding:8px 14px;border-radius:8px;border:none;background:none;transition:color .2s,background .2s;text-decoration:none}
+.sn-link:hover{color:var(--text);background:rgba(0,0,0,.04)}
+.sn-act{color:var(--text)!important;font-weight:600!important}
+.sn-cta{font-size:13px;font-weight:600;color:var(--accent);padding:8px 18px;border-radius:8px;border:1.5px solid var(--accent);background:none;transition:all .2s;margin-left:4px;text-decoration:none}
+.sn-cta:hover{background:var(--accent);color:#fff}
+.sn-login{font-size:13px;font-weight:500;color:var(--text-2);padding:8px 14px;border-radius:8px;border:none;background:none;display:flex;align-items:center;gap:6px;transition:all .2s;text-decoration:none}
+.sn-login:hover{color:var(--text);background:rgba(0,0,0,.04)}
+.sn-exit{font-size:13px;font-weight:500;color:var(--text-3);padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:none;transition:all .2s;text-decoration:none}
+.sn-exit:hover{color:var(--text);border-color:var(--border-2);background:rgba(0,0,0,.02)}
+.sn-hamburger{display:none;background:none;border:none;color:var(--text);padding:8px;border-radius:8px;cursor:pointer}
+.sn-hamburger:hover{background:rgba(0,0,0,.04)}
+.sn-close{display:none;background:none;border:none;color:var(--text);padding:8px;border-radius:8px;cursor:pointer;position:absolute;top:16px;right:16px}
+
+/* ═══ FOOTER ═══ */
+.sf{padding:36px clamp(20px,4vw,48px);border-top:1px solid var(--border);max-width:1120px;margin:0 auto}
+.sf-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;gap:28px;flex-wrap:wrap}
+.sf-brand{max-width:340px}
+.sf-brand .sn-logo{margin-bottom:10px}
+.sf-brand p{font-size:12px;color:var(--text-3);line-height:1.7}
+.sf-cols{display:flex;gap:40px}
+.sf-cols h6{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-3);margin-bottom:10px}
+.sf-cols a{display:block;font-size:12px;color:var(--text-2);margin-bottom:6px;transition:color .2s;text-decoration:none}
+.sf-cols a:hover{color:var(--text)}
+.sf-bot{padding-top:20px;border-top:1px solid var(--border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.sf-bot p{font-size:11px;color:var(--text-4);line-height:1.6}
+.sf-disc{max-width:560px}
+
+/* ═══ LOGIN MODAL ═══ */
+.hb-modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(28,27,26,.4);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:1000;align-items:center;justify-content:center;padding:20px}
+.hb-modal{background:#fff;border-radius:16px;padding:36px 32px;max-width:400px;width:100%;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.12)}
+.hb-modal-close{position:absolute;top:12px;right:16px;background:none;border:none;font-size:24px;color:var(--text-3);cursor:pointer;padding:4px 8px;border-radius:6px;line-height:1}
+.hb-modal-close:hover{color:var(--text);background:rgba(0,0,0,.04)}
+.hb-modal-logo{display:flex;align-items:center;gap:8px;font-family:var(--serif);font-size:16px;font-weight:600;color:var(--text);margin-bottom:24px;letter-spacing:-.02em}
+.hb-modal-title{font-family:var(--serif);font-size:22px;font-weight:600;color:var(--text);margin-bottom:6px}
+.hb-modal-sub{font-size:13px;color:var(--text-3);margin-bottom:20px;line-height:1.5}
+.hb-input{display:block;width:100%;padding:12px 14px;font-size:14px;font-family:var(--sans);border:1px solid var(--border);border-radius:10px;background:var(--bg);color:var(--text);margin-bottom:12px;outline:none;transition:border-color .2s}
+.hb-input:focus{border-color:var(--accent)}
+.hb-error{font-size:12px;color:#c0392b;margin-bottom:12px;padding:8px 12px;background:#fef5f5;border-radius:8px}
+.hb-btn-login{display:block;width:100%;padding:12px;font-size:14px;font-weight:600;font-family:var(--sans);background:var(--bg-dark,#1c1b1a);color:#fff;border:none;border-radius:10px;cursor:pointer;transition:opacity .2s}
+.hb-btn-login:hover{opacity:.9}
+.hb-btn-login:disabled{opacity:.5;cursor:default}
+.hb-modal-footer{font-size:12px;color:var(--text-3);text-align:center;margin-top:16px}
+.hb-modal-footer a{color:var(--accent,#2c5f4b);font-weight:500;text-decoration:none}
+.hb-modal-footer a:hover{text-decoration:underline}
+
+/* ═══ USER MENU ═══ */
+.hb-user-menu{position:fixed;z-index:1000;background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px 0;min-width:200px;box-shadow:0 8px 30px rgba(0,0,0,.1)}
+.hb-um-email{padding:8px 16px;font-size:12px;color:var(--text-3);border-bottom:1px solid var(--border);margin-bottom:4px;word-break:break-all}
+.hb-um-badge{padding:4px 16px 8px;font-size:11px;font-weight:600;color:var(--accent,#2c5f4b);text-transform:uppercase;letter-spacing:.5px}
+.hb-um-item{display:block;padding:8px 16px;font-size:13px;color:var(--text-2);text-decoration:none;transition:background .15s}
+.hb-um-item:hover{background:rgba(0,0,0,.03)}
+
+/* ═══ MOBILE ═══ */
+@media(max-width:600px){
+  .sn-hm{display:none}
+  .sn-hamburger{display:block}
+  .sn-close{display:block}
+  .sn-right{
+    display:none;
+    position:fixed;top:0;left:0;right:0;bottom:0;
+    background:var(--bg);
+    flex-direction:column;
+    align-items:stretch;
+    padding:72px 24px 32px;
+    gap:0;
+    z-index:200;
+    overflow-y:auto;
+  }
+  .sn-right.sn-open{display:flex}
+  .sn-right .sn-link{display:block;font-size:18px;padding:16px 0;border-bottom:1px solid var(--border);border-radius:0;color:var(--text-2)}
+  .sn-right .sn-link:hover{background:none}
+  .sn-right .sn-cta{display:block;text-align:center;font-size:16px;padding:16px;margin:20px 0 12px;border-radius:10px}
+  .sn-right .sn-login{justify-content:center;font-size:15px;padding:12px}
+  .sf-top{flex-direction:column}
+  .sf-cols{flex-direction:column;gap:20px}
+}

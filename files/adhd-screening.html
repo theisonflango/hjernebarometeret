@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ADHD-screening — Hjernebarometeret</title>
+  <meta name="description" content="Gratis ADHD-screening for voksne. Hurtig 30-spørgsmål screening eller DIVA-5-inspireret DSM-5 udredning. Få en personlig profil og resumé til din læge.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,500&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="shared/styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg:#faf9f7;--bg-card:#fff;--bg-warm:#f5f2ee;--bg-dark:#1c1b1a;--text:#1c1b1a;--text-2:#5a5650;--text-3:#8a857e;--text-4:#b5b0a8;--border:#e8e5e0;--border-2:#d5d0c9;--accent:#2e6b9e;--accent-light:#d6e7f2;--serif:'Source Serif 4',Georgia,serif;--sans:'Figtree',system-ui,sans-serif}
+    html,body,#root{height:100%;width:100%;margin:0}
+    body{background:#faf9f7;font-family:'Figtree',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+    ::selection{background:rgba(46,107,158,0.3);color:#fff}
+    input:focus,select:focus{border-color:rgba(46,107,158,0.5)!important;outline:none}
+    select option{background:#fff;color:#1c1b1a}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(46,107,158,0.25)}50%{box-shadow:0 0 0 10px rgba(46,107,158,0)}}
+    ::-webkit-scrollbar{width:6px}
+    ::-webkit-scrollbar-track{background:transparent}
+    ::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.08);border-radius:3px}
+    button{font-family:'Figtree',system-ui,sans-serif}
+    button:focus-visible{outline:2px solid #2e6b9e;outline-offset:2px}
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div id="site-nav" data-test-mode="true"></div>
+<div id="root" style="padding-top:64px"></div>
+<div id="site-footer"></div>
+<script src="shared/nav.js"></script>
+<script src="shared/footer.js"></script>
+<script src="shared/auth.js"></script>
+<script type="text/babel">
+const{useState,useRef,useCallback,useEffect}=React;
+
+/* ═══════════════════════════════════════════════════════
+   DATA: QUICK SCREENING (original 30 questions)
+   ═══════════════════════════════════════════════════════ */
+
+const Q_CHILDHOOD=[
+  {id:"c1",text:"Blev du som barn ofte beskrevet som en dagdrømmer, \"i din egen verden\" eller uopmærksom?"},
+  {id:"c2",text:"Havde du svært ved at sidde stille, vente på tur eller holde dig fra at afbryde andre?"},
+  {id:"c3",text:"Glemte du ofte lektier, beskeder eller aftaler – trods gentagne påmindelser?"},
+  {id:"c4",text:"Havde du vanskeligt ved at organisere skoleopgaver, dit værelse eller dine ting?"},
+  {id:"c5",text:"Oplevede du, at du præsterede ujævnt – f.eks. dygtig i noget, men uforklarligt dårlig i andet?"},
+  {id:"c6",text:"Følte du dig anderledes end andre børn, uden helt at kunne forklare hvorfor?"},
+];
+const Q_ATTENTION=[
+  {id:"a1",text:"Oplever du det svært at fastholde opmærksomheden på opgaver, der ikke i sig selv fanger din interesse?"},
+  {id:"a2",text:"Mister du tit tråden midt i samtaler, læsning eller møder?"},
+  {id:"a3",text:"Har du svært ved at komme i gang med opgaver – selv når du ved, de er vigtige?"},
+  {id:"a4",text:"Glemmer du aftaler, beskeder, nøgler eller andre dagligdags ting?"},
+  {id:"a5",text:"Skifter du ofte mellem opgaver uden at gøre nogen helt færdig?"},
+  {id:"a6",text:"Oplever du perioder med intens fordybelse (hyperfokus) efterfulgt af svær udmattelse eller tab af tidsfornemmelse?"},
+  {id:"a7",text:"Har du svært ved at filtrere baggrundsstøj, samtaler eller visuelle forstyrrelser fra?"},
+];
+const Q_HYPER=[
+  {id:"h1",text:"Føler du ofte en indre uro eller rastløshed – selv når du sidder stille?"},
+  {id:"h2",text:"Taler du meget, afbryder du andre, eller siger du ting impulsivt, du fortryder bagefter?"},
+  {id:"h3",text:"Har du svært ved at vente – f.eks. i køer, i samtaler eller på resultater?"},
+  {id:"h4",text:"Træffer du hurtige beslutninger, du ikke har tænkt grundigt igennem (indkøb, jobskift, relationer)?"},
+  {id:"h5",text:"Har du behov for at pille ved ting, bevæge benene, eller lave noget med hænderne for at kunne koncentrere dig?"},
+  {id:"h6",text:"Keder du dig hurtigt, og søger du hele tiden ny stimulation, variation eller intensitet?"},
+];
+const Q_REG=[
+  {id:"r1",text:"Oplever du, at dine følelser kan skifte meget hurtigt – f.eks. fra begejstring til frustration på kort tid?"},
+  {id:"r2",text:"Har du svært ved at regulere, hvor meget energi eller følelse du investerer i situationer?"},
+  {id:"r3",text:"Bliver du let overvældet af sanseindtryk, sociale situationer eller mange krav på én gang?"},
+  {id:"r4",text:"Oplever du problemer med din søvn – f.eks. tankeræs ved sengetid, forsinket søvnrytme eller svært ved at stå op?"},
+  {id:"r5",text:"Har du svært ved at styre tidsforbruget – f.eks. underestimerer du, hvor lang tid ting tager?"},
+  {id:"r6",text:"Føler du dig ofte utilstrækkelig, kritiserer dig selv hårdt eller kæmper med lavt selvværd?"},
+];
+const Q_FUNC=[
+  {id:"f1",text:"Påvirker dine vanskeligheder dit arbejde eller uddannelse negativt?"},
+  {id:"f2",text:"Skaber dine vanskeligheder problemer i nære relationer?"},
+  {id:"f3",text:"Har du svært ved at holde styr på økonomi, post, oprydning eller andre praktiske livsopgaver?"},
+  {id:"f4",text:"Oplever du, at du bruger uforholdsmæssigt meget energi på at virke \"normal\" eller holde sammen på hverdagen?"},
+  {id:"f5",text:"Har dine vanskeligheder ført til stress, angst, nedtrykthed eller udbrændthed?"},
+];
+
+const LIKERT4=[
+  {value:0,label:"Aldrig / Sjældent"},
+  {value:1,label:"Af og til"},
+  {value:2,label:"Ofte"},
+  {value:3,label:"Meget ofte / Altid"},
+];
+
+/* ═══════════════════════════════════════════════════════
+   DATA: DIVA-5 INSPIRED EXTENDED ASSESSMENT
+   Following the DSM-5 criteria structure with examples
+   ═══════════════════════════════════════════════════════ */
+
+const DIVA_A_CRITERIA=[
+  {
+    id:"A1", criterion:"A1: Opmærksomhed på detaljer",
+    text:"Er ofte uopmærksom på detaljer eller laver skødesløse fejl i skolearbejde, arbejde eller andre aktiviteter.",
+    examples_adult:[
+      "Laver sjuskefejl i rapporter, mails eller formularer",
+      "Overser detaljer i kontrakter eller aftaler",
+      "Læser instruktioner forkert eller overfladisk",
+      "Laver regnefejl, stavefejl eller copy-paste-fejl",
+    ],
+    examples_child:[
+      "Lavede sjuskefejl i diktater eller regnestykker",
+      "Overså opgaveinstruktioner i skolen",
+      "Glemte at skrive navn på opgaver",
+      "Fik at vide: 'Du kan godt, du er bare sjusket'",
+    ],
+  },
+  {
+    id:"A2", criterion:"A2: Fastholde opmærksomhed",
+    text:"Har ofte svært ved at fastholde opmærksomheden på opgaver eller fritidsaktiviteter.",
+    examples_adult:[
+      "Mister fokus under møder, forelæsninger eller samtaler",
+      "Har svært ved at læse længere tekster uden at miste tråden",
+      "Skifter kanal, app eller opgave for tidligt",
+      "Kan kun koncentrere sig, hvis emnet er interessant",
+    ],
+    examples_child:[
+      "Dagdrømte i timerne",
+      "Kunne ikke høre efter, når læreren talte længe",
+      "Blev hurtigt træt af lektier",
+      "Kunne fordybe sig i ting, der interesserede – men ikke i andet",
+    ],
+  },
+  {
+    id:"A3", criterion:"A3: Lytter ikke",
+    text:"Synes ofte ikke at lytte, når man taler direkte til vedkommende.",
+    examples_adult:[
+      "Partner eller kolleger siger: 'Du hører ikke efter'",
+      "Opdager pludselig, at en samtale er fortsat uden dig",
+      "Skal bede folk gentage det, de sagde",
+      "Tænker på noget andet midt i en samtale",
+    ],
+    examples_child:[
+      "Forældre måtte gentage ting flere gange",
+      "Fik at vide: 'Lytter du overhovedet?'",
+      "'Hører' først instruktioner, når de blev sagt højt",
+      "Virkede fraværende eller i sin egen verden",
+    ],
+  },
+  {
+    id:"A4", criterion:"A4: Følger ikke instruktioner",
+    text:"Følger ofte ikke instruktioner til ende og får ikke fuldført skolearbejde, pligter eller opgaver på arbejdspladsen.",
+    examples_adult:[
+      "Starter opgaver med iver, men fuldender dem sjældent",
+      "Har mange halvfærdige projekter liggende",
+      "Mister motivation halvvejs",
+      "Glemmer trin i en fremgangsmåde",
+    ],
+    examples_child:[
+      "Afleverede ufærdige opgaver",
+      "Kunne ikke følge flertrinsopgaver",
+      "Startede mange hobbyer, men holdt sjældent ved",
+      "Havde svært ved at gøre ting færdigt uden hjælp",
+    ],
+  },
+  {
+    id:"A5", criterion:"A5: Organisering",
+    text:"Har ofte svært ved at organisere opgaver og aktiviteter.",
+    examples_adult:[
+      "Rodet skrivebord, hjem eller bil",
+      "Svært ved at planlægge hverdagen eller overholde tidsplaner",
+      "Misser deadlines eller glemmer aftaler",
+      "Har svært ved at prioritere mellem opgaver",
+    ],
+    examples_child:[
+      "Rodet skoletaske, værelse, skuffe",
+      "Glemte at tage bøger med i skole",
+      "Havde svært ved at planlægge lektier",
+      "Forældre måtte hjælpe med organisering konstant",
+    ],
+  },
+  {
+    id:"A6", criterion:"A6: Undgår vedvarende mental indsats",
+    text:"Undgår, er modvillig eller nølende overfor opgaver, der kræver vedvarende mental indsats.",
+    examples_adult:[
+      "Udsætter regninger, selvangivelse, oprydning",
+      "Undgår at læse lange dokumenter",
+      "Vælger korte, stimulerende opgaver frem for vigtige",
+      "Prokrastinerer systematisk på kedelige opgaver",
+    ],
+    examples_child:[
+      "Hadede lektier, især læsning og skriftlige opgaver",
+      "Klagede over at lektier var 'kedelige'",
+      "Havde brug for konstant hjælp til at komme i gang",
+      "Undgik svære eller langvarige opgaver",
+    ],
+  },
+  {
+    id:"A7", criterion:"A7: Mister ting",
+    text:"Mister ofte ting, der er nødvendige for opgaver eller aktiviteter.",
+    examples_adult:[
+      "Mister nøgler, telefon, pung, briller regelmæssigt",
+      "Glemmer hvor ting er lagt – dagligt",
+      "Mister vigtige dokumenter, billetter eller kort",
+      "Leder konstant efter ting",
+    ],
+    examples_child:[
+      "Mistede blyanter, viskelædere, skolebøger",
+      "Glemte jakke, madkasse, idrætstøj",
+      "Kom ofte hjem uden ting fra skolen",
+      "Forældre måtte købe erstatninger konstant",
+    ],
+  },
+  {
+    id:"A8", criterion:"A8: Let distraheret",
+    text:"Distraheres let af uvedkommende stimuli.",
+    examples_adult:[
+      "Baggrundslyde eller bevægelser trækker opmærksomheden væk",
+      "Tanker vandrer under arbejde",
+      "Checker telefon impulsivt midt i opgaver",
+      "Har svært ved at arbejde i åbne kontorer",
+    ],
+    examples_child:[
+      "Kiggede ud af vinduet i timerne",
+      "Blev distraheret af lyde, andre børn, ting på bordet",
+      "Kunne ikke fokusere, hvis der var uro i klassen",
+      "Drømte sig væk til egne tanker",
+    ],
+  },
+  {
+    id:"A9", criterion:"A9: Glemsom",
+    text:"Er ofte glemsom i daglige aktiviteter.",
+    examples_adult:[
+      "Glemmer aftaler trods kalenderpåmindelser",
+      "Glemmer at svare på beskeder, mails, opkald",
+      "Glemmer hvad man kom ind i rummet for at gøre",
+      "Glemmer at tage medicin eller betale regninger",
+    ],
+    examples_child:[
+      "Glemte beskeder fra skolen til forældre",
+      "Glemte aftaler med venner",
+      "Glemte at tage madpakke eller penge med",
+      "Fik konstant at vide: 'Husk nu...'",
+    ],
+  },
+];
+
+const DIVA_HI_CRITERIA=[
+  {
+    id:"HI1", criterion:"HI1: Uro i hænder/fødder",
+    text:"Bevæger ofte hænder eller fødder eller sidder uroligt.",
+    examples_adult:[
+      "Vipper med benet, tapper med fingrene",
+      "Piller ved ting under møder",
+      "Skifter konstant stilling",
+      "Kan ikke sidde stille i biograf, fly eller til møder",
+    ],
+    examples_child:[
+      "Vippede på stolen i skolen",
+      "Pillede altid ved noget",
+      "Kunne ikke sidde stille ved bordet",
+      "Blev bedt om at 'sidde ordentligt' konstant",
+    ],
+  },
+  {
+    id:"HI2", criterion:"HI2: Forlader sin plads",
+    text:"Forlader ofte sin plads i situationer, hvor man forventes at blive siddende.",
+    examples_adult:[
+      "Rejser sig under møder for at gå rundt",
+      "Har svært ved at sidde en hel film, koncert eller middag",
+      "Foretrækker stående arbejdsstation",
+      "Føler sig rastløs og må bevæge sig",
+    ],
+    examples_child:[
+      "Forlod sin plads i timerne",
+      "Løb rundt i klassen",
+      "Kunne ikke sidde stille under skolearrangementer",
+      "Stod op fra bordet under måltider",
+    ],
+  },
+  {
+    id:"HI3", criterion:"HI3: Løber/klatrer (indre uro hos voksne)",
+    text:"Hos voksne: Føler sig ofte rastløs indeni.",
+    examples_adult:[
+      "En konstant indre uro, som om der kører en motor",
+      "Kan ikke slappe af, selv i rolige omgivelser",
+      "Behov for at bevæge sig, gå ture, motionere for at tænke",
+      "Føler sig urolig, hvis man tvinges til passivitet",
+    ],
+    examples_child:[
+      "Løb eller klatrede i upassende situationer",
+      "Var altid i bevægelse",
+      "Kunne ikke lege roligt",
+      "Forældre sagde: 'Kan du ikke sidde stille bare 5 minutter?'",
+    ],
+  },
+  {
+    id:"HI4", criterion:"HI4: Kan ikke lege/deltage roligt",
+    text:"Har ofte svært ved at deltage i fritidsaktiviteter roligt og stille.",
+    examples_adult:[
+      "Har svært ved at læse, meditere eller se fjernsyn i længere tid",
+      "Foretrækker action-prægede eller stimulerende aktiviteter",
+      "Taler eller laver lyde under stille aktiviteter",
+      "Keder sig hurtigt ved rolige aktiviteter",
+    ],
+    examples_child:[
+      "Legede altid vildt og støjende",
+      "Havde svært ved stille aktiviteter som at tegne eller bygge",
+      "Var højlydt i bibliotek eller under stille tid",
+      "Forstyrrede andre børns rolige leg",
+    ],
+  },
+  {
+    id:"HI5", criterion:"HI5: 'På farten' / drevet af motor",
+    text:"Er ofte 'på farten' eller handler som om 'drevet af en motor'.",
+    examples_adult:[
+      "Føler sig altid presset til at gøre noget",
+      "Har svært ved at slappe af i weekender eller ferier",
+      "Andre siger: 'Du er altid i gang'",
+      "Ubehag ved stilstand eller pauser",
+    ],
+    examples_child:[
+      "Var altid 'på' – fra morgen til aften",
+      "Trættede voksne med sit energiniveau",
+      "Svært at falde i søvn pga. uro",
+      "Forældre kaldte barnet 'ustoppeligt'",
+    ],
+  },
+  {
+    id:"HI6", criterion:"HI6: Taler overdrevent",
+    text:"Taler ofte overdrevent meget.",
+    examples_adult:[
+      "Taler meget og længe, svært at stoppe",
+      "Andre kan ikke komme til orde",
+      "Fortæller den samme historie flere gange",
+      "Taler højt eller hurtigt uden at bemærke det",
+    ],
+    examples_child:[
+      "Talte konstant – også når det ikke var passende",
+      "Fik bemærkninger om at tale for meget i timerne",
+      "Kunne ikke holde sig til emnet",
+      "Talte højt og hurtigt",
+    ],
+  },
+  {
+    id:"HI7", criterion:"HI7: Busser ud med svar",
+    text:"Svarer ofte, før et spørgsmål er stillet færdigt.",
+    examples_adult:[
+      "Afbryder andre midt i sætninger",
+      "Færdiggør andres sætninger",
+      "Svarer impulsivt i møder eller samtaler",
+      "Siger ting, man fortryder bagefter",
+    ],
+    examples_child:[
+      "Rakte hånden op før spørgsmålet var stillet",
+      "Råbte svar ud i klassen",
+      "Afbrød voksne konstant",
+      "Kunne ikke vente på at det blev sin tur til at tale",
+    ],
+  },
+  {
+    id:"HI8", criterion:"HI8: Svært ved at vente",
+    text:"Har ofte svært ved at vente på at det bliver sin tur.",
+    examples_adult:[
+      "Utålmodig i køer, trafik, venteværelser",
+      "Tager hurtige beslutninger for at undgå ventetid",
+      "Bliver frustreret over langsomme processer",
+      "Svært ved at vente på svar fra andre (mail, sms)",
+    ],
+    examples_child:[
+      "Kunne ikke vente på tur i spil eller leg",
+      "Masede om at komme foran i køer",
+      "Blev utålmodig under ventetid",
+      "Åbnede gaver for tidligt, kunne ikke vente",
+    ],
+  },
+  {
+    id:"HI9", criterion:"HI9: Afbryder andre",
+    text:"Afbryder eller maser sig på hos andre.",
+    examples_adult:[
+      "Bryder ind i andres samtaler",
+      "Overtager opgaver fra andre (utålmodighed)",
+      "Bruger andres ting uden at spørge",
+      "Tager kontrollen i gruppearbejde",
+    ],
+    examples_child:[
+      "Blandede sig i andres leg eller samtaler",
+      "Tog andres ting uden at spørge",
+      "Trængte sig foran i aktiviteter",
+      "Fik at vide: 'Vent lige...'",
+    ],
+  },
+];
+
+const DIVA_FUNCTION_DOMAINS=[
+  {id:"df1",domain:"Arbejde/uddannelse",text:"Har dine vanskeligheder haft negative konsekvenser for dit arbejde eller din uddannelse?",
+   examples:["Underyder i forhold til evner","Fyret eller skiftet job hyppigt","Kommer for sent","Konflikter med kolleger eller ledere","Svært ved at overholde deadlines"]},
+  {id:"df2",domain:"Relationer & familie",text:"Har dine vanskeligheder påvirket dine parforhold, familierelationer eller venskaber negativt?",
+   examples:["Partner føler sig overset eller frustreret","Glemmer vigtige datoer eller aftaler","Konflikter pga. uopmærksomhed eller impulsivitet","Svært ved at fastholde venskaber","Misforståelser pga. at man ikke lytter"]},
+  {id:"df3",domain:"Socialt",text:"Har dine vanskeligheder skabt sociale vanskeligheder?",
+   examples:["Undgår sociale sammenhænge pga. overstimulering","Siger upassende ting impulsivt","Føler sig anderledes eller udenfor","Svært ved small talk eller at følge gruppesamtaler","Trækker sig pga. udmattelse"]},
+  {id:"df4",domain:"Selvbillede & selvværd",text:"Har dine vanskeligheder påvirket dit selvbillede eller selvværd?",
+   examples:["Føler sig dum, doven eller utilstrækkelig","Skammer sig over sine vanskeligheder","Oplever kronisk selvkritik","Sammenligner sig negativt med andre","Føler at man ikke lever op til sit potentiale"]},
+  {id:"df5",domain:"Dagligdag & praktik",text:"Har dine vanskeligheder gjort det svært at håndtere hverdagens krav?",
+   examples:["Kan ikke styre økonomi, post, oprydning","Glemmer at betale regninger","Rodet hjem trods forsøg på oprydning","Svært ved at planlægge indkøb eller måltider","Mister overblik over forpligtelser"]},
+];
+
+/* ═══════════════════════════════════════════════════════
+   SCORING FUNCTIONS
+   ═══════════════════════════════════════════════════════ */
+
+function calcQuickProfile(answers){
+  const s=(ids)=>ids.reduce((a,id)=>a+(answers[id]??0),0);
+  const m=(ids)=>ids.length*3;
+  const p=(ids)=>Math.round((s(ids)/m(ids))*100);
+  const cIds=Q_CHILDHOOD.map(q=>q.id),aIds=Q_ATTENTION.map(q=>q.id),hIds=Q_HYPER.map(q=>q.id),rIds=Q_REG.map(q=>q.id),fIds=Q_FUNC.map(q=>q.id);
+  const allIds=[...cIds,...aIds,...hIds,...rIds,...fIds];
+  const totalPct=p(allIds);
+  const attention=p(aIds),hyperactivity=p(hIds),regulation=p(rIds),functioning=p(fIds),childhood=p(cIds);
+  let level,color,label;
+  if(totalPct<33){level="low";color="#3B9979";label="Lav sandsynlighed";}
+  else if(totalPct<58){level="moderate";color="#D4920B";label="Moderat sandsynlighed";}
+  else{level="high";color="#C0392B";label="Høj sandsynlighed";}
+  let profileType="kombineret";
+  if(attention>hyperactivity+15)profileType="overvejende uopmærksom";
+  else if(hyperactivity>attention+15)profileType="overvejende hyperaktiv/impulsiv";
+  return{totalPct,childhood,attention,hyperactivity,regulation,functioning,level,color,label,profileType,mode:"quick"};
+}
+
+function calcDivaProfile(answers){
+  // Each criterion answered for adult + child: "yes_adult","no_adult","yes_child","no_child"
+  // Plus function domains
+  let aAdult=0,aChild=0,hiAdult=0,hiChild=0;
+  DIVA_A_CRITERIA.forEach(c=>{
+    if(answers[c.id+"_adult"]==="yes")aAdult++;
+    if(answers[c.id+"_child"]==="yes")aChild++;
+  });
+  DIVA_HI_CRITERIA.forEach(c=>{
+    if(answers[c.id+"_adult"]==="yes")hiAdult++;
+    if(answers[c.id+"_child"]==="yes")hiChild++;
+  });
+  const totalAdult=aAdult+hiAdult;
+  const totalChild=aChild+hiChild;
+  // DSM-5: 5+ of 9 in either domain for adults (6+ for children)
+  const aAdultMet=aAdult>=5;
+  const hiAdultMet=hiAdult>=5;
+  const aChildMet=aChild>=6;
+  const hiChildMet=hiChild>=6;
+  // Function domains
+  let funcCount=0;
+  DIVA_FUNCTION_DOMAINS.forEach(d=>{if(answers[d.id]==="yes")funcCount++;});
+  const funcMet=funcCount>=2;
+  // Overall
+  let level,color,label;
+  const adultCriteria=(aAdultMet||hiAdultMet);
+  const childCriteria=(aChildMet||hiChildMet);
+  if(adultCriteria&&childCriteria&&funcMet){level="high";color="#C0392B";label="Høj sandsynlighed";}
+  else if((adultCriteria||childCriteria)&&(funcMet||funcCount>=1)){level="moderate";color="#D4920B";label="Moderat sandsynlighed";}
+  else{level="low";color="#3B9979";label="Lav sandsynlighed";}
+  let profileType="kombineret";
+  if(aAdult>hiAdult+2)profileType="overvejende uopmærksom";
+  else if(hiAdult>aAdult+2)profileType="overvejende hyperaktiv/impulsiv";
+  const aPct=Math.round((aAdult/9)*100);
+  const hiPct=Math.round((hiAdult/9)*100);
+  const aPctChild=Math.round((aChild/9)*100);
+  const hiPctChild=Math.round((hiChild/9)*100);
+  const funcPct=Math.round((funcCount/5)*100);
+  return{
+    aAdult,aChild,hiAdult,hiChild,totalAdult,totalChild,
+    aAdultMet,hiAdultMet,aChildMet,hiChildMet,funcMet,funcCount,
+    aPct,hiPct,aPctChild,hiPctChild,funcPct,
+    level,color,label,profileType,mode:"diva",
+    totalPct:Math.round(((aAdult+hiAdult)/(18))*100),
+  };
+}
+
+/* ═══════════════════════════════════════════════════════
+   TREATMENT INFO (shared)
+   ═══════════════════════════════════════════════════════ */
+function getTreatmentInfo(profile){
+  const info={
+    medications:[
+      {type:"Centralstimulerende (f.eks. methylphenidat, lisdexamfetamin)",how:"Øger dopamin og noradrenalin i hjernen, hvilket forbedrer opmærksomhed, impulskontrol og indre ro.",pros:"Hurtig virkning (timer til dage). Veldokumenteret effekt hos ca. 70–80% af voksne med ADHD. Kan doseres fleksibelt.",cons:"Kan give nedsat appetit, søvnbesvær, let forhøjet puls. Virker kun mens man tager det. Kræver recept og opfølgning.",note:"Typisk førstevalg ved ADHD-behandling i Danmark og internationalt."},
+      {type:"Ikke-centralstimulerende (f.eks. atomoxetin, guanfacin)",how:"Påvirker primært noradrenalin. Virker over flere uger, ikke akut.",pros:"Mindre risiko for misbrug. Jævn virkning over døgnet. Kan hjælpe på angst og følelsesregulering.",cons:"Langsommere indsættende effekt (3–6 uger). Kan give træthed, mundtørhed eller kvalme.",note:"Overvejes ved samtidige angstlidelser, søvnproblemer, eller hvis stimulerende medicin ikke tåles."},
+    ],
+    nonMed:[
+      {title:"Psykoedukation",desc:"At forstå ADHD som neurobiologisk tilstand – ikke dovenskab – er i sig selv terapeutisk. Det kan ændre ens selvforståelse markant."},
+      {title:"Kognitiv adfærdsterapi (KAT)",desc:"Struktureret terapi med fokus på planlægning, følelsesregulering og negative tankemønstre knyttet til ADHD."},
+      {title:"Coaching & struktur",desc:"Konkrete hverdagsstrategier: kalendersystemer, påmindelser, rutiner, delopgaver og prioritering."},
+      {title:"Fysisk aktivitet",desc:"Regelmæssig motion har dokumenteret positiv effekt på opmærksomhed, stemningsleje og søvn."},
+      {title:"Søvnhygiejne",desc:"Mange med ADHD har forskudt søvnrytme. Regelmæssig rutine og skærmreduktion kan hjælpe markant."},
+    ],
+  };
+  if(profile.profileType==="overvejende uopmærksom")info.profileInsight="Din profil tyder på overvejende uopmærksom præsentation – det, der i daglig tale ofte kaldes \"ADD\". Vanskelighederne er ofte usynlige for omgivelserne, men meget mærkbare indeni: mental tåge, glemsel, prokrastinering og en følelse af at falde igennem trods intelligens og vilje. Denne profil opdages ofte sent, især hos kvinder og voksne, fordi symptomerne er \"stille\" sammenlignet med den klassiske hyperaktive profil. Den responderer typisk godt på behandling.";
+  else if(profile.profileType==="overvejende hyperaktiv/impulsiv")info.profileInsight="Din profil tyder på overvejende hyperaktiv/impulsiv præsentation – den type, de fleste forbinder med \"klassisk ADHD\". Den er kendetegnet ved konstant indre uro, hurtige beslutninger, utålmodighed og en følelse af at være drevet af en motor. Den er ofte mere synlig for omgivelserne og kan give udfordringer i sociale relationer og beslutningstagen.";
+  else info.profileInsight="Din profil tyder på en kombineret præsentation – du har træk fra både den uopmærksomme profil (\"ADD\") og den hyperaktive/impulsive profil (\"klassisk ADHD\"). Det er den hyppigste form og indebærer typisk en bred vifte af udfordringer: koncentrationsvanskeligheder, indre uro, følelsesmæssig ustabilitet og impulsivitet.";
+  return info;
+}
+
+/* ═══════════════════════════════════════════════════════
+   EXPORT TEXT GENERATORS
+   ═══════════════════════════════════════════════════════ */
+function generateQuickExport(answers,demo,profile){
+  const date=new Date().toLocaleDateString("da-DK",{year:"numeric",month:"long",day:"numeric"});
+  let t=`ADHD-SCREENINGSRESUMÉ – HURTIG SCREENING\n${"=".repeat(50)}\nDato: ${date}\nAlder: ${demo.age||"?"} | Køn: ${demo.gender||"?"} | Tidligere udredt: ${demo.prev||"?"}\n\nSamlet: ${profile.totalPct}% → ${profile.label}\nProfil: ${profile.profileType}${profile.profileType==="overvejende uopmærksom"?" (svarer til det der i daglig tale kaldes ADD)":""}\n\nDomæner:\n  Barndom: ${profile.childhood}%\n  Opmærksomhed: ${profile.attention}%\n  Impulsivitet/uro: ${profile.hyperactivity}%\n  Regulering: ${profile.regulation}%\n  Funktionspåvirkning: ${profile.functioning}%\n\nSVAR:\n`;
+  [[Q_CHILDHOOD,"Barndom"],[Q_ATTENTION,"Opmærksomhed"],[Q_HYPER,"Impulsivitet"],[Q_REG,"Regulering"],[Q_FUNC,"Funktion"]].forEach(([qs,sec])=>{
+    t+=`\n[${sec}]\n`;qs.forEach(q=>{const v=answers[q.id]??0;t+=`  [${v}/3] ${q.text}\n`;});
+  });
+  t+=`\nDette er IKKE en diagnose. Medbring til sundhedsfaglig.\n`;
+  return t;
+}
+
+function generateDivaExport(answers,demo,profile){
+  const date=new Date().toLocaleDateString("da-DK",{year:"numeric",month:"long",day:"numeric"});
+  let t=`ADHD-SCREENINGSRESUMÉ – DIVA-INSPIRERET UDREDNING\n${"=".repeat(55)}\nDato: ${date}\nAlder: ${demo.age||"?"} | Køn: ${demo.gender||"?"} | Tidligere udredt: ${demo.prev||"?"}\n\nSamlet vurdering: ${profile.label}\nProfil: ${profile.profileType}${profile.profileType==="overvejende uopmærksom"?" (svarer til det der i daglig tale kaldes ADD)":""}\n\n`;
+  t+=`OPMÆRKSOMHED (A-kriterier) – DSM-5\n${"─".repeat(40)}\nOpfyldte som voksen: ${profile.aAdult}/9 (kræver ≥5)\nOpfyldte i barndom: ${profile.aChild}/9 (kræver ≥6)\n\n`;
+  DIVA_A_CRITERIA.forEach(c=>{
+    const va=answers[c.id+"_adult"]==="yes"?"JA":"NEJ";
+    const vc=answers[c.id+"_child"]==="yes"?"JA":"NEJ";
+    t+=`  ${c.criterion}: Voksen=${va}, Barn=${vc}\n`;
+  });
+  t+=`\nHYPERAKTIVITET/IMPULSIVITET (HI-kriterier)\n${"─".repeat(40)}\nOpfyldte som voksen: ${profile.hiAdult}/9 (kræver ≥5)\nOpfyldte i barndom: ${profile.hiChild}/9 (kræver ≥6)\n\n`;
+  DIVA_HI_CRITERIA.forEach(c=>{
+    const va=answers[c.id+"_adult"]==="yes"?"JA":"NEJ";
+    const vc=answers[c.id+"_child"]==="yes"?"JA":"NEJ";
+    t+=`  ${c.criterion}: Voksen=${va}, Barn=${vc}\n`;
+  });
+  t+=`\nFUNKTIONSPÅVIRKNING\n${"─".repeat(40)}\nPåvirkede domæner: ${profile.funcCount}/5 (kræver ≥2)\n\n`;
+  DIVA_FUNCTION_DOMAINS.forEach(d=>{
+    t+=`  ${d.domain}: ${answers[d.id]==="yes"?"JA":"NEJ"}\n`;
+  });
+  t+=`\nKONKLUSION\n${"─".repeat(40)}\n${profile.label}\n${profile.profileType}\n\nA-kriterier voksen opfyldt: ${profile.aAdultMet?"JA":"NEJ"}\nHI-kriterier voksen opfyldt: ${profile.hiAdultMet?"JA":"NEJ"}\nA-kriterier barndom opfyldt: ${profile.aChildMet?"JA":"NEJ"}\nHI-kriterier barndom opfyldt: ${profile.hiChildMet?"JA":"NEJ"}\nFunktionspåvirkning opfyldt: ${profile.funcMet?"JA":"NEJ"}\n\nDette er IKKE en diagnose men en DIVA-5-inspireret struktureret\nselvrapportering til forberedelse af professionel udredning.\n`;
+  return t;
+}
+
+/* ═══════════════════════════════════════════════════════
+   SHARED UI COMPONENTS
+   ═══════════════════════════════════════════════════════ */
+
+const S={
+  page:{minHeight:"100vh",background:"#faf9f7",color:"#1c1b1a",fontFamily:"'Figtree',system-ui,sans-serif",display:"flex",justifyContent:"center"},
+  container:{width:"100%",maxWidth:720,padding:"40px 24px 80px",margin:"0 auto"},
+  card:{background:"#fff",border:"1px solid #e8e5e0",borderRadius:18,padding:"32px 28px",marginBottom:24},
+  label:{fontSize:11,textTransform:"uppercase",letterSpacing:"0.12em",color:"#2e6b9e",fontWeight:600,marginBottom:8},
+  h2:{fontSize:26,fontWeight:700,margin:"0 0 16px",lineHeight:1.3,fontFamily:"'Source Serif 4',Georgia,serif",color:"#1c1b1a"},
+  body:{fontSize:15,lineHeight:1.7,color:"#5a5650",margin:"0 0 16px"},
+};
+
+function Btn({primary,disabled,onClick,children,style={}}){
+  const base=primary?{padding:"14px 36px",borderRadius:12,border:"none",background:"#1c1b1a",color:"#fff",fontSize:15,fontWeight:600,cursor:"pointer",transition:"all 0.2s",opacity:disabled?0.35:1,pointerEvents:disabled?"none":"auto"}:{padding:"14px 28px",borderRadius:12,border:"1.5px solid #d5d0c9",background:"transparent",color:"#5a5650",fontSize:15,cursor:"pointer",transition:"all 0.2s"};
+  return <button style={{...base,...style}} onClick={onClick}>{children}</button>;
+}
+
+function Bar({label,pct,color}){
+  return <div style={{marginBottom:18}}><div style={{display:"flex",justifyContent:"space-between",fontSize:14,color:"#3a3835",marginBottom:6}}><span>{label}</span><span style={{fontWeight:600,color}}>{pct}%</span></div><div style={{height:8,borderRadius:4,background:"#e8e5e0",overflow:"hidden"}}><div style={{width:`${pct}%`,height:"100%",borderRadius:4,background:color,transition:"width 1s cubic-bezier(.4,0,.2,1)"}}/></div></div>;
+}
+
+function Progress({current,total}){
+  const pct=Math.round((current/total)*100);
+  return <div style={{width:"100%",marginBottom:32}}><div style={{display:"flex",justifyContent:"space-between",marginBottom:6,fontSize:13,color:"#8a857e"}}><span>Del {current} af {total}</span><span>{pct}%</span></div><div style={{height:4,borderRadius:2,background:"#e8e5e0",overflow:"hidden"}}><div style={{width:`${pct}%`,height:"100%",borderRadius:2,background:"#2e6b9e",transition:"width 0.5s cubic-bezier(.4,0,.2,1)"}}/></div></div>;
+}
+
+/* ═══════════════════════════════════════════════════════
+   DIVA CRITERION COMPONENT
+   ═══════════════════════════════════════════════════════ */
+function DivaCriterion({c,answers,setA,showExamples,toggleEx}){
+  const adultKey=c.id+"_adult";
+  const childKey=c.id+"_child";
+  const exKey=c.id+"_ex";
+  return(
+    <div style={{...S.card,padding:"24px 24px 20px"}}>
+      <p style={{fontSize:13,fontWeight:600,color:"#2e6b9e",marginBottom:4,letterSpacing:"0.05em"}}>{c.criterion}</p>
+      <p style={{fontSize:15,lineHeight:1.6,color:"#1c1b1a",marginBottom:16}}>{c.text}</p>
+
+      <button onClick={()=>toggleEx(exKey)} style={{background:"none",border:"none",color:"#8a857e",fontSize:13,cursor:"pointer",marginBottom:12,display:"flex",alignItems:"center",gap:6}}>
+        <span style={{transition:"transform 0.2s",transform:showExamples[exKey]?"rotate(90deg)":"rotate(0)",display:"inline-block"}}>&#9656;</span>
+        Se eksempler
+      </button>
+
+      {showExamples[exKey]&&(
+        <div style={{animation:"fadeIn 0.25s ease",marginBottom:16}}>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+            <div style={{padding:"12px 14px",borderRadius:10,background:"rgba(46,107,158,0.06)",border:"1px solid rgba(46,107,158,0.15)"}}>
+              <p style={{fontSize:11,fontWeight:600,color:"#2e6b9e",marginBottom:8,textTransform:"uppercase",letterSpacing:"0.08em"}}>Voksenliv</p>
+              {c.examples_adult.map((e,i)=><p key={i} style={{fontSize:13,color:"#5a5650",lineHeight:1.5,margin:"0 0 4px"}}>{"\u2022"} {e}</p>)}
+            </div>
+            <div style={{padding:"12px 14px",borderRadius:10,background:"rgba(90,153,196,0.06)",border:"1px solid rgba(90,153,196,0.15)"}}>
+              <p style={{fontSize:11,fontWeight:600,color:"#5a99c4",marginBottom:8,textTransform:"uppercase",letterSpacing:"0.08em"}}>Barndom</p>
+              {c.examples_child.map((e,i)=><p key={i} style={{fontSize:13,color:"#5a5650",lineHeight:1.5,margin:"0 0 4px"}}>{"\u2022"} {e}</p>)}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+        <div>
+          <p style={{fontSize:12,fontWeight:600,color:"#8a857e",marginBottom:8}}>Som voksen (seneste 6 mdr.)</p>
+          <div style={{display:"flex",gap:8}}>
+            {["yes","no"].map(v=>(
+              <button key={v} onClick={()=>setA(adultKey,v)} style={{flex:1,padding:"10px",borderRadius:10,border:answers[adultKey]===v?(v==="yes"?"2px solid #2e6b9e":"2px solid #5a99c4"):"1.5px solid #e8e5e0",background:answers[adultKey]===v?(v==="yes"?"rgba(46,107,158,0.08)":"rgba(90,153,196,0.06)"):"#fff",color:answers[adultKey]===v?"#1c1b1a":"#8a857e",fontSize:14,fontWeight:500,cursor:"pointer",transition:"all 0.2s"}}>
+                {v==="yes"?"Ja":"Nej"}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <p style={{fontSize:12,fontWeight:600,color:"#8a857e",marginBottom:8}}>Som barn (5–12 år)</p>
+          <div style={{display:"flex",gap:8}}>
+            {["yes","no"].map(v=>(
+              <button key={v} onClick={()=>setA(childKey,v)} style={{flex:1,padding:"10px",borderRadius:10,border:answers[childKey]===v?(v==="yes"?"2px solid #2e6b9e":"2px solid #5a99c4"):"1.5px solid #e8e5e0",background:answers[childKey]===v?(v==="yes"?"rgba(46,107,158,0.08)":"rgba(90,153,196,0.06)"):"#fff",color:answers[childKey]===v?"#1c1b1a":"#8a857e",fontSize:14,fontWeight:500,cursor:"pointer",transition:"all 0.2s"}}>
+                {v==="yes"?"Ja":"Nej"}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   RESULTS COMPONENT (shared between modes)
+   ═══════════════════════════════════════════════════════ */
+function Results({profile,answers,demo,mode}){
+  const[showTx,setShowTx]=useState(false);
+  const[copied,setCopied]=useState(false);
+  const ti=getTreatmentInfo(profile);
+  const isDiva=mode==="diva";
+
+  const doExport=()=>{
+    const text=isDiva?generateDivaExport(answers,demo,profile):generateQuickExport(answers,demo,profile);
+    navigator.clipboard?.writeText(text).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),3000);});
+  };
+  const doDownload=()=>{
+    const text=isDiva?generateDivaExport(answers,demo,profile):generateQuickExport(answers,demo,profile);
+    const blob=new Blob([text],{type:"text/plain;charset=utf-8"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");a.href=url;
+    a.download=`ADHD-screening-${isDiva?"DIVA":"hurtig"}-${new Date().toISOString().slice(0,10)}.txt`;
+    a.click();URL.revokeObjectURL(url);
+  };
+
+  return(
+    <div style={{animation:"fadeIn 0.4s ease"}}>
+      <div style={{textAlign:"center",marginBottom:32}}>
+        <p style={{...S.label,textAlign:"center"}}>{isDiva?"DIVA-inspireret udredning":"Hurtig screening"} – Resultat</p>
+        <h2 style={{...S.h2,fontSize:30,textAlign:"center"}}>Din screeningsprofil</h2>
+      </div>
+
+      {/* Score circle */}
+      <div style={{display:"flex",justifyContent:"center",marginBottom:32}}>
+        <div style={{width:160,height:160,borderRadius:"50%",background:`conic-gradient(${profile.color} ${profile.totalPct*3.6}deg, #e8e5e0 0deg)`,display:"flex",alignItems:"center",justifyContent:"center"}}>
+          <div style={{width:128,height:128,borderRadius:"50%",background:"#faf9f7",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
+            <span style={{fontSize:36,fontWeight:700,color:profile.color}}>{profile.totalPct}%</span>
+            <span style={{fontSize:11,color:"#8a857e",marginTop:2}}>samlet</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Label */}
+      <div style={{textAlign:"center",marginBottom:28,padding:"14px 24px",borderRadius:12,background:`${profile.color}10`,border:`1.5px solid ${profile.color}30`}}>
+        <span style={{fontSize:18,fontWeight:700,color:profile.color}}>{profile.label}</span>
+        <span style={{display:"block",fontSize:13,color:"#5a5650",marginTop:4}}>Profil: {profile.profileType}{profile.profileType==="overvejende uopmærksom"?" (\"ADD\")":""}</span>
+      </div>
+
+      {/* Domain bars */}
+      <div style={S.card}>
+        <p style={{fontSize:13,fontWeight:600,color:"#8a857e",marginBottom:18,textTransform:"uppercase",letterSpacing:"0.08em"}}>Dom&aelig;ner</p>
+        {isDiva?(
+          <>
+            <Bar label={`Opmærksomhed – voksen (${profile.aAdult}/9)`} pct={profile.aPct} color="#2e6b9e"/>
+            <Bar label={`Opmærksomhed – barndom (${profile.aChild}/9)`} pct={profile.aPctChild} color="#5a99c4"/>
+            <Bar label={`Hyperaktivitet/impulsivitet – voksen (${profile.hiAdult}/9)`} pct={profile.hiPct} color="#F59E0B"/>
+            <Bar label={`Hyperaktivitet/impulsivitet – barndom (${profile.hiChild}/9)`} pct={profile.hiPctChild} color="#FBBF24"/>
+            <Bar label={`Funktionspåvirkning (${profile.funcCount}/5)`} pct={profile.funcPct} color="#10B981"/>
+          </>
+        ):(
+          <>
+            <Bar label="Barndomssymptomer" pct={profile.childhood} color="#2e6b9e"/>
+            <Bar label="Opmærksomhed" pct={profile.attention} color="#5a99c4"/>
+            <Bar label="Impulsivitet / Indre uro" pct={profile.hyperactivity} color="#F59E0B"/>
+            <Bar label="Indre regulering" pct={profile.regulation} color="#EC4899"/>
+            <Bar label="Funktionspåvirkning" pct={profile.functioning} color="#10B981"/>
+          </>
+        )}
+      </div>
+
+      {/* DIVA DSM-5 summary */}
+      {isDiva&&(
+        <div style={S.card}>
+          <p style={{fontSize:13,fontWeight:600,color:"#8a857e",marginBottom:14,textTransform:"uppercase",letterSpacing:"0.08em"}}>DSM-5 kriterieoversigt</p>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:16}}>
+            <div style={{padding:"16px",borderRadius:12,background:profile.aAdultMet?"rgba(46,107,158,0.06)":"#f5f2ee",border:profile.aAdultMet?"1px solid rgba(46,107,158,0.25)":"1px solid #e8e5e0"}}>
+              <p style={{fontSize:12,color:"#8a857e",marginBottom:4}}>A-kriterier (voksen)</p>
+              <p style={{fontSize:22,fontWeight:700,color:profile.aAdultMet?"#2e6b9e":"#b5b0a8",margin:0}}>{profile.aAdult}/9</p>
+              <p style={{fontSize:12,color:profile.aAdultMet?"#2e6b9e":"#8a857e",margin:"4px 0 0"}}>{profile.aAdultMet?"\u2713 Opfyldt (\u22655)":"Ikke opfyldt"}</p>
+            </div>
+            <div style={{padding:"16px",borderRadius:12,background:profile.hiAdultMet?"rgba(245,158,11,0.06)":"#f5f2ee",border:profile.hiAdultMet?"1px solid rgba(245,158,11,0.25)":"1px solid #e8e5e0"}}>
+              <p style={{fontSize:12,color:"#8a857e",marginBottom:4}}>HI-kriterier (voksen)</p>
+              <p style={{fontSize:22,fontWeight:700,color:profile.hiAdultMet?"#F59E0B":"#b5b0a8",margin:0}}>{profile.hiAdult}/9</p>
+              <p style={{fontSize:12,color:profile.hiAdultMet?"#F59E0B":"#8a857e",margin:"4px 0 0"}}>{profile.hiAdultMet?"\u2713 Opfyldt (\u22655)":"Ikke opfyldt"}</p>
+            </div>
+            <div style={{padding:"16px",borderRadius:12,background:profile.aChildMet?"rgba(46,107,158,0.06)":"#f5f2ee",border:profile.aChildMet?"1px solid rgba(46,107,158,0.25)":"1px solid #e8e5e0"}}>
+              <p style={{fontSize:12,color:"#8a857e",marginBottom:4}}>A-kriterier (barndom)</p>
+              <p style={{fontSize:22,fontWeight:700,color:profile.aChildMet?"#5a99c4":"#b5b0a8",margin:0}}>{profile.aChild}/9</p>
+              <p style={{fontSize:12,color:profile.aChildMet?"#5a99c4":"#8a857e",margin:"4px 0 0"}}>{profile.aChildMet?"\u2713 Opfyldt (\u22656)":"Ikke opfyldt"}</p>
+            </div>
+            <div style={{padding:"16px",borderRadius:12,background:profile.hiChildMet?"rgba(245,158,11,0.06)":"#f5f2ee",border:profile.hiChildMet?"1px solid rgba(245,158,11,0.25)":"1px solid #e8e5e0"}}>
+              <p style={{fontSize:12,color:"#8a857e",marginBottom:4}}>HI-kriterier (barndom)</p>
+              <p style={{fontSize:22,fontWeight:700,color:profile.hiChildMet?"#FBBF24":"#b5b0a8",margin:0}}>{profile.hiChild}/9</p>
+              <p style={{fontSize:12,color:profile.hiChildMet?"#FBBF24":"#8a857e",margin:"4px 0 0"}}>{profile.hiChildMet?"\u2713 Opfyldt (\u22656)":"Ikke opfyldt"}</p>
+            </div>
+          </div>
+          <div style={{padding:"14px 16px",borderRadius:10,background:"rgba(16,185,129,0.05)",border:`1px solid rgba(16,185,129,${profile.funcMet?0.25:0.1})`}}>
+            <p style={{fontSize:12,color:"#8a857e",marginBottom:4}}>Funktionsp&aring;virkning (&ge;2 dom&aelig;ner)</p>
+            <p style={{fontSize:16,fontWeight:600,color:profile.funcMet?"#10B981":"#8a857e",margin:0}}>{profile.funcCount}/5 dom&aelig;ner – {profile.funcMet?"Opfyldt":"Ikke opfyldt"}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Interpretation */}
+      <div style={S.card}>
+        <p style={{fontSize:13,fontWeight:600,color:"#8a857e",marginBottom:14,textTransform:"uppercase",letterSpacing:"0.08em"}}>Fortolkning</p>
+        {profile.level==="low"&&<p style={S.body}>Dine svar tyder p&aring;, at dit symptomm&oslash;nster i <strong style={{color:"#1c1b1a"}}>mindre grad</strong> er foreneligt med ADHD. Det udelukker ikke reelle vanskeligheder, men det samlede billede peger ikke st&aelig;rkt i retning af ADHD. Tal med din l&aelig;ge, hvis du fortsat oplever udfordringer.</p>}
+        {profile.level==="moderate"&&<p style={S.body}>Dine svar viser et <strong style={{color:"#1c1b1a"}}>moderat symptomm&oslash;nster</strong> der kan v&aelig;re foreneligt med ADHD. Det er v&aelig;rd at unders&oslash;ge n&aelig;rmere med en professionel udredning.</p>}
+        {profile.level==="high"&&<p style={S.body}>Dine svar viser et <strong style={{color:"#1c1b1a"}}>markant symptomm&oslash;nster</strong> med h&oslash;j overensstemmelse med ADHD-karakteristika. Det anbefales at s&oslash;ge professionel udredning. Tag dit resum&eacute; med til din l&aelig;ge.</p>}
+        <p style={S.body}>{ti.profileInsight}</p>
+      </div>
+
+      {/* ADHD / ADD presentation types explainer */}
+      <div style={S.card}>
+        <p style={{fontSize:13,fontWeight:600,color:"#8a857e",marginBottom:14,textTransform:"uppercase",letterSpacing:"0.08em"}}>ADHD vs. ADD – De tre pr&aelig;sentationsformer</p>
+        <p style={{...S.body,marginBottom:20}}>ADHD er &eacute;n diagnose med tre forskellige pr&aelig;sentationsformer. Det, mange kalder "ADD", er officielt en undertype af ADHD. Her er forskellen:</p>
+        <div style={{display:"grid",gap:12}}>
+          <div style={{padding:"16px 20px",borderRadius:12,background:profile.profileType==="overvejende uopmærksom"?"rgba(46,107,158,0.06)":"#f5f2ee",border:profile.profileType==="overvejende uopmærksom"?"1.5px solid rgba(46,107,158,0.3)":"1px solid #e8e5e0",position:"relative"}}>
+            {profile.profileType==="overvejende uopmærksom"&&<span style={{position:"absolute",top:16,right:18,fontSize:11,fontWeight:600,color:"#2e6b9e",background:"rgba(46,107,158,0.1)",padding:"3px 10px",borderRadius:20}}>Din profil</span>}
+            <p style={{fontSize:15,fontWeight:600,color:"#2e6b9e",marginBottom:6}}>Overvejende uopm&aelig;rksom <span style={{fontWeight:400,color:"#8a857e"}}>– "ADD"</span></p>
+            <p style={{fontSize:14,lineHeight:1.6,color:"#5a5650",margin:0}}>Vanskeligheder med fokus, organisering, glemsel og mental udholdenhed. Ofte indre uro frem for ydre hyperaktivitet. Kan virke "stille" udadtil. Overses hyppigt – især hos kvinder og voksne. Typiske oplevelser: mental tåge, prokrastinering, mange halvfærdige projekter, tab af tidsfornemmelse.</p>
+          </div>
+          <div style={{padding:"16px 20px",borderRadius:12,background:profile.profileType==="overvejende hyperaktiv/impulsiv"?"rgba(245,158,11,0.06)":"#f5f2ee",border:profile.profileType==="overvejende hyperaktiv/impulsiv"?"1.5px solid rgba(245,158,11,0.3)":"1px solid #e8e5e0",position:"relative"}}>
+            {profile.profileType==="overvejende hyperaktiv/impulsiv"&&<span style={{position:"absolute",top:16,right:18,fontSize:11,fontWeight:600,color:"#F59E0B",background:"rgba(245,158,11,0.1)",padding:"3px 10px",borderRadius:20}}>Din profil</span>}
+            <p style={{fontSize:15,fontWeight:600,color:"#F59E0B",marginBottom:6}}>Overvejende hyperaktiv/impulsiv <span style={{fontWeight:400,color:"#8a857e"}}>– "Klassisk ADHD"</span></p>
+            <p style={{fontSize:14,lineHeight:1.6,color:"#5a5650",margin:0}}>Indre uro, rastl&oslash;shed, impulsivitet, utålmodighed og behov for konstant stimulation. Mere synlig for omgivelserne. Typiske oplevelser: kan ikke sidde stille, afbryder andre, handler f&oslash;r man t&aelig;nker, s&oslash;ger intensitet og risiko.</p>
+          </div>
+          <div style={{padding:"16px 20px",borderRadius:12,background:profile.profileType==="kombineret"?"rgba(90,153,196,0.06)":"#f5f2ee",border:profile.profileType==="kombineret"?"1.5px solid rgba(90,153,196,0.3)":"1px solid #e8e5e0",position:"relative"}}>
+            {profile.profileType==="kombineret"&&<span style={{position:"absolute",top:16,right:18,fontSize:11,fontWeight:600,color:"#5a99c4",background:"rgba(90,153,196,0.1)",padding:"3px 10px",borderRadius:20}}>Din profil</span>}
+            <p style={{fontSize:15,fontWeight:600,color:"#5a99c4",marginBottom:6}}>Kombineret pr&aelig;sentation <span style={{fontWeight:400,color:"#8a857e"}}>– Hyppigst</span></p>
+            <p style={{fontSize:14,lineHeight:1.6,color:"#5a5650",margin:0}}>Tr&aelig;k fra begge profiler: b&aring;de opmærksomhedsvanskeligheder og hyperaktivitet/impulsivitet. Den mest udbredte form. Symptomerne kan variere i intensitet over tid og situationer.</p>
+          </div>
+        </div>
+        <p style={{fontSize:13,color:"#8a857e",marginTop:16,lineHeight:1.6,fontStyle:"italic"}}>Bem&aelig;rk: "ADD" er ikke l&aelig;ngere et officielt diagnosenavn. Siden DSM-5 (2013) hedder det ADHD med angivelse af pr&aelig;sentationsform. Men mange bruger fortsat termen ADD i daglig tale, og din l&aelig;ge vil forst&aring;, hvad du mener.</p>
+      </div>
+      <div style={S.card}>
+        <button onClick={()=>setShowTx(!showTx)} style={{width:"100%",background:"none",border:"none",display:"flex",justifyContent:"space-between",alignItems:"center",cursor:"pointer",padding:0}}>
+          <div><p style={{fontSize:13,fontWeight:600,color:"#8a857e",marginBottom:4,textTransform:"uppercase",letterSpacing:"0.08em",textAlign:"left"}}>Behandlingsinformation</p><p style={{fontSize:14,color:"#5a5650",margin:0,textAlign:"left"}}>Oplysende information om behandlingsmuligheder</p></div>
+          <span style={{fontSize:20,color:"#2e6b9e",transition:"transform 0.3s",transform:showTx?"rotate(180deg)":"rotate(0)",flexShrink:0,marginLeft:12}}>{"\u25BE"}</span>
+        </button>
+        {showTx&&(
+          <div style={{marginTop:24,animation:"fadeIn 0.3s ease"}}>
+            <div style={{padding:"14px 18px",borderRadius:10,background:"rgba(46,107,158,0.05)",border:"1px solid rgba(46,107,158,0.15)",marginBottom:24,fontSize:13,lineHeight:1.6,color:"#5a5650"}}><strong style={{color:"#2e6b9e"}}>Bem&aelig;rk:</strong> Generel, oplysende information – ikke anbefalinger.</div>
+            <p style={{fontSize:16,fontWeight:600,color:"#1c1b1a",marginBottom:16,fontFamily:"'Source Serif 4',Georgia,serif"}}>Medicinsk behandling</p>
+            {ti.medications.map((m,i)=><div key={i} style={{marginBottom:20,padding:"18px 20px",borderRadius:12,background:"#f5f2ee",border:"1px solid #e8e5e0"}}><p style={{fontSize:14,fontWeight:600,color:"#2e6b9e",marginBottom:10}}>{m.type}</p><p style={{...S.body,fontSize:14,marginBottom:10}}><strong style={{color:"#5a5650"}}>Virkning:</strong> {m.how}</p><p style={{...S.body,fontSize:14,marginBottom:10}}><strong style={{color:"#3B9979"}}>Fordele:</strong> {m.pros}</p><p style={{...S.body,fontSize:14,marginBottom:10}}><strong style={{color:"#D4920B"}}>Ulemper:</strong> {m.cons}</p><p style={{fontSize:13,color:"#8a857e",margin:0,fontStyle:"italic"}}>{m.note}</p></div>)}
+            <p style={{fontSize:16,fontWeight:600,color:"#1c1b1a",marginBottom:16,marginTop:28,fontFamily:"'Source Serif 4',Georgia,serif"}}>Ikke-medicinsk behandling</p>
+            {ti.nonMed.map((n,i)=><div key={i} style={{marginBottom:14,padding:"14px 18px",borderRadius:10,background:"#f5f2ee",border:"1px solid #e8e5e0"}}><p style={{fontSize:14,fontWeight:600,color:"#5a99c4",marginBottom:6}}>{n.title}</p><p style={{...S.body,fontSize:14,margin:0}}>{n.desc}</p></div>)}
+          </div>
+        )}
+      </div>
+
+      {/* Next steps */}
+      <div style={S.card}>
+        <p style={{fontSize:13,fontWeight:600,color:"#8a857e",marginBottom:14,textTransform:"uppercase",letterSpacing:"0.08em"}}>N&aelig;ste skridt</p>
+        {["Download eller kopiér dit resumé nedenfor.","Bestil tid hos din praktiserende læge – nævn ADHD-symptomer.","Medbring resuméet og beskriv konkrete hverdagspåvirkninger.","Bed om henvisning til psykiatrisk vurdering."].map((t,i)=><p key={i} style={{...S.body,margin:"0 0 12px"}}><strong style={{color:"#1c1b1a"}}>{i+1}.</strong> {t}</p>)}
+      </div>
+
+      {/* Export */}
+      <div style={{display:"flex",gap:12,flexWrap:"wrap",marginTop:8}}>
+        <Btn primary onClick={doExport} style={{flex:1,minWidth:180}}>{copied?"\u2713 Kopieret!":"Kopier resum\u00e9"}</Btn>
+        <Btn onClick={doDownload} style={{flex:1,minWidth:180}}>{"\u2193"} Download som fil</Btn>
+      </div>
+
+      {/* Disclaimer */}
+      <div style={{marginTop:32,padding:"18px 20px",borderRadius:12,background:"rgba(192,57,43,0.04)",border:"1px solid rgba(192,57,43,0.12)",fontSize:13,lineHeight:1.6,color:"#5a5650"}}>
+        <strong style={{color:"#c2553a"}}>Juridisk forbehold:</strong> Denne screening erstatter ikke professionel vurdering. Resultaterne udg&oslash;r ikke en diagnose.{isDiva?" Strukturen er inspireret af DIVA-5 men er ikke et valideret klinisk instrument.":""} Al information er generel og m&aring; ikke bruges som grundlag for selvbehandling.
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   MAIN APP
+   ═══════════════════════════════════════════════════════ */
+function App(){
+  const[mode,setMode]=useState(null); // null,"quick","diva"
+  const[step,setStep]=useState(0);
+  const[answers,setAnswers]=useState({});
+  const[demo,setDemo]=useState({age:"",gender:"",prev:""});
+  const[consent,setConsent]=useState(false);
+  const[showEx,setShowEx]=useState({});
+  const ref=useRef(null);
+
+  const setA=useCallback((k,v)=>setAnswers(p=>({...p,[k]:v})),[]);
+  const toggleEx=useCallback((k)=>setShowEx(p=>({...p,[k]:!p[k]})),[]);
+  const go=(s)=>{setStep(s);window.scrollTo({top:0,behavior:"smooth"});};
+  const reset=()=>{setMode(null);setStep(0);setAnswers({});setDemo({age:"",gender:"",prev:""});setConsent(false);setShowEx({});window.scrollTo({top:0});};
+
+  // ── MODE SELECTION ──
+  if(!mode){
+    return(
+      <div style={S.page}><div style={S.container}>
+        <div style={{textAlign:"center",paddingTop:30,animation:"fadeIn 0.5s ease"}}>
+          <div style={{width:72,height:72,borderRadius:"50%",background:"rgba(46,107,158,0.08)",border:"2px solid rgba(46,107,158,0.25)",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 28px",fontSize:32}}>{"\u25CE"}</div>
+          <p style={{...S.label,textAlign:"center"}}>Struktureret selvscreening</p>
+          <h1 style={{fontSize:34,fontWeight:700,fontFamily:"'Source Serif 4',Georgia,serif",margin:"0 0 12px",lineHeight:1.2,color:"#1c1b1a"}}>ADHD-screening<br/><span style={{color:"#2e6b9e"}}>for voksne</span></h1>
+          <p style={{...S.body,maxWidth:500,margin:"0 auto 40px"}}>V&aelig;lg den screeningstype, der passer dig bedst. Begge giver en personlig profil og et resum&eacute; til din l&aelig;ge.</p>
+
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20,maxWidth:600,margin:"0 auto"}}>
+            {/* Quick */}
+            <button onClick={()=>{setMode("quick");go(0);}} style={{...S.card,cursor:"pointer",textAlign:"left",transition:"all 0.2s",padding:"28px 24px",border:"1.5px solid rgba(46,107,158,0.15)"}}>
+              <div style={{width:44,height:44,borderRadius:12,background:"rgba(46,107,158,0.08)",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:16,fontSize:20}}>{"\u26A1"}</div>
+              <p style={{fontSize:18,fontWeight:700,color:"#1c1b1a",marginBottom:8,fontFamily:"'Source Serif 4',Georgia,serif"}}>Hurtig screening</p>
+              <p style={{fontSize:13,lineHeight:1.6,color:"#5a5650",marginBottom:12}}>30 sp&oslash;rgsm&aring;l med Likert-skala. D&aelig;kker opm&aelig;rksomhed, impulsivitet, regulering, barndom og funktion.</p>
+              <p style={{fontSize:12,color:"#2e6b9e",fontWeight:600}}>{"\u23F1"} 10–15 minutter</p>
+            </button>
+
+            {/* DIVA */}
+            <button onClick={()=>{setMode("diva");go(0);}} style={{...S.card,cursor:"pointer",textAlign:"left",transition:"all 0.2s",padding:"28px 24px",border:"1.5px solid rgba(90,153,196,0.2)"}}>
+              <div style={{width:44,height:44,borderRadius:12,background:"rgba(90,153,196,0.08)",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:16,fontSize:20}}>{"\u25C8"}</div>
+              <p style={{fontSize:18,fontWeight:700,color:"#1c1b1a",marginBottom:8,fontFamily:"'Source Serif 4',Georgia,serif"}}>DIVA-inspireret udredning</p>
+              <p style={{fontSize:13,lineHeight:1.6,color:"#5a5650",marginBottom:12}}>F&oslash;lger DSM-5-kriterierne med 18 symptomer vurderet for voksenliv OG barndom. Med eksempler og funktionsvurdering.</p>
+              <p style={{fontSize:12,color:"#5a99c4",fontWeight:600}}>{"\u23F1"} 25–35 minutter</p>
+            </button>
+          </div>
+
+          <p style={{fontSize:12,color:"#b5b0a8",marginTop:32,lineHeight:1.6,maxWidth:460,margin:"32px auto 0"}}>Ingen af testene stiller diagnoser. De er t&aelig;nkt som struktureret forberedelse til samtale med sundhedsfaglig. Dine data forlader ikke din browser.</p>
+        </div>
+      </div></div>
+    );
+  }
+
+  // ══════════ QUICK MODE ══════════
+  if(mode==="quick"){
+    const QUICK_STEPS=[
+      {id:"consent"},
+      {id:"demo"},
+      {id:"childhood",qs:Q_CHILDHOOD,label:"Barndom",title:"Dine oplevelser som barn",intro:"T\u00e6nk tilbage p\u00e5 din barndom (ca. 5\u201312 \u00e5r). Svar ud fra det, du kan huske."},
+      {id:"attention",qs:Q_ATTENTION,label:"Opm\u00e6rksomhed",title:"Opm\u00e6rksomhed i hverdagen",intro:"T\u00e6nk p\u00e5 de seneste 6 m\u00e5neder."},
+      {id:"hyper",qs:Q_HYPER,label:"Impulsivitet & Uro",title:"Impulsivitet og rastl\u00f8shed",intro:"Hos voksne viser hyperaktivitet sig ofte som indre uro."},
+      {id:"reg",qs:Q_REG,label:"Indre regulering",title:"F\u00f8lelser, energi og selvregulering",intro:"Emotionel dysregulering er en central del af ADHD."},
+      {id:"func",qs:Q_FUNC,label:"Funktionsp\u00e5virkning",title:"P\u00e5virkning af din hverdag",intro:"En ADHD-vurdering handler ikke kun om symptomer, men om konsekvenser."},
+      {id:"results"},
+    ];
+    const s=QUICK_STEPS[step];
+    const canNext=()=>{
+      if(s.id==="consent")return consent;
+      if(s.id==="demo")return demo.age&&demo.gender;
+      if(s.qs)return s.qs.every(q=>answers[q.id]!==undefined);
+      return true;
+    };
+
+    return(
+      <div style={S.page}><div style={S.container} ref={ref}>
+        <div style={{animation:"fadeIn 0.4s ease"}} key={step}>
+          {s.id==="consent"&&(
+            <div>
+              <p style={S.label}>Hurtig screening – F&oslash;r vi begynder</p>
+              <h2 style={S.h2}>Vigtig information</h2>
+              <div style={S.card}>
+                <p style={S.body}><strong style={{color:"#1c1b1a"}}>Hvad er dette?</strong> En struktureret selvscreening med 30 sp&oslash;rgsm&aring;l. Inspireret af anerkendte kliniske v&aelig;rkt&oslash;jer.</p>
+                <p style={S.body}><strong style={{color:"#1c1b1a"}}>Hvad er dette IKKE?</strong> En diagnose. Kun en kvalificeret sundhedsfaglig kan diagnosticere ADHD.</p>
+                <p style={S.body}><strong style={{color:"#1c1b1a"}}>Dine data:</strong> Alt behandles lokalt i din browser. Intet gemmes eller deles.</p>
+              </div>
+              <label style={{display:"flex",alignItems:"flex-start",gap:14,cursor:"pointer",padding:"16px 20px",borderRadius:12,background:consent?"rgba(46,107,158,0.05)":"#fff",border:consent?"1.5px solid rgba(46,107,158,0.3)":"1.5px solid #e8e5e0",marginBottom:28}}>
+                <input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)} style={{width:20,height:20,marginTop:2,accentColor:"#2e6b9e"}}/>
+                <span style={{fontSize:14,lineHeight:1.6,color:"#3a3835"}}>Jeg forst&aring;r, at dette er en screening – ikke en diagnose.</span>
+              </label>
+              <div style={{display:"flex",gap:12}}><Btn onClick={reset}>{"\u2190"} Skift test</Btn><Btn primary disabled={!canNext()} onClick={()=>go(step+1)}>Forts&aelig;t {"\u2192"}</Btn></div>
+            </div>
+          )}
+
+          {s.id==="demo"&&(
+            <div>
+              <p style={S.label}>Baggrund</p><h2 style={S.h2}>Lidt om dig</h2>
+              <div style={{...S.card,display:"flex",flexDirection:"column",gap:20}}>
+                <div><label style={{display:"block",fontSize:14,color:"#5a5650",marginBottom:8}}>Alder</label><input type="number" min="18" max="99" placeholder="F.eks. 34" value={demo.age} onChange={e=>setDemo(d=>({...d,age:e.target.value}))} style={{width:"100%",padding:"12px 16px",borderRadius:10,border:"1.5px solid #e8e5e0",background:"#fff",color:"#1c1b1a",fontSize:15,outline:"none"}}/></div>
+                <div><label style={{display:"block",fontSize:14,color:"#5a5650",marginBottom:8}}>K&oslash;n</label><select value={demo.gender} onChange={e=>setDemo(d=>({...d,gender:e.target.value}))} style={{width:"100%",padding:"12px 16px",borderRadius:10,border:"1.5px solid #e8e5e0",background:"#fff",color:"#1c1b1a",fontSize:15,cursor:"pointer"}}><option value="">V&aelig;lg&hellip;</option><option>Kvinde</option><option>Mand</option><option>Ikke-bin&aelig;r</option><option>&Oslash;nsker ikke at oplyse</option></select></div>
+                <div><label style={{display:"block",fontSize:14,color:"#5a5650",marginBottom:8}}>Tidligere udredt for ADHD?</label><select value={demo.prev} onChange={e=>setDemo(d=>({...d,prev:e.target.value}))} style={{width:"100%",padding:"12px 16px",borderRadius:10,border:"1.5px solid #e8e5e0",background:"#fff",color:"#1c1b1a",fontSize:15,cursor:"pointer"}}><option value="">V&aelig;lg&hellip;</option><option>Nej</option><option>Ja, udredt</option><option>Ja, i behandling</option><option>Usikker</option></select></div>
+              </div>
+              <div style={{display:"flex",gap:12}}><Btn onClick={()=>go(step-1)}>{"\u2190"} Tilbage</Btn><Btn primary disabled={!canNext()} onClick={()=>go(step+1)}>Forts&aelig;t {"\u2192"}</Btn></div>
+            </div>
+          )}
+
+          {s.qs&&(
+            <div>
+              <Progress current={step-1} total={5}/>
+              <p style={S.label}>{s.label}</p><h2 style={S.h2}>{s.title}</h2>
+              <p style={{...S.body,marginBottom:28}}>{s.intro}</p>
+              {s.qs.map((q,i)=>(
+                <div key={q.id} style={{marginBottom:28,padding:"20px 24px",borderRadius:14,background:"#fff",border:"1px solid #e8e5e0"}}>
+                  <p style={{fontSize:15,lineHeight:1.6,color:"#1c1b1a",marginBottom:12}}><span style={{color:"#2e6b9e",fontWeight:600,marginRight:8}}>{i+1}.</span>{q.text}</p>
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8}}>
+                    {LIKERT4.map(o=>{const sel=answers[q.id]===o.value;return <button key={o.value} onClick={()=>setA(q.id,o.value)} style={{padding:"10px 4px",borderRadius:10,border:sel?"2px solid #5a99c4":"1.5px solid #e8e5e0",background:sel?"rgba(90,153,196,0.08)":"#fff",color:sel?"#2e6b9e":"#5a5650",fontSize:13,cursor:"pointer",transition:"all 0.2s",lineHeight:1.3}}>{o.label}</button>;})}
+                  </div>
+                </div>
+              ))}
+              <div style={{display:"flex",gap:12}}><Btn onClick={()=>go(step-1)}>{"\u2190"} Tilbage</Btn><Btn primary disabled={!canNext()} onClick={()=>go(step+1)}>{step===6?"Se resultat \u2192":"Forts\u00e6t \u2192"}</Btn></div>
+            </div>
+          )}
+
+          {s.id==="results"&&<><Results profile={calcQuickProfile(answers)} answers={answers} demo={demo} mode="quick"/><div style={{textAlign:"center",marginTop:24}}><Btn onClick={reset} style={{border:"none",color:"#b5b0a8",fontSize:13}}>Start forfra</Btn></div></>}
+        </div>
+      </div></div>
+    );
+  }
+
+  // ══════════ DIVA MODE ══════════
+  if(mode==="diva"){
+    // Steps: 0=consent, 1=demo, 2=A-criteria, 3=HI-criteria, 4=function, 5=results
+    const DIVA_STEPS=["consent","demo","A","HI","function","results"];
+    const sid=DIVA_STEPS[step];
+    const canNext=()=>{
+      if(sid==="consent")return consent;
+      if(sid==="demo")return demo.age&&demo.gender;
+      if(sid==="A")return DIVA_A_CRITERIA.every(c=>answers[c.id+"_adult"]&&answers[c.id+"_child"]);
+      if(sid==="HI")return DIVA_HI_CRITERIA.every(c=>answers[c.id+"_adult"]&&answers[c.id+"_child"]);
+      if(sid==="function")return DIVA_FUNCTION_DOMAINS.every(d=>answers[d.id]);
+      return true;
+    };
+    const aAnswered=DIVA_A_CRITERIA.filter(c=>answers[c.id+"_adult"]&&answers[c.id+"_child"]).length;
+    const hiAnswered=DIVA_HI_CRITERIA.filter(c=>answers[c.id+"_adult"]&&answers[c.id+"_child"]).length;
+
+    return(
+      <div style={S.page}><div style={S.container} ref={ref}>
+        <div style={{animation:"fadeIn 0.4s ease"}} key={step}>
+
+          {sid==="consent"&&(
+            <div>
+              <p style={S.label}>DIVA-inspireret udredning – F&oslash;r vi begynder</p>
+              <h2 style={S.h2}>Vigtig information</h2>
+              <div style={S.card}>
+                <p style={S.body}><strong style={{color:"#1c1b1a"}}>Hvad er dette?</strong> En struktureret selvscreening inspireret af DIVA-5 (Diagnostic Interview for ADHD in Adults). Den f&oslash;lger DSM-5-kriterierne og vurderer hvert symptom for b&aring;de voksenliv og barndom – pr&aelig;cis som en kliniker ville g&oslash;re.</p>
+                <p style={S.body}><strong style={{color:"#1c1b1a"}}>Hvad er dette IKKE?</strong> En diagnose. DIVA-5 er designet som et klinisk interview – denne version er en selvrapporteringsversion til forberedelse af professionel udredning.</p>
+                <p style={S.body}><strong style={{color:"#1c1b1a"}}>Struktur:</strong> 9 opm&aelig;rksomhedskriterier (A1–A9) + 9 hyperaktivitets/impulsivitetskriterier (HI1–HI9), hver vurderet for voksenliv og barndom. Derefter funktionsp&aring;virkning i 5 dom&aelig;ner.</p>
+                <p style={S.body}><strong style={{color:"#1c1b1a"}}>Dine data:</strong> Alt behandles lokalt. Intet gemmes eller deles.</p>
+              </div>
+              <label style={{display:"flex",alignItems:"flex-start",gap:14,cursor:"pointer",padding:"16px 20px",borderRadius:12,background:consent?"rgba(46,107,158,0.05)":"#fff",border:consent?"1.5px solid rgba(46,107,158,0.3)":"1.5px solid #e8e5e0",marginBottom:28}}>
+                <input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)} style={{width:20,height:20,marginTop:2,accentColor:"#2e6b9e"}}/>
+                <span style={{fontSize:14,lineHeight:1.6,color:"#3a3835"}}>Jeg forst&aring;r, at dette er en screening – ikke en diagnose – og at DIVA-5 normalt udf&oslash;res af en kliniker.</span>
+              </label>
+              <div style={{display:"flex",gap:12}}><Btn onClick={reset}>{"\u2190"} Skift test</Btn><Btn primary disabled={!canNext()} onClick={()=>go(step+1)}>Forts&aelig;t {"\u2192"}</Btn></div>
+            </div>
+          )}
+
+          {sid==="demo"&&(
+            <div>
+              <p style={S.label}>Baggrund</p><h2 style={S.h2}>Lidt om dig</h2>
+              <div style={{...S.card,display:"flex",flexDirection:"column",gap:20}}>
+                <div><label style={{display:"block",fontSize:14,color:"#5a5650",marginBottom:8}}>Alder</label><input type="number" min="18" max="99" placeholder="F.eks. 34" value={demo.age} onChange={e=>setDemo(d=>({...d,age:e.target.value}))} style={{width:"100%",padding:"12px 16px",borderRadius:10,border:"1.5px solid #e8e5e0",background:"#fff",color:"#1c1b1a",fontSize:15,outline:"none"}}/></div>
+                <div><label style={{display:"block",fontSize:14,color:"#5a5650",marginBottom:8}}>K&oslash;n</label><select value={demo.gender} onChange={e=>setDemo(d=>({...d,gender:e.target.value}))} style={{width:"100%",padding:"12px 16px",borderRadius:10,border:"1.5px solid #e8e5e0",background:"#fff",color:"#1c1b1a",fontSize:15,cursor:"pointer"}}><option value="">V&aelig;lg&hellip;</option><option>Kvinde</option><option>Mand</option><option>Ikke-bin&aelig;r</option><option>&Oslash;nsker ikke at oplyse</option></select></div>
+                <div><label style={{display:"block",fontSize:14,color:"#5a5650",marginBottom:8}}>Tidligere udredt for ADHD?</label><select value={demo.prev} onChange={e=>setDemo(d=>({...d,prev:e.target.value}))} style={{width:"100%",padding:"12px 16px",borderRadius:10,border:"1.5px solid #e8e5e0",background:"#fff",color:"#1c1b1a",fontSize:15,cursor:"pointer"}}><option value="">V&aelig;lg&hellip;</option><option>Nej</option><option>Ja, udredt</option><option>Ja, i behandling</option><option>Usikker</option></select></div>
+              </div>
+              <div style={{display:"flex",gap:12}}><Btn onClick={()=>go(step-1)}>{"\u2190"} Tilbage</Btn><Btn primary disabled={!canNext()} onClick={()=>go(step+1)}>Forts&aelig;t {"\u2192"}</Btn></div>
+            </div>
+          )}
+
+          {sid==="A"&&(
+            <div>
+              <Progress current={1} total={3}/>
+              <p style={S.label}>Del 1: Opm&aelig;rksomhed (A-kriterier)</p>
+              <h2 style={S.h2}>Opm&aelig;rksomhedsvanskeligheder</h2>
+              <p style={{...S.body,marginBottom:8}}>Vurder hvert symptom for dit voksenliv (seneste 6 mdr.) og din barndom (5–12 &aring;r). Tryk "Se eksempler" for konkrete situationer.</p>
+              <p style={{fontSize:13,color:"#2e6b9e",fontWeight:500,marginBottom:24}}>Besvaret: {aAnswered}/9</p>
+              {DIVA_A_CRITERIA.map(c=><DivaCriterion key={c.id} c={c} answers={answers} setA={setA} showExamples={showEx} toggleEx={toggleEx}/>)}
+              <div style={{display:"flex",gap:12,marginTop:8}}><Btn onClick={()=>go(step-1)}>{"\u2190"} Tilbage</Btn><Btn primary disabled={!canNext()} onClick={()=>go(step+1)}>Forts&aelig;t {"\u2192"}</Btn></div>
+            </div>
+          )}
+
+          {sid==="HI"&&(
+            <div>
+              <Progress current={2} total={3}/>
+              <p style={S.label}>Del 2: Hyperaktivitet/Impulsivitet (HI-kriterier)</p>
+              <h2 style={S.h2}>Hyperaktivitet og impulsivitet</h2>
+              <p style={{...S.body,marginBottom:8}}>Hos voksne viser hyperaktivitet sig ofte som indre uro snarere end ydre motorisk uro.</p>
+              <p style={{fontSize:13,color:"#2e6b9e",fontWeight:500,marginBottom:24}}>Besvaret: {hiAnswered}/9</p>
+              {DIVA_HI_CRITERIA.map(c=><DivaCriterion key={c.id} c={c} answers={answers} setA={setA} showExamples={showEx} toggleEx={toggleEx}/>)}
+              <div style={{display:"flex",gap:12,marginTop:8}}><Btn onClick={()=>go(step-1)}>{"\u2190"} Tilbage</Btn><Btn primary disabled={!canNext()} onClick={()=>go(step+1)}>Forts&aelig;t {"\u2192"}</Btn></div>
+            </div>
+          )}
+
+          {sid==="function"&&(
+            <div>
+              <Progress current={3} total={3}/>
+              <p style={S.label}>Del 3: Funktionsp&aring;virkning</p>
+              <h2 style={S.h2}>P&aring;virkning af dit daglige liv</h2>
+              <p style={{...S.body,marginBottom:24}}>ADHD-diagnosen kr&aelig;ver, at symptomerne medf&oslash;rer klinisk betydningsfuld funktionsneds&aelig;ttelse i mindst 2 livsdom&aelig;ner.</p>
+              {DIVA_FUNCTION_DOMAINS.map(d=>(
+                <div key={d.id} style={{...S.card,padding:"24px"}}>
+                  <p style={{fontSize:15,fontWeight:600,color:"#1c1b1a",marginBottom:4}}>{d.domain}</p>
+                  <p style={{fontSize:14,lineHeight:1.6,color:"#5a5650",marginBottom:12}}>{d.text}</p>
+                  <button onClick={()=>toggleEx(d.id+"_ex")} style={{background:"none",border:"none",color:"#8a857e",fontSize:13,cursor:"pointer",marginBottom:showEx[d.id+"_ex"]?12:0,display:"flex",alignItems:"center",gap:6}}>
+                    <span style={{transition:"transform 0.2s",transform:showEx[d.id+"_ex"]?"rotate(90deg)":"rotate(0)",display:"inline-block"}}>{"\u25B8"}</span>Eksempler
+                  </button>
+                  {showEx[d.id+"_ex"]&&(
+                    <div style={{padding:"10px 14px",borderRadius:8,background:"rgba(16,185,129,0.04)",border:"1px solid rgba(16,185,129,0.12)",marginBottom:12,animation:"fadeIn 0.25s ease"}}>
+                      {d.examples.map((e,i)=><p key={i} style={{fontSize:13,color:"#5a5650",lineHeight:1.5,margin:"0 0 3px"}}>{"\u2022"} {e}</p>)}
+                    </div>
+                  )}
+                  <div style={{display:"flex",gap:8}}>
+                    {["yes","no"].map(v=>(
+                      <button key={v} onClick={()=>setA(d.id,v)} style={{flex:1,padding:"10px",borderRadius:10,border:answers[d.id]===v?(v==="yes"?"2px solid #10B981":"2px solid #5a99c4"):"1.5px solid #e8e5e0",background:answers[d.id]===v?(v==="yes"?"rgba(16,185,129,0.06)":"rgba(90,153,196,0.06)"):"#fff",color:answers[d.id]===v?"#1c1b1a":"#8a857e",fontSize:14,fontWeight:500,cursor:"pointer",transition:"all 0.2s"}}>
+                        {v==="yes"?"Ja, m\u00e6rkbar p\u00e5virkning":"Nej / minimal"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              <div style={{display:"flex",gap:12,marginTop:8}}><Btn onClick={()=>go(step-1)}>{"\u2190"} Tilbage</Btn><Btn primary disabled={!canNext()} onClick={()=>go(step+1)}>Se resultat {"\u2192"}</Btn></div>
+            </div>
+          )}
+
+          {sid==="results"&&<><Results profile={calcDivaProfile(answers)} answers={answers} demo={demo} mode="diva"/><div style={{textAlign:"center",marginTop:24}}><Btn onClick={reset} style={{border:"none",color:"#b5b0a8",fontSize:13}}>Start forfra</Btn></div></>}
+        </div>
+      </div></div>
+    );
+  }
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>

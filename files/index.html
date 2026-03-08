@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hjernebarometeret — Professionelle selvtests</title>
+<meta name="description" content="Danmarks platform for professionelle selvtests inden for kognition, neuropsykologi og personlig udvikling. Gratis. Videnskabeligt funderet.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,500&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/styles.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#faf9f7;--bg-card:#fff;--bg-warm:#f5f2ee;--bg-dark:#1c1b1a;
+  --text:#1c1b1a;--text-2:#5a5650;--text-3:#8a857e;--text-4:#b5b0a8;
+  --border:#e8e5e0;--border-2:#d5d0c9;--accent:#2c5f4b;--accent-light:#e8f0ec;
+  --iq:#6b4c9a;--iq-bg:#f0ebf5;--adhd:#2e6b9e;--adhd-bg:#eaf1f7;
+  --autism:#3a7d5e;--autism-bg:#eaf5ef;--personality:#b8860b;--personality-bg:#faf5eb;
+  --stress:#c2553a;--stress-bg:#faf0ed;--eq:#7a6b3a;--eq-bg:#f7f4ec;
+  --anxiety:#8b5e3c;--anxiety-bg:#f7f1ec;--depression:#5a6b7a;--depression-bg:#eef1f4;
+  --eating:#9a5b6b;--eating-bg:#f5eef0;--hsp:#7a6b8a;--hsp-bg:#f2eff5;
+  --perf:#8a6b4a;--perf-bg:#f5f0ea;--attach:#5a7a6b;--attach-bg:#eff5f2;
+  --sleep:#4a6b8a;--sleep-bg:#eef2f7;--comm:#6b7a4a;--comm-bg:#f2f5ee;
+  --learn:#8a5a6b;--learn-bg:#f5eef2;
+  --serif:'Source Serif 4',Georgia,serif;--sans:'Figtree',system-ui,sans-serif;
+}
+html{scroll-behavior:smooth}body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased;font-size:15px;line-height:1.6}
+::selection{background:var(--accent);color:#fff}button,a{font-family:inherit;cursor:pointer;text-decoration:none;color:inherit}
+nav{display:flex;justify-content:space-between;align-items:center;padding:0 clamp(20px,4vw,48px);height:64px;position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(250,249,247,.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid transparent;transition:border-color .3s}nav.scrolled{border-bottom-color:var(--border)}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-size:18px;font-weight:600;letter-spacing:-.02em}.logo svg{flex-shrink:0}
+.nr{display:flex;align-items:center;gap:4px}
+.na{font-size:13px;font-weight:500;color:var(--text-3);padding:8px 14px;border-radius:8px;border:none;background:none;transition:color .2s,background .2s}.na:hover{color:var(--text);background:rgba(0,0,0,.04)}
+.nc{font-size:13px;font-weight:600;color:var(--accent);padding:8px 18px;border-radius:8px;border:1.5px solid var(--accent);background:none;transition:all .2s;margin-left:4px}.nc:hover{background:var(--accent);color:#fff}
+.nl{font-size:13px;font-weight:500;color:var(--text-2);padding:8px 14px;border-radius:8px;border:none;background:none;display:flex;align-items:center;gap:6px;transition:all .2s}.nl:hover{color:var(--text);background:rgba(0,0,0,.04)}
+.hero{padding:100px clamp(20px,4vw,48px) 48px;max-width:760px;margin:0 auto;text-align:center}
+.hb{margin:0 auto 32px;max-width:300px}
+.he{font-size:11px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:18px;display:inline-flex;align-items:center;gap:8px}.he::before,.he::after{content:'';width:18px;height:1.5px;background:var(--accent)}
+.hero h1{font-family:var(--serif);font-size:clamp(30px,5.5vw,50px);font-weight:600;line-height:1.12;letter-spacing:-.03em;margin-bottom:20px}
+.hs{font-size:16px;line-height:1.75;color:var(--text-2);margin-bottom:10px;max-width:540px;margin-left:auto;margin-right:auto}
+.ht{font-family:var(--serif);font-style:italic;font-size:15px;color:var(--text-3);margin-bottom:32px}
+.hx{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.bs{display:inline-flex;align-items:center;gap:8px;background:var(--bg-dark);color:#fff;border:none;padding:14px 28px;border-radius:10px;font-size:14px;font-weight:600;transition:all .25s;box-shadow:0 1px 3px rgba(0,0,0,.08)}.bs:hover{background:#333;transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.12)}
+.bo{display:inline-flex;align-items:center;gap:8px;background:none;color:var(--text);border:1.5px solid var(--border-2);padding:14px 28px;border-radius:10px;font-size:14px;font-weight:500;transition:all .25s}.bo:hover{border-color:var(--text-3);background:rgba(0,0,0,.02)}
+.mn{padding:0 clamp(20px,4vw,48px) 64px;max-width:680px;margin:0 auto;text-align:center}.mn p{font-family:var(--serif);font-size:clamp(16px,2.2vw,19px);line-height:1.8;color:var(--text-2)}.mn strong{color:var(--text);font-weight:600}
+.cr{padding:0 clamp(20px,4vw,48px) 72px;max-width:1120px;margin:0 auto}
+.ci{display:flex;gap:32px;align-items:flex-start;padding:32px 36px;background:var(--bg-card);border:1px solid var(--border);border-radius:14px}
+.cx{flex-shrink:0;width:44px;height:44px;background:var(--accent-light);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.ct{flex:1}.ct p{font-size:14px;line-height:1.75;color:var(--text-2)}.ct p:first-child{font-family:var(--serif);font-size:15px;color:var(--text);font-weight:500;margin-bottom:6px}
+.cg{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.ck{font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;letter-spacing:.3px}
+.ts{padding:72px clamp(20px,4vw,48px);max-width:1120px;margin:0 auto}
+.th{margin-bottom:40px}.th h2{font-family:var(--serif);font-size:clamp(24px,3.5vw,34px);font-weight:600;letter-spacing:-.02em;margin-bottom:6px}.th p{font-size:14px;color:var(--text-2);max-width:480px}
+.tg{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.tc{background:var(--bg-card);border:1px solid var(--border);border-radius:13px;padding:24px 22px;transition:all .3s cubic-bezier(.22,1,.36,1);display:flex;flex-direction:column}
+.tc.on{cursor:pointer}.tc.on:hover{border-color:var(--border-2);box-shadow:0 6px 24px rgba(0,0,0,.05);transform:translateY(-2px)}
+.tc.off{opacity:.6}
+.tt{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+.ti{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+.tb{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;padding:4px 9px;border-radius:5px}
+.so{background:var(--accent-light);color:var(--accent)}.sf{background:var(--bg-warm);color:var(--text-4)}
+.tc h3{font-family:var(--serif);font-size:17px;font-weight:600;margin-bottom:5px;letter-spacing:-.01em}
+.tc .td{font-size:12.5px;color:var(--text-3);line-height:1.6;margin-bottom:14px;flex:1}
+.tm{display:flex;gap:12px;font-size:11.5px;color:var(--text-4);margin-bottom:14px}
+.tf{padding-top:12px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.tl{font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;transition:gap .3s}.tc.on:hover .tl{gap:10px}
+.tp{font-size:11px;color:var(--text-4)}.tp strong{color:var(--text-3);font-weight:600}
+.pr{padding:72px clamp(20px,4vw,48px);background:var(--bg-warm);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.pi{max-width:1120px;margin:0 auto}
+.ph{margin-bottom:40px}.ph h2{font-family:var(--serif);font-size:clamp(24px,3.5vw,34px);font-weight:600;letter-spacing:-.02em;margin-bottom:6px}.ph p{font-size:14px;color:var(--text-2);max-width:440px}
+.pg{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.ps{position:relative}.pn{font-family:var(--serif);font-size:38px;font-weight:300;color:var(--border-2);line-height:1;margin-bottom:10px}
+.ps h4{font-size:14px;font-weight:600;margin-bottom:5px}.ps p{font-size:13px;color:var(--text-3);line-height:1.6}.ps a{color:var(--accent)}
+.fq{padding:72px clamp(20px,4vw,48px);max-width:680px;margin:0 auto}
+.fq>h2{font-family:var(--serif);font-size:clamp(24px,3.5vw,34px);font-weight:600;letter-spacing:-.02em;margin-bottom:32px}
+.fi{border-bottom:1px solid var(--border);overflow:hidden}.fi:first-of-type{border-top:1px solid var(--border)}
+.fh{display:flex;justify-content:space-between;align-items:center;padding:18px 0;cursor:pointer;background:none;border:none;width:100%;text-align:left;font-size:14px;font-weight:500;color:var(--text);transition:color .2s;gap:14px}.fh:hover{color:var(--accent)}
+.fh svg{flex-shrink:0;transition:transform .3s;color:var(--text-3)}.fi.open .fh svg{transform:rotate(45deg)}
+.fa{max-height:0;overflow:hidden;transition:max-height .4s ease,padding .3s}.fi.open .fa{max-height:300px;padding-bottom:18px}
+.fa p{font-size:13px;color:var(--text-2);line-height:1.7}.fa a{color:var(--accent);font-weight:500;text-decoration:underline;text-underline-offset:2px}
+.cb{padding:72px clamp(20px,4vw,48px);max-width:1120px;margin:0 auto;text-align:center}
+.cb h2{font-family:var(--serif);font-size:clamp(22px,3.5vw,32px);font-weight:600;letter-spacing:-.02em;margin-bottom:10px}.cb>p{font-size:14px;color:var(--text-2);margin-bottom:28px}
+footer{padding:36px clamp(20px,4vw,48px);border-top:1px solid var(--border);max-width:1120px;margin:0 auto}
+.ft{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;gap:28px;flex-wrap:wrap}
+.fb{max-width:340px}.fb .logo{margin-bottom:10px}.fb p{font-size:12px;color:var(--text-3);line-height:1.7}
+.fc{display:flex;gap:40px}.fc h6{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-3);margin-bottom:10px}
+.fc a{display:block;font-size:12px;color:var(--text-2);margin-bottom:6px;transition:color .2s}.fc a:hover{color:var(--text)}
+.fd{padding-top:20px;border-top:1px solid var(--border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}.fd p{font-size:11px;color:var(--text-4);line-height:1.6}.fe{max-width:560px}
+@media(max-width:900px){.tg{grid-template-columns:1fr 1fr}.pg{grid-template-columns:1fr 1fr;gap:16px}.ft{flex-direction:column}.ci{flex-direction:column;gap:16px;padding:24px 22px}}
+@media(max-width:600px){.tg{grid-template-columns:1fr}.pg{grid-template-columns:1fr}.hx{flex-direction:column;align-items:stretch;padding:0 8px}.hx a{text-align:center;justify-content:center}.na.hm{display:none}.fc{flex-direction:column;gap:20px}.hb{max-width:240px}}
+.rv{opacity:0;transform:translateY(14px);transition:opacity .6s ease,transform .6s ease}.rv.v{opacity:1;transform:translateY(0)}
+.d1{transition-delay:.05s}.d2{transition-delay:.1s}.d3{transition-delay:.15s}.d4{transition-delay:.2s}.d5{transition-delay:.25s}.d6{transition-delay:.3s}.d7{transition-delay:.35s}.d8{transition-delay:.4s}.d9{transition-delay:.45s}.d10{transition-delay:.5s}.d11{transition-delay:.55s}.d12{transition-delay:.6s}
+@keyframes ni{0%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}100%{transform:rotate(-4deg)}}.bn{transform-origin:50% 92%;animation:ni 5s ease-in-out infinite}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div id="site-nav" data-active="tests"></div>
+<section class="hero">
+  <div class="hb rv"><svg viewBox="0 0 300 190" fill="none" style="width:100%"><path d="M30 170 A120 120 0 0 1 270 170" stroke="#e8e5e0" stroke-width="20" fill="none" stroke-linecap="round"/><path d="M30 170 A120 120 0 0 1 72 82" stroke="#5b9bd5" stroke-width="20" fill="none" stroke-linecap="round" opacity=".75"/><path d="M72 82 A120 120 0 0 1 120 56" stroke="#6bb5a0" stroke-width="20" fill="none" stroke-linecap="butt" opacity=".7"/><path d="M120 56 A120 120 0 0 1 180 56" stroke="#4abe8a" stroke-width="20" fill="none" stroke-linecap="butt" opacity=".75"/><path d="M180 56 A120 120 0 0 1 228 82" stroke="#e2b44d" stroke-width="20" fill="none" stroke-linecap="butt" opacity=".7"/><path d="M228 82 A120 120 0 0 1 270 170" stroke="#d45454" stroke-width="20" fill="none" stroke-linecap="round" opacity=".75"/><g class="bn"><line x1="150" y1="170" x2="150" y2="66" stroke="#1c1b1a" stroke-width="3" stroke-linecap="round"/><circle cx="150" cy="66" r="4" fill="#1c1b1a"/></g><circle cx="150" cy="170" r="11" fill="#1c1b1a"/><circle cx="150" cy="170" r="5" fill="#faf9f7"/></svg></div>
+  <div class="he rv d1">Gratis professionelle selvtests</div>
+  <h1 class="rv d2">Hvor godt kender du dig selv?</h1>
+  <p class="hs rv d3">Selvforståelse er fundamentet for de valg vi træffer, de relationer vi bygger, og det liv vi skaber. Vejen til lykke og succes starter med selvindsigt.</p>
+  <p class="ht rv d4">Alle tests og resultater er gratis — helt uden login.</p>
+  <div class="hx rv d5"><a href="#tests" class="bs">Se alle tests ↓</a><a href="rapporter.html" class="bo">Rapporter & priser</a></div>
+</section>
+<div class="mn rv"><p>Hjernebarometeret er skabt til at hjælpe dig med at navigere mod dit sande nord — <strong>én test ad gangen.</strong></p></div>
+<div class="cr rv">
+  <div class="ci">
+    <div class="cx">🧬</div>
+    <div class="ct">
+      <p>Udviklet i samarbejde med danske terapeuter, psykologer og fagspecialister</p>
+      <p>Hjernebarometerets tests og rapporter er udarbejdet med den nyeste viden inden for neuropsykologi, kognitiv psykologi, udviklingspsykiatri og klinisk screening — tilpasset en dansk klinisk kontekst.</p>
+      <div class="cg"><span class="ck" style="background:var(--iq-bg);color:var(--iq)">Kognitiv psykologi</span><span class="ck" style="background:var(--adhd-bg);color:var(--adhd)">Neuropsykiatri</span><span class="ck" style="background:var(--autism-bg);color:var(--autism)">Klinisk screening</span><span class="ck" style="background:var(--personality-bg);color:var(--personality)">DSM-5 · DIVA-5 · AQ-50</span></div>
+    </div>
+  </div>
+</div>
+<section class="ts" id="tests">
+  <div class="th rv"><h2>Alle tests</h2><p>Vælg en test og kom i gang. Alle resultater er gratis — rapporten giver dig personlige værktøjer til udvikling.</p></div>
+  <div class="tg">
+    <a href="iq-test.html" class="tc on rv d1"><div class="tt"><div class="ti" style="background:var(--iq-bg);color:var(--iq)">◈</div><span class="tb so">Klar</span></div><h3>IQ-test</h3><p class="td">Professionel kognitiv vurdering. Mønstergenkendelse, logik, rumlig evne, hukommelse, verbal og numerisk.</p><div class="tm"><span>40 spørgsmål</span><span>·</span><span>6 kategorier</span><span>·</span><span>~15 min</span></div><div class="tf"><span class="tl" style="color:var(--iq)">Start test →</span><span class="tp">Rapport <strong>49 kr</strong></span></div></a>
+    <a href="adhd-screening.html" class="tc on rv d2"><div class="tt"><div class="ti" style="background:var(--adhd-bg);color:var(--adhd)">⚡</div><span class="tb so">Klar</span></div><h3>ADHD-screening</h3><p class="td">Hurtig screening eller DIVA-5-inspireret udredning. DSM-5-kriterier for voksne.</p><div class="tm"><span>30–48 spørgsmål</span><span>·</span><span>Dual-mode</span><span>·</span><span>~12 min</span></div><div class="tf"><span class="tl" style="color:var(--adhd)">Start test →</span><span class="tp">Rapport <strong>49 kr</strong></span></div></a>
+    <a href="autisme-test.html" class="tc on rv d3"><div class="tt"><div class="ti" style="background:var(--autism-bg);color:var(--autism)">🧩</div><span class="tb so">Klar</span></div><h3>Autisme-test</h3><p class="td">Autism Spectrum Quotient (AQ-50). 5 domæner med normdata og evidensbaseret feedback.</p><div class="tm"><span>50 spørgsmål</span><span>·</span><span>5 domæner</span><span>·</span><span>~12 min</span></div><div class="tf"><span class="tl" style="color:var(--autism)">Start test →</span><span class="tp">Rapport <strong>49 kr</strong></span></div></a>
+    <a href="personlighedstest.html" class="tc on rv d4"><div class="tt"><div class="ti" style="background:var(--personality-bg);color:var(--personality)">🌟</div><span class="tb so">Klar</span></div><h3>Personlighedstest</h3><p class="td">Big Five-modellen. Fem grundlæggende personlighedstræk med nuanceret profil.</p><div class="tm"><span>60 spørgsmål</span><span>·</span><span>5 faktorer</span><span>·</span><span>~10 min</span></div><div class="tf"><span class="tl" style="color:var(--personality)">Start test →</span><span class="tp">Rapport <strong>49 kr</strong></span></div></a>
+    <a href="stress-udbraendthed-test.html" class="tc on rv d5"><div class="tt"><div class="ti" style="background:var(--stress-bg);color:var(--stress)">🔥</div><span class="tb so">Klar</span></div><h3>Stress & udbrændthed</h3><p class="td">PSS-10 og burnout-dimensioner. Stressniveau, mestring, udmattelse og kynisme.</p><div class="tm"><span>30 spørgsmål</span><span>·</span><span>6 dimensioner</span><span>·</span><span>~5 min</span></div><div class="tf"><span class="tl" style="color:var(--stress)">Start test →</span><span class="tp">Rapport <strong>49 kr</strong></span></div></a>
+    <div class="tc off rv d6"><div class="tt"><div class="ti" style="background:var(--eq-bg);color:var(--eq)">💡</div><span class="tb sf">Snart</span></div><h3>Emotionel intelligens</h3><p class="td">EQ-screening. Empati, selvregulering, social bevidsthed og relationelle kompetencer.</p><div class="tm"><span>~40 spørgsmål</span><span>·</span><span>4 domæner</span><span>·</span><span>~10 min</span></div><div class="tf"><span class="tl" style="color:var(--text-4)">Kommer snart</span></div></div>
+    <div class="tc off rv d7"><div class="tt"><div class="ti" style="background:var(--anxiety-bg);color:var(--anxiety)">😰</div><span class="tb sf">Snart</span></div><h3>Angst-screening</h3><p class="td">Generaliseret angst, social angst og panikangst. Klinisk sensitiv med henvisning.</p><div class="tm"><span>~25 spørgsmål</span><span>·</span><span>Klinisk</span><span>·</span><span>~8 min</span></div><div class="tf"><span class="tl" style="color:var(--text-4)">Kommer snart</span></div></div>
+    <div class="tc off rv d8"><div class="tt"><div class="ti" style="background:var(--depression-bg);color:var(--depression)">🌧</div><span class="tb sf">Snart</span></div><h3>Depressions-screening</h3><p class="td">Valideret screening for depressive symptomer. Alvorlighedsgrad og funktionspåvirkning.</p><div class="tm"><span>~20 spørgsmål</span><span>·</span><span>Klinisk</span><span>·</span><span>~6 min</span></div><div class="tf"><span class="tl" style="color:var(--text-4)">Kommer snart</span></div></div>
+    <div class="tc off rv d9"><div class="tt"><div class="ti" style="background:var(--eating-bg);color:var(--eating)">🦋</div><span class="tb sf">Snart</span></div><h3>Spiseforstyrrelser</h3><p class="td">Anonym screening med direkte link til hjælpelinjer og faglig vejledning.</p><div class="tm"><span>~25 spørgsmål</span><span>·</span><span>Klinisk</span><span>·</span><span>~6 min</span></div><div class="tf"><span class="tl" style="color:var(--text-4)">Kommer snart</span></div></div>
+    <div class="tc off rv d10"><div class="tt"><div class="ti" style="background:var(--hsp-bg);color:var(--hsp)">🌸</div><span class="tb sf">Snart</span></div><h3>HSP / Høj sensitivitet</h3><p class="td">Sensorisk bearbejdningssensitivitet og overstimulering.</p><div class="tm"><span>~27 spørgsmål</span><span>·</span><span>3 domæner</span><span>·</span><span>~8 min</span></div><div class="tf"><span class="tl" style="color:var(--text-4)">Kommer snart</span></div></div>
+    <div class="tc off rv d11"><div class="tt"><div class="ti" style="background:var(--perf-bg);color:var(--perf)">🎯</div><span class="tb sf">Snart</span></div><h3>Perfektionisme</h3><p class="td">Klinisk og adaptiv perfektionisme. Selvkritik, standarder og prokrastinering.</p><div class="tm"><span>~30 spørgsmål</span><span>·</span><span>3 dimensioner</span><span>·</span><span>~8 min</span></div><div class="tf"><span class="tl" style="color:var(--text-4)">Kommer snart</span></div></div>
+    <div class="tc off rv d12"><div class="tt"><div class="ti" style="background:var(--attach-bg);color:var(--attach)">🔗</div><span class="tb sf">Snart</span></div><h3>Tilknytningsstil</h3><p class="td">Tryg, ængstelig, undvigende eller desorganiseret. Forstå dine relationsmønstre.</p><div class="tm"><span>~36 spørgsmål</span><span>·</span><span>4 typer</span><span>·</span><span>~10 min</span></div><div class="tf"><span class="tl" style="color:var(--text-4)">Kommer snart</span></div></div>
+    <div class="tc off rv"><div class="tt"><div class="ti" style="background:var(--sleep-bg);color:var(--sleep)">🌙</div><span class="tb sf">Snart</span></div><h3>Søvnkvalitet</h3><p class="td">Søvnmønstre, søvnhygiejne og faktorer der påvirker din søvn.</p><div class="tm"><span>~20 spørgsmål</span><span>·</span><span>4 domæner</span><span>·</span><span>~6 min</span></div><div class="tf"><span class="tl" style="color:var(--text-4)">Kommer snart</span></div></div>
+    <div class="tc off rv"><div class="tt"><div class="ti" style="background:var(--comm-bg);color:var(--comm)">💬</div><span class="tb sf">Snart</span></div><h3>Kommunikationsstil</h3><p class="td">Assertiv, passiv, aggressiv eller passiv-aggressiv profil.</p><div class="tm"><span>~25 spørgsmål</span><span>·</span><span>4 stile</span><span>·</span><span>~8 min</span></div><div class="tf"><span class="tl" style="color:var(--text-4)">Kommer snart</span></div></div>
+    <div class="tc off rv"><div class="tt"><div class="ti" style="background:var(--learn-bg);color:var(--learn)">📖</div><span class="tb sf">Snart</span></div><h3>Læringstype</h3><p class="td">Visuel, auditiv, kinetisk og læse/skrive-profil.</p><div class="tm"><span>~24 spørgsmål</span><span>·</span><span>4 typer</span><span>·</span><span>~6 min</span></div><div class="tf"><span class="tl" style="color:var(--text-4)">Kommer snart</span></div></div>
+  </div>
+</section>
+<section class="pr">
+  <div class="pi">
+    <div class="ph rv"><h2>Sådan fungerer det</h2><p>Fra start til resultat på under 15 minutter. Gratis, anonymt og uden forpligtelser.</p></div>
+    <div class="pg">
+      <div class="ps rv d1"><div class="pn">01</div><h4>Vælg test</h4><p>Find den test der matcher din nysgerrighed.</p></div>
+      <div class="ps rv d2"><div class="pn">02</div><h4>Besvar spørgsmål</h4><p>Tag testen i dit tempo. Alt behandles lokalt i din browser.</p></div>
+      <div class="ps rv d3"><div class="pn">03</div><h4>Få dit resultat</h4><p>Score, vurdering og klassificering — gratis og uden login.</p></div>
+      <div class="ps rv d4"><div class="pn">04</div><h4>Gå dybere</h4><p>Konkrete strategier og handlingsplan? <a href="rapporter.html">Se rapporter</a>.</p></div>
+    </div>
+  </div>
+</section>
+<section class="fq" id="faq">
+  <h2 class="rv">Ofte stillede spørgsmål</h2>
+  <div class="fi rv"><button class="fh" onclick="this.parentElement.classList.toggle('open')">Er testene virkelig gratis?<svg width="16" height="16" viewBox="0 0 18 18" fill="none"><line x1="9" y1="3" x2="9" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="3" y1="9" x2="15" y2="9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button><div class="fa"><p>Ja. Alle tests og resultater er helt gratis — uden login og uden forpligtelser. Den personlige udviklingsrapport er valgfri og starter fra 49 kr.</p></div></div>
+  <div class="fi rv"><button class="fh" onclick="this.parentElement.classList.toggle('open')">Er det en diagnose?<svg width="16" height="16" viewBox="0 0 18 18" fill="none"><line x1="9" y1="3" x2="9" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="3" y1="9" x2="15" y2="9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button><div class="fa"><p>Nej. Vores tests er screeningsværktøjer — ikke kliniske diagnoser. Kun en kvalificeret fagperson kan stille en diagnose.</p></div></div>
+  <div class="fi rv"><button class="fh" onclick="this.parentElement.classList.toggle('open')">Hvad indeholder den personlige rapport?<svg width="16" height="16" viewBox="0 0 18 18" fill="none"><line x1="9" y1="3" x2="9" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="3" y1="9" x2="15" y2="9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button><div class="fa"><p>Detaljeret kategori-breakdown, styrker og udfordringer, percentil-rangering, coping-strategier, PDF til din læge og delbart profilkort. <a href="rapporter.html">Se fuld oversigt og priser →</a></p></div></div>
+  <div class="fi rv"><button class="fh" onclick="this.parentElement.classList.toggle('open')">Skal jeg oprette en konto?<svg width="16" height="16" viewBox="0 0 18 18" fill="none"><line x1="9" y1="3" x2="9" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="3" y1="9" x2="15" y2="9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button><div class="fa"><p>Nej — tests og enkeltrapporter kræver ingen konto. Vil du gemme rapporter eller købe 4-pakken, kan du oprette en gratis konto.</p></div></div>
+  <div class="fi rv"><button class="fh" onclick="this.parentElement.classList.toggle('open')">Hvad sker der med mine data?<svg width="16" height="16" viewBox="0 0 18 18" fill="none"><line x1="9" y1="3" x2="9" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="3" y1="9" x2="15" y2="9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button><div class="fa"><p>Dine svar behandles lokalt i din browser. Vi gemmer ingen persondata medmindre du opretter en konto. Betaling sker sikkert via Stripe.</p></div></div>
+</section>
+<section class="cb"><h2 class="rv">Klar til at komme i gang?</h2><p class="rv">Vælg en test. Det tager under 15 minutter — og det er gratis.</p><a href="#tests" class="bs rv d1">Se alle tests ↑</a></section>
+<div id="site-footer"></div>
+<script src="shared/nav.js"></script>
+<script src="shared/footer.js"></script>
+<script src="shared/auth.js"></script>
+<script>
+const o=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('v')})},{threshold:.08,rootMargin:'0px 0px -20px 0px'});document.querySelectorAll('.rv').forEach(e=>o.observe(e));
+document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click',e=>{const h=a.getAttribute('href');if(h==='#'){e.preventDefault();scrollTo({top:0,behavior:'smooth'});return}e.preventDefault();const t=document.querySelector(h);if(t)t.scrollIntoView({behavior:'smooth',block:'start'})})});
+</script>
+</body>
+</html>

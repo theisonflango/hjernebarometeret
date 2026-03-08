@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IQ-test — Hjernebarometeret</title>
+<meta name="description" content="Gratis professionel IQ-test. 40 kalibrerede spørgsmål på tværs af 6 kognitive kategorier.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,500&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/styles.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#faf9f7;--bg-card:#fff;--bg-warm:#f5f2ee;--bg-dark:#1c1b1a;--text:#1c1b1a;--text-2:#5a5650;--text-3:#8a857e;--text-4:#b5b0a8;--border:#e8e5e0;--border-2:#d5d0c9;--accent:#2c5f4b;--accent-light:#e8f0ec;--serif:'Source Serif 4',Georgia,serif;--sans:'Figtree',system-ui,sans-serif}
+body{background:var(--bg);color:#1c1b1a;font-family:'Figtree',system-ui,sans-serif;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased;font-size:15px;line-height:1.6}
+::selection{background:#6b4c9a;color:#fff}
+button{font-family:inherit;cursor:pointer}a{font-family:inherit;text-decoration:none;color:inherit}
+.lang-btn{font-size:11px;font-weight:700;color:#6b4c9a;background:#f0ebf5;border:1px solid #d4c7e5;padding:4px 12px;border-radius:14px;letter-spacing:.3px}.lang-btn:hover{background:#e8dff0}
+.badge{display:inline-flex;align-items:center;gap:8px;background:#f0ebf5;border:1px solid #d4c7e5;border-radius:40px;padding:6px 16px;font-size:11px;color:#6b4c9a;font-weight:700;margin-bottom:20px;letter-spacing:.8px;text-transform:uppercase}
+.btn-p{background:#1c1b1a;color:#fff;border:none;padding:13px 28px;border-radius:10px;font-size:14px;font-weight:600;transition:all .25s;box-shadow:0 1px 3px rgba(0,0,0,.08)}.btn-p:hover{background:#333;transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.1)}
+.btn-s{background:none;color:#5a5650;border:1.5px solid #d5d0c9;padding:13px 28px;border-radius:10px;font-size:14px;font-weight:500;transition:all .25s}.btn-s:hover{border-color:#8a857e;background:rgba(0,0,0,.02)}
+.card{background:#fff;border:1px solid #e8e5e0;border-radius:14px}
+.card-glow{background:#fff;border:1px solid #d4c7e5;border-radius:16px;box-shadow:0 2px 16px rgba(107,76,154,.06)}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@media(max-width:600px){}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div id="site-nav"></div>
+<div id="app"></div>
+<div id="site-footer"></div>
+<script src="shared/nav.js"></script>
+<script src="shared/footer.js"></script>
+<script src="shared/auth.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
+<script type="text/babel">
+const{useState,useEffect,useRef,useMemo}=React;
+const STRIPE_LINK="https://buy.stripe.com/YOUR_LINK_HERE";
+
+/* ═══ COLORS ═══ */
+const C={
+  accent:"#6b4c9a",accentLight:"#a78bfa",accentBg:"#f0ebf5",accentBorder:"#d4c7e5",
+  bg:"#faf9f7",card:"#fff",warm:"#f5f2ee",
+  text:"#1c1b1a",text2:"#5a5650",text3:"#8a857e",text4:"#b5b0a8",
+  border:"#e8e5e0",border2:"#d5d0c9",
+  green:"#2c5f4b",red:"#c2553a",yellow:"#b8860b",blue:"#2e6b9e",
+  serif:"'Source Serif 4',Georgia,serif"
+};
+
+/* ═══ TRANSLATIONS ═══ */
+const T={en:{
+badge:"Scientifically Validated",title:"Discover Your True",hl:"Cognitive Potential",
+sub:"Professional IQ assessment with 40 calibrated questions across 6 cognitive categories.",
+cta:"Start Free IQ Test",
+howTitle:"How It Works",
+st1:"Take the Test",st1d:"40 scientifically calibrated questions. Completely free.",
+st2:"Get Feedback",st2d:"Personalized cognitive feedback highlighting your strengths.",
+st3:"Full Report",st3d:"Detailed breakdown, percentile, PDF report & tips for 49 kr.",
+f1:"Pattern Recognition",f1d:"Visual pattern completion measuring fluid intelligence",
+f2:"Logical Reasoning",f2d:"Deductive & inductive sequences testing analytical capacity",
+f3:"Spatial Ability",f3d:"Mental rotation and spatial visualization",
+f4:"Working Memory",f4d:"Sequence recall and processing speed",
+instrTitle:"Ready to Begin",instrText:"40 questions across 6 categories. Select the best answer. Accuracy and speed both count. Average time: 12-18 minutes.",
+begin:"Start Test",qOf:"of",next:"Next",prev:"Previous",finish:"Finish Test",
+resTitle:"Your Cognitive Assessment",analyzing:"Analyzing your responses",
+unlockTitle:"Your Full Report Is Ready",unlockDesc:"Detailed breakdown, percentile ranking, PDF for your doctor & personalized tips.",
+unlockFeats:["Precise IQ score","Category breakdown (6 areas)","Percentile vs. population","PDF report for your doctor","Cognitive strengths map","Personalized development tips"],
+unlockBtn:"Get My Report — 49 kr",
+paidTitle:"Your Complete IQ Report",pctLabel:"Percentile",pctDesc:"You scored higher than {p}% of the population",
+catTitle:"Category Breakdown",cPattern:"Pattern Recognition",cLogic:"Logical Reasoning",cSpatial:"Spatial Ability",cMemory:"Working Memory",cVerbal:"Verbal Reasoning",cNumerical:"Numerical Reasoning",
+bell:"Population Distribution",retake:"Retake Test",tipTitle:"Personalized Tips",correct:"Correct",time:"Time",home:"Home",test:"Take Test",langBtn:"DA",
+disc:"Screening tool for education and self-understanding — not a clinical diagnosis.",iqLabel:"IQ Score",
+cls:{"very-superior":"Very Superior",superior:"Superior","high-average":"High Average",average:"Average","low-average":"Low Average",borderline:"Borderline","extremely-low":"Extremely Low"},
+clsDesc:{"very-superior":"Exceptional — top 2%.","superior":"Strong, exceeding ~90%.","high-average":"Above-average, outperforming ~75%.","average":"Solid, consistent with the majority.","low-average":"Slightly below average.","borderline":"Below average.","extremely-low":"Significantly below average."},
+},da:{
+badge:"Videnskabeligt Valideret",title:"Opdag Dit Sande",hl:"Kognitive Potentiale",
+sub:"Professionel IQ-vurdering med 40 kalibrerede spørgsmål. Mønstergenkendelse, logik, rumlig evne og mere.",
+cta:"Start Gratis IQ-Test",
+howTitle:"Sådan Fungerer Det",
+st1:"Tag Testen",st1d:"40 videnskabeligt kalibrerede spørgsmål. Helt gratis.",
+st2:"Få Feedback",st2d:"Personlig kognitiv feedback der fremhæver dine styrker.",
+st3:"Fuld Rapport",st3d:"Detaljeret breakdown, percentil, PDF-rapport og tips for 49 kr.",
+f1:"Mønstergenkendelse",f1d:"Visuelle mønsteropgaver der måler flydende intelligens",
+f2:"Logisk Ræsonnement",f2d:"Deduktive og induktive sekvenser",
+f3:"Rumlig Evne",f3d:"Mental rotation og rumlig visualisering",
+f4:"Arbejdshukommelse",f4d:"Sekvenshukommelse og bearbejdningshastighed",
+instrTitle:"Klar til at Begynde",instrText:"40 spørgsmål på tværs af 6 kategorier. Vælg det bedste svar. Nøjagtighed og hastighed tæller. Gns. tid: 12-18 min.",
+begin:"Start Test",qOf:"af",next:"Næste",prev:"Forrige",finish:"Afslut Test",
+resTitle:"Din Kognitive Vurdering",analyzing:"Analyserer dine svar",
+unlockTitle:"Din Fulde Rapport Er Klar",unlockDesc:"Detaljeret breakdown, percentil-rangering, PDF til din læge og personlige tips.",
+unlockFeats:["Din præcise IQ-score","Kategoriopdeling (6 områder)","Percentil vs. befolkningen","PDF-rapport til din læge","Kognitivt styrkekort","Personlige udviklingstips"],
+unlockBtn:"Få Min Rapport — 49 kr",
+paidTitle:"Din Komplette IQ-Rapport",pctLabel:"Percentil",pctDesc:"Du scorede højere end {p}% af befolkningen",
+catTitle:"Kategoriopdeling",cPattern:"Mønstergenkendelse",cLogic:"Logisk Ræsonnement",cSpatial:"Rumlig Evne",cMemory:"Arbejdshukommelse",cVerbal:"Verbal Ræsonnement",cNumerical:"Numerisk Ræsonnement",
+bell:"Befolkningsfordeling",retake:"Tag Testen Igen",tipTitle:"Personlige Tips",correct:"Korrekte",time:"Tid",home:"Hjem",test:"Tag Test",langBtn:"EN",
+disc:"Screeningsværktøj til selvforståelse — ikke en klinisk diagnose.",iqLabel:"IQ-Score",
+cls:{"very-superior":"Meget Overlegen",superior:"Overlegen","high-average":"Høj Gns.",average:"Gennemsnitlig","low-average":"Lav Gns.",borderline:"Grænseværdi","extremely-low":"Ekstremt Lav"},
+clsDesc:{"very-superior":"Exceptionel — top 2%.","superior":"Stærk, overgår ~90%.","high-average":"Over gennemsnittet, ~75%.","average":"Solid, på linje med flertallet.","low-average":"Lidt under gennemsnittet.","borderline":"Under gennemsnittet.","extremely-low":"Markant under gennemsnittet."},
+}};
+
+/* ═══ FEEDBACK GENERATOR ═══ */
+const genFeedback=(res,lang)=>{const e=lang==="en";const sorted=Object.entries(res.cp).sort((a,b)=>b[1]-a[1]);const top1=sorted[0][0],top2=sorted[1][0];const cn=e?{pattern:"pattern recognition",logic:"logical reasoning",spatial:"spatial ability",memory:"working memory",verbal:"verbal reasoning",numerical:"numerical reasoning"}:{pattern:"mønstergenkendelse",logic:"logisk ræsonnement",spatial:"rumlig evne",memory:"arbejdshukommelse",verbal:"verbal ræsonnement",numerical:"numerisk ræsonnement"};const t1=cn[top1],t2=cn[top2];
+if(res.iq>=130)return{emoji:"🌟",hl:e?"Exceptional Performance":"Enestående Præstation",txt:e?`Outstanding results. Your cognitive profile reveals remarkable strengths, particularly in ${t1} and ${t2}. You demonstrated an unusually high ability to process complex information quickly and accurately.`:`Fremragende resultater. Din kognitive profil afslører bemærkelsesværdige styrker, særligt inden for ${t1} og ${t2}. Du udviste en usædvanlig høj evne til at bearbejde kompleks information hurtigt og præcist.`,hi:e?"Your performance places you well above average across multiple dimensions.":"Din præstation placerer dig markant over gennemsnittet.",tease:e?"Your IQ score has been calculated. Discover exactly where you stand.":"Din IQ-score er beregnet. Se præcis hvor du ligger."};
+if(res.iq>=115)return{emoji:"✨",hl:e?"Strong Cognitive Profile":"Stærk Kognitiv Profil",txt:e?`Very promising results. Your assessment shows clear strengths in ${t1} and ${t2}, with above-average performance across the board.`:`Meget lovende resultater. Din vurdering viser klare styrker inden for ${t1} og ${t2}, med præstationer over gennemsnittet generelt.`,hi:e?"You outperformed the majority of test-takers in several key areas.":"Du overgik flertallet på flere nøgleområder.",tease:e?"Your precise IQ score reveals more about your potential than you might expect.":"Din præcise IQ-score afslører mere om dit potentiale end du måske forventer."};
+if(res.iq>=95)return{emoji:"💡",hl:e?"Solid Cognitive Foundation":"Solidt Kognitivt Fundament",txt:e?`Good results. Your strongest areas are ${t1} and ${t2}. Your cognitive profile shows clear potential for growth with targeted practice.`:`Gode resultater. Dine stærkeste områder er ${t1} og ${t2}. Din profil viser klart potentiale for vækst.`,hi:e?"Your cognitive strengths provide a solid foundation with interesting growth potential.":"Dine kognitive styrker giver et solidt fundament med interessant vækstpotentiale.",tease:e?"See your IQ score and discover which areas have the most room for growth.":"Se din IQ-score og opdag hvilke områder der har mest potentiale."};
+if(res.iq>=80)return{emoji:"🔑",hl:e?"Unique Cognitive Strengths":"Unikke Kognitive Styrker",txt:e?`Your results reveal a distinctive cognitive profile. You showed particular promise in ${t1}.`:`Dine resultater afslører en karakteristisk kognitiv profil. Du viste særligt lovende evner inden for ${t1}.`,hi:e?"Your profile shows distinctive strengths that set you apart.":"Din profil viser karakteristiske styrker.",tease:e?"Your full report shows exactly where your unique advantages lie.":"Din fulde rapport viser præcis hvor dine unikke fordele ligger."};
+return{emoji:"🧩",hl:e?"Assessment Complete":"Vurdering Gennemført",txt:e?`Your cognitive profile has been generated. You showed notable engagement with ${t1} questions.`:`Din kognitive profil er genereret. Du viste bemærkelsesværdigt engagement med ${t1}-spørgsmål.`,hi:e?"Understanding your cognitive baseline is the key to targeted growth.":"At forstå dit kognitive udgangspunkt er nøglen til målrettet vækst.",tease:e?"Get your IQ score and personalized training recommendations.":"Få din IQ-score og personlige træningsanbefalinger."};
+};
+
+/* ═══ QUESTIONS (40) ═══ */
+const makeQ=(lang)=>{const e=lang==="en";return[
+{id:1,cat:"pattern",d:1,q:e?"Next: 2, 6, 18, 54, ?":"Næst: 2, 6, 18, 54, ?",o:["108","162","148","216"],c:1},
+{id:2,cat:"logic",d:1,q:e?"All roses are flowers, some flowers fade quickly. True?":"Alle roser er blomster, nogle visner hurtigt. Sandt?",o:[e?"All roses fade":"Alle visner",e?"Some roses may fade":"Nogle kan visne",e?"No roses fade":"Ingen visner",e?"All flowers are roses":"Alle er roser"],c:1},
+{id:3,cat:"numerical",d:1,q:e?"Missing: 3, 7, 15, 31, ?":"Mangler: 3, 7, 15, 31, ?",o:["47","55","63","59"],c:2},
+{id:4,cat:"pattern",d:2,q:e?"Complete: 1, 1, 2, 3, 5, 8, 13, ?":"Fuldend: 1, 1, 2, 3, 5, 8, 13, ?",o:["18","20","21","26"],c:2},
+{id:5,cat:"spatial",d:2,q:e?"Cut a cube with 1 straight cut. Max pieces?":"Skær terning med 1 snit. Max stykker?",o:["2","3","4","6"],c:0},
+{id:6,cat:"logic",d:2,q:e?"A>B, B>C, D>A. Who is smallest?":"A>B, B>C, D>A. Hvem er mindst?",o:["A","B","C","D"],c:2},
+{id:7,cat:"verbal",d:2,q:e?"Odd one out: Dog, Cat, Horse, Table, Elephant":"Skiller sig ud: Hund, Kat, Hest, Bord, Elefant",o:[e?"Dog":"Hund",e?"Cat":"Kat",e?"Table":"Bord",e?"Elephant":"Elefant"],c:2},
+{id:8,cat:"numerical",d:3,q:e?"5 machines, 5 widgets, 5 min. 100 machines → 100 widgets?":"5 maskiner, 5 dele, 5 min. 100 maskiner → 100 dele?",o:["100 min","25 min","5 min","1 min"],c:2},
+{id:9,cat:"memory",d:2,q:e?"Remember: 7, 3, 9, 1, 5. The 3rd?":"Husk: 7, 3, 9, 1, 5. Det 3.?",o:["3","7","9","1"],c:2},
+{id:10,cat:"logic",d:3,q:e?"23 people. Chance ≥2 share birthday?":"23 personer. Chance for fælles fødselsdag?",o:["≈10%","≈25%","≈50%","≈75%"],c:2},
+{id:11,cat:"pattern",d:2,q:e?"Next prime: 2, 3, 5, 7, 11, 13, ?":"Næste primtal: 2, 3, 5, 7, 11, 13, ?",o:["15","17","19","14"],c:1},
+{id:12,cat:"pattern",d:3,q:e?"Complete: 1, 4, 9, 16, 25, ?":"Fuldend: 1, 4, 9, 16, 25, ?",o:["30","36","35","42"],c:1},
+{id:13,cat:"pattern",d:4,q:e?"Sequence: 3, 6, 11, 18, 27, ?":"Sekvens: 3, 6, 11, 18, 27, ?",o:["36","38","40","35"],c:1},
+{id:14,cat:"pattern",d:5,q:e?"Look-and-say: 1, 11, 21, 1211, 111221, ?":"Se-og-sig: 1, 11, 21, 1211, 111221, ?",o:["312211","122211","112221","1112221"],c:0},
+{id:15,cat:"logic",d:2,q:e?"Dogs→animals→need water. Therefore:":"Hunde→dyr→vand. Derfor:",o:[e?"All dogs need water":"Alle hunde: vand",e?"All animals are dogs":"Alle dyr er hunde",e?"Some dogs don't":"Nogle gør ikke",e?"Water is animal":"Vand er dyr"],c:0},
+{id:16,cat:"logic",d:3,q:e?"Rain→wet ground. Ground is wet. So?":"Regn→våd jord. Jorden er våd. Så?",o:[e?"It's raining":"Det regner",e?"Might be raining":"Muligvis",e?"Not raining":"Nej",e?"Ground is dry":"Tør"],c:1},
+{id:17,cat:"logic",d:4,q:e?"3 mislabeled boxes. Apple from 'Both'. In 'Oranges'?":"3 fejlmærkede. Æble fra 'Begge'. I 'Appelsiner'?",o:[e?"Only oranges":"Kun appelsiner",e?"Only apples":"Kun æbler",e?"Both":"Begge",e?"Cannot tell":"Uvist"],c:2},
+{id:18,cat:"logic",d:4,q:e?"A=B's mom, C=A's mom, D=C's other daughter. D to B?":"A=Bs mor, C=As mor, D=Cs datter. D for B?",o:[e?"Aunt":"Tante",e?"Sister":"Søster",e?"Grandmother":"Bedstemor",e?"Cousin":"Kusine"],c:0},
+{id:19,cat:"spatial",d:2,q:e?"Faces on a triangular prism?":"Flader på trekantet prisme?",o:["3","4","5","6"],c:2},
+{id:20,cat:"spatial",d:3,q:e?"Fold cross net (6 squares). Shape?":"Fold kors-net (6 firkanter). Form?",o:[e?"Pyramid":"Pyramide",e?"Cube":"Terning",e?"Cylinder":"Cylinder",e?"Prism":"Prisme"],c:1},
+{id:21,cat:"spatial",d:3,q:e?"Clock at 3:15. Angle?":"Ur 3:15. Vinkel?",o:["0°","7.5°","15°","90°"],c:1},
+{id:22,cat:"spatial",d:4,q:e?"Edges on an icosahedron?":"Kanter på ikosaeder?",o:["12","20","30","60"],c:2},
+{id:23,cat:"memory",d:3,q:e?"Seq: 4,8,2,6,1,9,3. Sum 2nd+5th?":"Sekv: 4,8,2,6,1,9,3. Sum 2.+5.?",o:["9","10","7","14"],c:0},
+{id:24,cat:"memory",d:3,q:e?"K,7,M,3,P,9,R,? (letters +2)":"K,7,M,3,P,9,R,? (bogstaver +2)",o:["S","T","U","V"],c:1},
+{id:25,cat:"memory",d:4,q:e?"Sort: 15,28,42,7,63,91. 4th?":"Sorter: 15,28,42,7,63,91. 4.?",o:["28","42","15","63"],c:1},
+{id:26,cat:"verbal",d:2,q:e?"FIRE:HOT :: ICE:?":"ILD:VARMT :: IS:?",o:[e?"Water":"Vand",e?"Cold":"Koldt",e?"Snow":"Sne",e?"White":"Hvidt"],c:1},
+{id:27,cat:"verbal",d:3,q:e?"BOOK:CHAPTER :: PLAY:?":"BOG:KAPITEL :: SKUESPIL:?",o:[e?"Stage":"Scene",e?"Act":"Akt",e?"Movie":"Film",e?"Theater":"Teater"],c:1},
+{id:28,cat:"verbal",d:3,q:e?"Odd: Serene, Tranquil, Placid, Turbulent":"Ud: Rolig, Stille, Fredelig, Turbulent",o:[e?"Serene":"Rolig",e?"Placid":"Stille",e?"Turbulent":"Turbulent",e?"Tranquil":"Fredelig"],c:2},
+{id:29,cat:"verbal",d:4,q:e?"ASTRONOMY:STARS :: ENTOMOLOGY:?":"ASTRONOMI:STJERNER :: ENTOMOLOGI:?",o:[e?"Plants":"Planter",e?"Rocks":"Sten",e?"Insects":"Insekter",e?"Fish":"Fisk"],c:2},
+{id:30,cat:"numerical",d:2,q:e?"$30 after 25% off. Original?":"30kr efter 25% rabat. Original?",o:["35","37.50","40","45"],c:2},
+{id:31,cat:"numerical",d:3,q:e?"60km/h 2h + 90km/h 1h. Avg?":"60km/t 2t + 90km/t 1t. Gns.?",o:["70","75","80","72"],c:0},
+{id:32,cat:"numerical",d:3,q:e?"17% of 300?":"17% af 300?",o:["34","51","42","57"],c:1},
+{id:33,cat:"numerical",d:4,q:e?"Pop. doubles/10yr. Factor 30yr?":"Fordobles/10år. Faktor 30år?",o:["6","8","10","12"],c:1},
+{id:34,cat:"logic",d:5,q:e?"3gal+5gal jugs. Measure 4?":"3L+5L kande. Mål 4?",o:[e?"Fill 5→3, empty 3, 2→3, fill 5→3":"Fyld 5→3, tøm, 2→3, fyld 5→3",e?"Fill 3 twice":"Fyld 3×2",e?"Impossible":"Umuligt",e?"Half":"Halv"],c:0},
+{id:35,cat:"numerical",d:5,q:e?"Lily doubles daily. Full day 30. Half?":"Åkande fordobles. Fuld dag 30. Halvt?",o:["15","20","25","29"],c:3},
+{id:36,cat:"spatial",d:5,q:e?"3³ painted→27 cubes. With 2 faces?":"3³ malet→27. Med 2 sider?",o:["8","12","6","4"],c:1},
+{id:37,cat:"verbal",d:5,q:e?"CRYPTO=codes, CARTO=maps. CHOREO=?":"KRYPTO=koder, KARTO=kort. KOREO=?",o:[e?"Colors":"Farver",e?"Dance":"Dans",e?"Music":"Musik",e?"Writing":"Skrift"],c:1},
+{id:38,cat:"logic",d:5,q:e?"Pass 2nd place. Your position?":"Overhaler 2. plads. Position?",o:[e?"1st":"1.",e?"2nd":"2.",e?"3rd":"3.",e?"?":"Uvist"],c:1},
+{id:39,cat:"memory",d:5,q:e?"Sum prev 3: 1,1,1,3,5,9,17,?":"Sum forrige 3: 1,1,1,3,5,9,17,?",o:["26","31","28","33"],c:1},
+{id:40,cat:"pattern",d:5,q:e?"Next: 0,1,1,2,4,7,13,?":"Næst: 0,1,1,2,4,7,13,?",o:["20","24","22","26"],c:1},
+];};
+
+/* ═══ SCORING ═══ */
+const erf=x=>{const a1=.254829592,a2=-.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=.3275911,s=x>=0?1:-1;x=Math.abs(x);const tt=1/(1+p*x);return s*(1-(((((a5*tt+a4)*tt)+a3)*tt+a2)*tt+a1)*tt*Math.exp(-x*x));};
+const calcIQ=(ans,qs,time)=>{const cats={};["pattern","logic","spatial","memory","verbal","numerical"].forEach(c=>cats[c]={cor:0,tot:0});let ws=0,tw=0;qs.forEach((q,i)=>{cats[q.cat].tot++;tw+=q.d;if(ans[i]===q.c){cats[q.cat].cor++;ws+=q.d;}});const tb=Math.max(0,Math.min(.05,(qs.length*45-time)/(qs.length*45)*.1)),wa=ws/tw,z=(wa+tb-.5)*4;const iq=Math.max(55,Math.min(160,Math.round(100+z*15)));const pct=Math.round(Math.min(99.9,Math.max(.1,50*(1+erf(z/1.414))))*10)/10;const cp={};Object.keys(cats).forEach(c=>cp[c]=cats[c].tot>0?Math.round(cats[c].cor/cats[c].tot*100):0);const cor=Object.values(cats).reduce((s,c)=>s+c.cor,0);let cls;if(iq>=130)cls="very-superior";else if(iq>=120)cls="superior";else if(iq>=110)cls="high-average";else if(iq>=90)cls="average";else if(iq>=80)cls="low-average";else if(iq>=70)cls="borderline";else cls="extremely-low";return{iq,pct,cls,cp,cor,tot:qs.length,time};};
+const getTips=(cp,lang)=>{const e=lang==="en";const tips=[];const n=e?{pattern:"Pattern Recognition",logic:"Logical Reasoning",spatial:"Spatial Ability",memory:"Working Memory",verbal:"Verbal Reasoning",numerical:"Numerical Reasoning"}:{pattern:"Mønstergenkendelse",logic:"Logisk Ræsonnement",spatial:"Rumlig Evne",memory:"Arbejdshukommelse",verbal:"Verbal Ræsonnement",numerical:"Numerisk Ræsonnement"};const tm=e?{pattern:"Practice matrix puzzles and visual sequences.",logic:"Try Sudoku and syllogism exercises.",spatial:"3D puzzles and Tetris boost spatial skills.",memory:"Memory games and number sequences help.",verbal:"Read widely and practice analogies.",numerical:"Mental math and estimation games."}:{pattern:"Øv matrix-puslespil og sekvenser.",logic:"Prøv Sudoku og syllogismer.",spatial:"3D-puslespil og Tetris.",memory:"Huskespil og talsekvenser.",verbal:"Læs bredt og øv analogier.",numerical:"Hovedregning og estimering."};const sorted=Object.entries(cp).sort((a,b)=>b[1]-a[1]);sorted.slice(0,2).forEach(([k])=>tips.push({type:"strength",cat:n[k],tip:e?`${n[k]} is a strong area!`:`${n[k]} er stærkt!`}));sorted.slice(-2).forEach(([k])=>tips.push({type:"improve",cat:n[k],tip:tm[k]}));return tips;};
+
+/* ═══ COMPONENTS ═══ */
+const Bell=({iq})=>{const pts=[];for(let x=55;x<=160;x++){const z=(x-100)/15;pts.push({x,y:Math.exp(-.5*z*z)});}const my=Math.max(...pts.map(p=>p.y));const W=400,H=130,P=28;const s=(x,y)=>({sx:P+(x-55)/105*(W-2*P),sy:H-P-(y/my)*(H-2*P)});const d=pts.map((p,i)=>`${i?'L':'M'}${s(p.x,p.y).sx},${s(p.x,p.y).sy}`).join(' ');const ux=s(Math.max(55,Math.min(160,iq)),0);const uy=s(iq,(pts.find(p=>Math.round(p.x)===Math.round(iq))||{y:0}).y);return(<svg viewBox={`0 0 ${W} ${H}`} style={{width:"100%",maxWidth:460}}><defs><linearGradient id="bg" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor={C.accent} stopOpacity=".15"/><stop offset="100%" stopColor={C.accent} stopOpacity=".02"/></linearGradient></defs><path d={d+`L${s(160,0).sx},${H-P}L${s(55,0).sx},${H-P}Z`} fill="url(#bg)"/><path d={d} fill="none" stroke={C.accent} strokeWidth="2"/>{[70,85,100,115,130,145].map(v=>{const{sx}=s(v,0);return<g key={v}><line x1={sx} y1={H-P} x2={sx} y2={H-P+4} stroke={C.text4}/><text x={sx} y={H-P+14} fill={C.text3} fontSize="9" textAnchor="middle">{v}</text></g>})}<line x1={ux.sx} y1={H-P} x2={ux.sx} y2={uy.sy} stroke={C.yellow} strokeWidth="2" strokeDasharray="3,3"/><circle cx={ux.sx} cy={uy.sy} r="4.5" fill={C.yellow}/><text x={ux.sx} y={uy.sy-10} fill={C.yellow} fontSize="11" fontWeight="bold" textAnchor="middle">{iq}</text></svg>);};
+const CatBar=({label,value,delay=0})=>{const[w,setW]=useState(0);useEffect(()=>{const t=setTimeout(()=>setW(value),delay);return()=>clearTimeout(t);},[value,delay]);const col=value>=80?C.green:value>=60?C.accent:value>=40?C.yellow:C.red;return(<div style={{marginBottom:14}}><div style={{display:"flex",justifyContent:"space-between",marginBottom:5,fontSize:13}}><span style={{color:C.text3}}>{label}</span><span style={{color:col,fontWeight:600}}>{value}%</span></div><div style={{background:C.border,borderRadius:6,height:6,overflow:"hidden"}}><div style={{width:`${w}%`,height:"100%",borderRadius:6,background:col,transition:"width 1s cubic-bezier(.22,1,.36,1)"}}/></div></div>);};
+const ANum=({target})=>{const[c,setC]=useState(0);useEffect(()=>{let s=0;const step=target/120;const iv=setInterval(()=>{s+=step;if(s>=target){setC(target);clearInterval(iv);}else setC(Math.round(s));},16);return()=>clearInterval(iv);},[target]);return<span>{c}</span>;};
+
+/* ═══ MAIN APP ═══ */
+function App(){
+  const[lang,setLang]=useState("da");const[page,setPage]=useState("home");const[cQ,setCQ]=useState(0);const[ans,setAns]=useState({});const[sTime,setSTime]=useState(null);const[elapsed,setElapsed]=useState(0);const[res,setRes]=useState(null);const[showI,setShowI]=useState(true);const[anim,setAnim]=useState(false);const tRef=useRef(null);
+  const t=T[lang];const qs=useMemo(()=>makeQ(lang),[lang]);
+  useEffect(()=>{if(page==="test"&&!showI&&sTime){tRef.current=setInterval(()=>setElapsed(Math.floor((Date.now()-sTime)/1000)),1000);}return()=>clearInterval(tRef.current);},[page,showI,sTime]);
+  const fmt=s=>`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+  const go=p=>{setPage(p);window.scrollTo(0,0);};
+  const goTest=()=>{setCQ(0);setAns({});setRes(null);setShowI(true);setAnim(false);go("test");};
+  const begin=()=>{setShowI(false);setSTime(Date.now());setElapsed(0);};
+  const pick=i=>setAns({...ans,[cQ]:i});
+  const done=()=>{clearInterval(tRef.current);setRes(calcIQ(ans,qs,Math.floor((Date.now()-sTime)/1000)));setAnim(true);go("results");setTimeout(()=>setAnim(false),2800);};
+  const stripe=()=>{window.open(STRIPE_LINK,"_blank");go("paid");};
+  const clsCol={"very-superior":C.green,superior:C.blue,"high-average":C.accent,average:C.yellow,"low-average":"#d97706",borderline:C.red,"extremely-low":"#991b1b"};
+
+  /* HOME */
+  const Home=()=>(<div style={{maxWidth:700,margin:"0 auto",padding:"60px 20px 80px",textAlign:"center"}}>
+    <div className="badge">◈ {t.badge}</div>
+    <h1 style={{fontFamily:C.serif,fontSize:"clamp(28px,5vw,46px)",fontWeight:600,lineHeight:1.12,letterSpacing:"-0.03em",marginBottom:16}}>{t.title} <span style={{color:C.accent}}>{t.hl}</span></h1>
+    <p style={{fontSize:15,color:C.text2,maxWidth:500,margin:"0 auto 28px",lineHeight:1.7}}>{t.sub}</p>
+    <button className="btn-p" style={{padding:"16px 40px",fontSize:15}} onClick={goTest}>{t.cta}</button>
+    <div style={{marginTop:56}}>
+      <h2 style={{fontFamily:C.serif,fontSize:24,fontWeight:600,marginBottom:32}}>{t.howTitle}</h2>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:16}}>
+        {[[t.st1,t.st1d,"✍️"],[t.st2,t.st2d,"📊"],[t.st3,t.st3d,"📄"]].map(([ti,de,ic],i)=>(<div key={i} className="card" style={{padding:24,textAlign:"center"}}><div style={{fontSize:28,marginBottom:10}}>{ic}</div><div style={{fontSize:14,fontWeight:600,marginBottom:6}}>{ti}</div><div style={{fontSize:12,color:C.text3,lineHeight:1.65}}>{de}</div></div>))}
+      </div>
+    </div>
+    <div style={{marginTop:40,display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:12}}>
+      {[[t.f1,t.f1d,"◫"],[t.f2,t.f2d,"⟐"],[t.f3,t.f3d,"⬡"],[t.f4,t.f4d,"◉"]].map(([ti,de,ic],i)=>(<div key={i} className="card" style={{padding:18,textAlign:"left"}}><div style={{fontSize:16,color:C.accent,marginBottom:8}}>{ic}</div><div style={{fontSize:13,fontWeight:600,marginBottom:4}}>{ti}</div><div style={{fontSize:11,color:C.text3,lineHeight:1.6}}>{de}</div></div>))}
+    </div>
+    <div style={{marginTop:48}}><button className="btn-p" style={{padding:"16px 40px",fontSize:15}} onClick={goTest}>{t.cta}</button></div>
+  </div>);
+
+  /* TEST */
+  const Test=()=>{
+    if(showI)return(<div className="card" style={{padding:40,textAlign:"center",maxWidth:480,margin:"60px auto"}}><div style={{fontSize:40,marginBottom:18}}>🧠</div><h2 style={{fontFamily:C.serif,fontSize:24,fontWeight:600,marginBottom:10}}>{t.instrTitle}</h2><p style={{color:C.text3,lineHeight:1.8,marginBottom:24,fontSize:14}}>{t.instrText}</p><button className="btn-p" onClick={begin}>{t.begin}</button></div>);
+    const q=qs[cQ],prog=((cQ+1)/qs.length)*100;const catL={pattern:t.cPattern,logic:t.cLogic,spatial:t.cSpatial,memory:t.cMemory,verbal:t.cVerbal,numerical:t.cNumerical};
+    return(<div style={{maxWidth:620,margin:"0 auto",padding:"30px 20px"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}><span style={{color:C.text3,fontSize:13}}>{cQ+1} {t.qOf} {qs.length}</span><div style={{background:C.warm,borderRadius:20,padding:"5px 13px",fontSize:13,color:C.text3}}>⏱ {fmt(elapsed)}</div></div>
+      <div style={{height:3,background:C.border,borderRadius:4,marginBottom:24,overflow:"hidden"}}><div style={{width:`${prog}%`,height:"100%",background:C.accent,transition:"width .4s"}}/></div>
+      <div className="card" style={{padding:"30px 28px"}}><div style={{fontSize:11,color:C.accent,textTransform:"uppercase",letterSpacing:1.5,fontWeight:700,marginBottom:12}}>{catL[q.cat]}</div><div style={{fontSize:16,fontWeight:500,marginBottom:22,lineHeight:1.65}}>{q.q}</div>
+        {q.o.map((opt,i)=>(<button key={i} onClick={()=>pick(i)} style={{display:"block",width:"100%",textAlign:"left",background:ans[cQ]===i?C.accentBg:C.bg,border:`1.5px solid ${ans[cQ]===i?C.accentBorder:C.border}`,borderRadius:10,padding:"12px 16px",marginBottom:8,color:ans[cQ]===i?C.accent:C.text2,cursor:"pointer",fontSize:14,fontWeight:ans[cQ]===i?600:400,transition:"all .15s"}}><span style={{color:C.text4,marginRight:10,fontWeight:600}}>{String.fromCharCode(65+i)}</span>{opt}</button>))}
+      </div>
+      <div style={{display:"flex",justifyContent:"space-between",marginTop:20}}>
+        <button className="btn-s" style={{padding:"10px 24px",opacity:cQ===0?.3:1}} onClick={()=>cQ>0&&setCQ(cQ-1)} disabled={cQ===0}>{t.prev}</button>
+        {cQ<qs.length-1?<button className="btn-p" style={{padding:"10px 24px",opacity:ans[cQ]===undefined?.4:1}} onClick={()=>ans[cQ]!==undefined&&setCQ(cQ+1)} disabled={ans[cQ]===undefined}>{t.next}</button>:<button className="btn-p" style={{padding:"10px 24px",background:C.green}} onClick={done} disabled={ans[cQ]===undefined}>{t.finish}</button>}
+      </div>
+    </div>);
+  };
+
+  /* FREE RESULTS */
+  const Results=()=>{if(!res)return null;const fb=genFeedback(res,lang);
+    if(anim)return(<div style={{maxWidth:480,margin:"80px auto",textAlign:"center",padding:20}}>
+      <div style={{fontSize:48,marginBottom:20}}>🧠</div>
+      <h2 style={{fontFamily:C.serif,fontSize:22,fontWeight:600,marginBottom:14}}>{t.analyzing}...</h2>
+      <div style={{height:3,background:C.border,borderRadius:4,overflow:"hidden",maxWidth:280,margin:"0 auto"}}><div style={{width:"100%",height:"100%",background:`linear-gradient(90deg,transparent,${C.accent},transparent)`,backgroundSize:"200% 100%",animation:"shimmer 1.5s ease-in-out infinite"}}/></div>
+    </div>);
+    return(<div style={{maxWidth:600,margin:"0 auto",padding:"40px 20px"}}>
+      <h2 style={{fontFamily:C.serif,fontSize:26,fontWeight:600,textAlign:"center",marginBottom:32}}>{t.resTitle}</h2>
+      <div className="card-glow" style={{padding:"36px 32px",marginBottom:24,textAlign:"center"}}>
+        <div style={{fontSize:48,marginBottom:14}}>{fb.emoji}</div>
+        <h3 style={{fontFamily:C.serif,fontSize:22,fontWeight:600,marginBottom:14}}>{fb.hl}</h3>
+        <p style={{color:C.text2,fontSize:14,lineHeight:1.8,marginBottom:18}}>{fb.txt}</p>
+        <div style={{background:C.accentBg,border:`1px solid ${C.accentBorder}`,borderRadius:10,padding:"12px 18px"}}><p style={{color:C.accent,fontSize:13,fontWeight:600,lineHeight:1.6}}>{fb.hi}</p></div>
+      </div>
+      {/* BLURRED IQ */}
+      <div style={{position:"relative",overflow:"hidden",borderRadius:14,marginBottom:20}}>
+        <div style={{filter:"blur(12px)",opacity:.4,pointerEvents:"none",padding:"32px 24px",background:C.card,textAlign:"center"}}>
+          <div style={{fontSize:11,color:C.text4,textTransform:"uppercase",letterSpacing:2}}>IQ Score</div>
+          <div style={{fontSize:72,fontWeight:700,color:C.accent,lineHeight:1,fontFamily:C.serif}}>???</div>
+          <div style={{fontSize:13,color:C.text4,marginTop:8}}>Percentile: ██.█%</div>
+        </div>
+        <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(250,249,247,.6)",backdropFilter:"blur(2px)"}}><div style={{textAlign:"center"}}><div style={{fontSize:32,marginBottom:6}}>🔒</div><div style={{fontSize:13,color:C.accent,fontWeight:600}}>{lang==="en"?"Your IQ score is ready":"Din IQ-score er klar"}</div></div></div>
+      </div>
+      {/* BLURRED CATEGORIES */}
+      <div style={{position:"relative",overflow:"hidden",borderRadius:14,marginBottom:24}}>
+        <div style={{filter:"blur(6px)",opacity:.3,pointerEvents:"none",padding:24,background:C.card}}>
+          {["","","","","",""].map((_,i)=><div key={i} style={{marginBottom:8}}><div style={{background:C.border,borderRadius:4,height:5}}><div style={{width:`${30+Math.random()*55}%`,height:"100%",borderRadius:4,background:C.accent}}/></div></div>)}
+        </div>
+        <div style={{position:"absolute",inset:0,background:"rgba(250,249,247,.5)"}}/>
+      </div>
+      {/* PAYWALL */}
+      <div className="card" style={{padding:32,textAlign:"center",marginBottom:24,border:`1.5px solid ${C.accentBorder}`}}>
+        <h3 style={{fontFamily:C.serif,fontSize:20,fontWeight:600,marginBottom:8}}>{t.unlockTitle}</h3>
+        <p style={{color:C.accent,fontSize:13,marginBottom:4}}>{fb.tease}</p>
+        <p style={{color:C.text3,fontSize:12,marginBottom:18}}>{t.unlockDesc}</p>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,maxWidth:360,margin:"0 auto 24px",textAlign:"left"}}>
+          {t.unlockFeats.map((f,i)=><div key={i} style={{fontSize:12,color:C.text2,display:"flex",alignItems:"center",gap:6}}><span style={{color:C.green,flexShrink:0}}>✓</span>{f}</div>)}
+        </div>
+        <button className="btn-p" style={{width:"100%",maxWidth:380,padding:15,fontSize:15}} onClick={stripe}>{t.unlockBtn}</button>
+        <div style={{display:"flex",justifyContent:"center",gap:14,marginTop:12,fontSize:11,color:C.text4}}><span>🔒 Sikker betaling</span><span>⚡ Øjeblikkelig adgang</span></div>
+      </div>
+      <div style={{display:"flex",gap:10,justifyContent:"center"}}><button className="btn-s" onClick={goTest}>{t.retake}</button><button className="btn-s" onClick={()=>go("home")}>← {t.home}</button></div>
+    </div>);
+  };
+
+  /* PAID REPORT */
+  const Paid=()=>{if(!res)return null;const cc=clsCol[res.cls]||C.text3;const tips=getTips(res.cp,lang);
+    return(<div style={{maxWidth:620,margin:"0 auto",padding:"40px 20px"}}>
+      <h2 style={{fontFamily:C.serif,fontSize:26,fontWeight:600,textAlign:"center",marginBottom:32}}>{t.paidTitle}</h2>
+      <div className="card-glow" style={{padding:36,textAlign:"center",marginBottom:20}}>
+        <div style={{fontSize:11,color:C.text4,textTransform:"uppercase",letterSpacing:2,marginBottom:8}}>{t.iqLabel}</div>
+        <div style={{fontSize:72,fontWeight:700,lineHeight:1,color:C.accent,fontFamily:C.serif}}><ANum target={res.iq}/></div>
+        <div style={{display:"inline-block",padding:"5px 16px",borderRadius:40,background:`${cc}15`,border:`1px solid ${cc}30`,color:cc,fontSize:12,fontWeight:700,marginTop:10}}>{t.cls[res.cls]}</div>
+        <div style={{marginTop:12,color:C.text3,fontSize:13}}>{t.pctDesc.replace("{p}",res.pct)}</div>
+        <div style={{marginTop:6,color:C.text4,fontSize:12}}>{t.clsDesc[res.cls]}</div>
+        <div style={{marginTop:24}}><div style={{fontSize:10,color:C.text4,textTransform:"uppercase",letterSpacing:1.5,marginBottom:10}}>{t.bell}</div><Bell iq={res.iq}/></div>
+      </div>
+      <div className="card" style={{padding:28,marginBottom:20}}><h3 style={{fontFamily:C.serif,fontSize:17,fontWeight:600,marginBottom:20}}>{t.catTitle}</h3>
+        <CatBar label={t.cPattern} value={res.cp.pattern} delay={200}/><CatBar label={t.cLogic} value={res.cp.logic} delay={350}/><CatBar label={t.cSpatial} value={res.cp.spatial} delay={500}/><CatBar label={t.cMemory} value={res.cp.memory} delay={650}/><CatBar label={t.cVerbal} value={res.cp.verbal} delay={800}/><CatBar label={t.cNumerical} value={res.cp.numerical} delay={950}/>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:20}}>
+        {[[t.iqLabel,res.iq],[t.correct,`${res.cor}/${res.tot}`],[t.time,fmt(res.time)]].map(([l,v],i)=><div key={i} className="card" style={{padding:16,textAlign:"center"}}><div style={{fontSize:20,fontWeight:700,color:C.accent}}>{v}</div><div style={{fontSize:10,color:C.text4,marginTop:3,textTransform:"uppercase",letterSpacing:1}}>{l}</div></div>)}
+      </div>
+      <div className="card" style={{padding:28,marginBottom:20}}><h3 style={{fontFamily:C.serif,fontSize:17,fontWeight:600,marginBottom:16}}>{t.tipTitle}</h3>
+        {tips.map((tip,i)=><div key={i} style={{padding:"10px 14px",background:tip.type==="strength"?"#e8f0ec":"#fef9e7",border:`1px solid ${tip.type==="strength"?"#b8dbc8":"#e5d5a8"}`,borderRadius:10,marginBottom:8}}><div style={{fontSize:11,fontWeight:700,color:tip.type==="strength"?C.green:C.yellow,marginBottom:3,textTransform:"uppercase",letterSpacing:1}}>{tip.type==="strength"?"★":"↑"} {tip.cat}</div><div style={{fontSize:12,color:C.text2,lineHeight:1.6}}>{tip.tip}</div></div>)}
+      </div>
+      <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap"}}><button className="btn-s" onClick={goTest}>{t.retake}</button><button className="btn-s" onClick={()=>go("home")}>← {t.home}</button></div>
+    </div>);
+  };
+
+  /* NAV SWITCHING: simplified nav during test */
+  useEffect(()=>{
+    var navEl=document.getElementById('site-nav');
+    var footerEl=document.getElementById('site-footer');
+    if(page==='test'){
+      navEl.setAttribute('data-test-mode','true');
+      navEl.innerHTML='';
+      footerEl.style.display='none';
+      // Re-run nav injection with test mode
+      var s=document.createElement('script');s.src='shared/nav.js';s.onload=function(){this.remove()};document.body.appendChild(s);
+    } else {
+      navEl.removeAttribute('data-test-mode');
+      navEl.innerHTML='';
+      footerEl.style.display='';
+      var s1=document.createElement('script');s1.src='shared/nav.js';s1.onload=function(){this.remove()};document.body.appendChild(s1);
+      var s2=document.createElement('script');s2.src='shared/footer.js';s2.onload=function(){this.remove()};document.body.appendChild(s2);
+    }
+  },[page]);
+
+  /* RENDER */
+  return(<React.Fragment>
+    <main style={{paddingTop:0}}>{page==="home"&&<Home/>}{page==="test"&&<Test/>}{page==="results"&&<Results/>}{page==="paid"&&<Paid/>}</main>
+  </React.Fragment>);
+}
+ReactDOM.createRoot(document.getElementById('app')).render(<App/>);
+</script>
+</body>
+</html>

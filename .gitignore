@@ -1,0 +1,42 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Claude
+.claude/
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Node (if any)
+node_modules/
+
+# Legacy folders (not for deployment)
+ADHD-Screening/
+Autisme/
+CogniQ/
+Personlighedstest/
+stress/
+
+# Project docs with credentials (not for public repo)
+CLAUDE.md
+claude.md
+
+# Internal docs (not for public site)
+files/CLAUDE-CODE-BRIEF.md
+files/claude.md
+files/iq-test-original.html
+
+# Dev files
+*.zip
+*-prompt.md
+*.jsx
+hjernebarometeret-landing*.html

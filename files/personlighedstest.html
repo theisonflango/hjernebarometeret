@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Gratis Big Five personlighedstest. 60 videnskabeligt validerede spørgsmål. Mål dine fem grundlæggende personlighedstræk — Åbenhed, Samvittighedsfuldhed, Ekstraversion, Venlighed og Neuroticisme.">
+<title>Personlighedstest — Hjernebarometeret.dk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,500&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/styles.css">
+<style>
+:root {
+  --bg: #faf9f7;
+  --bg-card: #fff;
+  --bg-card-hover: rgba(0,0,0,.02);
+  --bg-warm: #f5f2ee;
+  --bg-dark: #1c1b1a;
+  --text: #1c1b1a;
+  --text-2: #5a5650;
+  --text-3: #8a857e;
+  --text-4: #b5b0a8;
+  --text-dim: #5a5650;
+  --text-muted: #8a857e;
+  --border: #e8e5e0;
+  --border-2: #d5d0c9;
+  --accent: #b8860b;
+  --accent-glow: rgba(184,134,11,0.08);
+  --accent-dim: #96700a;
+  --green: #5cb85c;
+  --yellow: #e8c547;
+  --orange: #e8873c;
+  --red: #d9534f;
+  --trait-O: #7b68ee;
+  --trait-C: #3cb7a0;
+  --trait-E: #e8873c;
+  --trait-A: #e85d7a;
+  --trait-N: #6a9fdf;
+  --radius: 12px;
+  --radius-lg: 20px;
+  --serif: 'Source Serif 4', Georgia, serif;
+  --sans: 'Figtree', system-ui, sans-serif;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  padding-top: 64px;
+}
+
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* ── LANG TOGGLE ── */
+.lang-toggle {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  background: transparent;
+  border: 1px solid var(--border);
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.lang-toggle:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── PROGRESS BAR ── */
+.progress-wrap {
+  position: sticky;
+  top: 64px;
+  z-index: 99;
+  background: var(--bg);
+  padding: 12px 0 8px;
+}
+.progress-bar-bg {
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-dim), var(--accent));
+  border-radius: 2px;
+  transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  width: 0%;
+}
+.progress-text {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 6px;
+  text-align: right;
+}
+
+/* ── SCREENS ── */
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* ── INTRO ── */
+.intro {
+  padding: 60px 0 80px;
+  text-align: center;
+  position: relative;
+}
+.intro-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  padding: 4px 14px;
+  border-radius: 20px;
+  margin-bottom: 28px;
+  font-weight: 600;
+}
+.intro h1 {
+  font-family: var(--serif);
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  margin-bottom: 18px;
+}
+.intro h1 em {
+  font-style: italic;
+  color: var(--accent);
+}
+.intro p.lead {
+  font-size: 1.05rem;
+  color: var(--text-dim);
+  max-width: 520px;
+  margin: 0 auto 36px;
+}
+.intro-meta {
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+}
+.intro-meta span {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+.intro-meta span strong {
+  color: var(--text-dim);
+  font-weight: 500;
+}
+.btn-start {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 14px 36px;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.25s;
+  font-family: inherit;
+}
+.btn-start:hover {
+  background: #d4a017;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 30px rgba(184,134,11,0.25);
+}
+.intro-science {
+  margin-top: 60px;
+  text-align: left;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+}
+.intro-science h3 {
+  font-family: var(--serif);
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+.intro-science p {
+  font-size: 0.88rem;
+  color: var(--text-dim);
+  line-height: 1.7;
+}
+
+/* ── QUESTION ── */
+.question-screen { padding: 40px 0 100px; }
+.q-number {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 12px;
+}
+.q-text {
+  font-family: var(--serif);
+  font-size: clamp(1.2rem, 3.5vw, 1.55rem);
+  font-weight: 500;
+  line-height: 1.4;
+  margin-bottom: 36px;
+  letter-spacing: -0.01em;
+  min-height: 80px;
+}
+.likert {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.likert-option {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+  font-size: 0.92rem;
+  color: var(--text);
+  text-align: left;
+  width: 100%;
+}
+.likert-option:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent);
+}
+.likert-option.selected {
+  background: var(--accent-glow);
+  border-color: var(--accent);
+}
+.likert-dot {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--text-muted);
+  flex-shrink: 0;
+  transition: all 0.2s;
+  position: relative;
+}
+.likert-option.selected .likert-dot {
+  border-color: var(--accent);
+  background: var(--accent);
+  box-shadow: inset 0 0 0 3px var(--bg-card);
+}
+.q-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 32px;
+  gap: 12px;
+}
+.btn-nav {
+  padding: 10px 22px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-dim);
+  transition: all 0.2s;
+}
+.btn-nav:hover:not(:disabled) { border-color: var(--text-dim); color: var(--text); }
+.btn-nav:disabled { opacity: 0.3; cursor: default; }
+.btn-nav.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.btn-nav.primary:hover:not(:disabled) {
+  background: #d4a017;
+}
+.btn-nav.primary:disabled {
+  opacity: 0.4;
+}
+
+/* ── CALCULATING ── */
+.calculating-screen {
+  padding: 120px 0;
+  text-align: center;
+}
+.calc-spinner {
+  width: 48px; height: 48px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 24px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.calculating-screen p {
+  color: var(--text-dim);
+  font-size: 0.95rem;
+}
+
+/* ── RESULTS ── */
+.results-screen { padding: 40px 0 80px; }
+.results-header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+.results-header h2 {
+  font-family: var(--serif);
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin-bottom: 8px;
+}
+.profile-label {
+  font-size: 1.05rem;
+  color: var(--accent);
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+.results-header p {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}
+
+/* Trait cards */
+.trait-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 16px;
+  transition: all 0.3s;
+}
+.trait-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.trait-label {
+  display: flex; align-items: center; gap: 10px;
+}
+.trait-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+}
+.trait-name {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+.trait-name small {
+  display: block;
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.trait-pct {
+  font-family: var(--serif);
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+.trait-bar-bg {
+  height: 8px;
+  background: rgba(0,0,0,0.06);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+.trait-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+  width: 0%;
+}
+.trait-desc {
+  font-size: 0.86rem;
+  color: var(--text-dim);
+  line-height: 1.65;
+}
+
+/* Radar chart */
+.radar-wrap {
+  text-align: center;
+  margin: 40px 0;
+}
+.radar-wrap svg { max-width: 340px; width: 100%; }
+
+/* Paywall */
+.paywall-card {
+  background: linear-gradient(135deg, #f8f6f3 0%, #faf9f7 100%);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-lg);
+  padding: 32px 24px;
+  text-align: center;
+  margin: 48px 0 32px;
+  position: relative;
+  overflow: hidden;
+}
+.paywall-card::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: radial-gradient(circle at center, rgba(184,134,11,0.04) 0%, transparent 60%);
+  pointer-events: none;
+}
+.paywall-card h3 {
+  font-family: var(--serif);
+  font-size: 1.3rem;
+  margin-bottom: 10px;
+  font-weight: 600;
+  position: relative;
+}
+.paywall-card p {
+  color: var(--text-dim);
+  font-size: 0.88rem;
+  margin-bottom: 20px;
+  position: relative;
+}
+.paywall-features {
+  list-style: none;
+  text-align: left;
+  max-width: 360px;
+  margin: 0 auto 28px;
+  position: relative;
+}
+.paywall-features li {
+  font-size: 0.84rem;
+  color: var(--text-dim);
+  padding: 6px 0;
+  display: flex; align-items: flex-start; gap: 10px;
+}
+.paywall-features li::before {
+  content: '\2713';
+  color: var(--accent);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.btn-buy {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 13px 32px;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.25s;
+  position: relative;
+}
+.btn-buy:hover {
+  background: #d4a017;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 30px rgba(184,134,11,0.25);
+}
+.price-tag {
+  font-family: var(--serif);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 4px;
+  position: relative;
+}
+.price-tag small {
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--text-dim);
+}
+
+/* Compare table */
+.compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 24px 0;
+  font-size: 0.84rem;
+}
+.compare-table th {
+  text-align: left;
+  padding: 10px 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+  border-bottom: 1px solid var(--border);
+}
+.compare-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  color: var(--text-dim);
+}
+.compare-table td:nth-child(2),
+.compare-table td:nth-child(3) { text-align: center; }
+.compare-table th:nth-child(2),
+.compare-table th:nth-child(3) { text-align: center; }
+.check { color: var(--accent); }
+.cross { color: var(--text-muted); }
+
+/* Cross-sell */
+.cross-sell {
+  margin-top: 48px;
+  text-align: center;
+}
+.cross-sell h3 {
+  font-family: var(--serif);
+  font-size: 1.1rem;
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+.cross-sell-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+.cross-sell-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 16px;
+  text-decoration: none;
+  color: var(--text);
+  transition: all 0.2s;
+  display: block;
+}
+.cross-sell-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+.cross-sell-card .emoji { font-size: 1.5rem; margin-bottom: 8px; }
+.cross-sell-card .name {
+  font-weight: 600;
+  font-size: 0.88rem;
+  margin-bottom: 4px;
+}
+.cross-sell-card .sub {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+
+/* Animations */
+@keyframes fadeUp {
+  from { opacity:0; transform: translateY(16px); }
+  to { opacity:1; transform: translateY(0); }
+}
+.fade-up {
+  animation: fadeUp 0.5s ease forwards;
+}
+
+/* Mobile tweaks */
+@media (max-width: 480px) {
+  .intro { padding: 40px 0 60px; }
+  .intro-meta { gap: 16px; }
+  .trait-card { padding: 18px; }
+  .paywall-card { padding: 24px 18px; }
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div id="site-nav" data-test-mode="true"></div>
+
+<!-- ═══════ INTRO ═══════ -->
+<div id="introScreen" class="screen active">
+  <div class="container intro">
+    <button class="lang-toggle" onclick="toggleLang()" id="langBtn" style="position:absolute;top:20px;right:20px;">EN 🇬🇧</button>
+    <div class="intro-badge" data-da="Big Five Personlighedstest" data-en="Big Five Personality Test">Big Five Personlighedstest</div>
+    <h1 data-da="Forstå hvem du <em>virkelig</em> er" data-en="Understand who you <em>really</em> are">Forstå hvem du <em>virkelig</em> er</h1>
+    <p class="lead" data-da="60 videnskabeligt validerede spørgsmål baseret på OCEAN-modellen — verdens mest anerkendte personlighedstest. Gratis resultat med det samme." data-en="60 scientifically validated questions based on the OCEAN model — the world's most recognized personality assessment. Free results instantly.">60 videnskabeligt validerede spørgsmål baseret på OCEAN-modellen — verdens mest anerkendte personlighedstest. Gratis resultat med det samme.</p>
+    <div class="intro-meta">
+      <span><strong>60</strong> <span data-da="spørgsmål" data-en="questions">spørgsmål</span></span>
+      <span><strong>10-15</strong> <span data-da="minutter" data-en="minutes">minutter</span></span>
+      <span><strong>5</strong> <span data-da="dimensioner" data-en="dimensions">dimensioner</span></span>
+      <span><strong>30</strong> <span data-da="facetter" data-en="facets">facetter</span></span>
+    </div>
+    <button class="btn-start" onclick="startTest()">
+      <span data-da="Start testen" data-en="Start test">Start testen</span> →
+    </button>
+    <div class="intro-science">
+      <h3 data-da="🧬 Videnskabeligt funderet" data-en="🧬 Scientifically grounded">🧬 Videnskabeligt funderet</h3>
+      <p data-da="Big Five-modellen (OCEAN) er den mest velundersøgte og replikerede personlighedsmodel i psykologien. Testen måler dine fem grundlæggende personlighedstræk — Åbenhed, Samvittighedsfuldhed, Ekstraversion, Venlighed og Neuroticisme — samt 30 underfacetter. Baseret på IPIP-itempool med balancerede positive og negative formuleringer for at sikre præcis scoring." data-en="The Big Five model (OCEAN) is the most well-researched and replicated personality model in psychology. The test measures your five fundamental personality traits — Openness, Conscientiousness, Extraversion, Agreeableness, and Neuroticism — along with 30 subfacets. Based on the IPIP item pool with balanced positive and negative wordings for accurate scoring.">Big Five-modellen (OCEAN) er den mest velundersøgte og replikerede personlighedsmodel i psykologien. Testen måler dine fem grundlæggende personlighedstræk — Åbenhed, Samvittighedsfuldhed, Ekstraversion, Venlighed og Neuroticisme — samt 30 underfacetter. Baseret på IPIP-itempool med balancerede positive og negative formuleringer for at sikre præcis scoring.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ QUESTION ═══════ -->
+<div id="questionScreen" class="screen">
+  <div class="container">
+    <div class="progress-wrap">
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-text" id="progressText">1 / 60</div>
+    </div>
+    <div class="question-screen">
+      <div class="q-number" id="qNumber"></div>
+      <div class="q-text" id="qText"></div>
+      <div class="likert" id="likertOptions"></div>
+      <div class="q-nav">
+        <button class="btn-nav" id="btnPrev" onclick="prevQuestion()" data-da="← Tilbage" data-en="← Back">← Tilbage</button>
+        <button class="btn-nav primary" id="btnNext" onclick="nextQuestion()" disabled data-da="Næste →" data-en="Next →">Næste →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ CALCULATING ═══════ -->
+<div id="calcScreen" class="screen">
+  <div class="container calculating-screen">
+    <div class="calc-spinner"></div>
+    <p data-da="Analyserer dine svar..." data-en="Analyzing your answers...">Analyserer dine svar...</p>
+  </div>
+</div>
+
+<!-- ═══════ RESULTS ═══════ -->
+<div id="resultsScreen" class="screen">
+  <div class="container results-screen" id="resultsContainer"></div>
+</div>
+
+<div id="site-footer"></div>
+
+<script src="shared/nav.js"></script>
+<script src="shared/footer.js"></script>
+<script src="shared/auth.js"></script>
+
+<script>
+// ═══════════════════════════════════════════
+//  LANGUAGE
+// ═══════════════════════════════════════════
+let lang = 'da';
+
+function toggleLang() {
+  lang = lang === 'da' ? 'en' : 'da';
+  document.getElementById('langBtn').textContent = lang === 'da' ? 'EN 🇬🇧' : 'DA 🇩🇰';
+  document.querySelectorAll('[data-da]').forEach(el => {
+    el.innerHTML = el.getAttribute(`data-${lang}`);
+  });
+  if (currentQuestion >= 0 && document.getElementById('questionScreen').classList.contains('active')) {
+    renderQuestion(currentQuestion);
+  }
+}
+
+// ═══════════════════════════════════════════
+//  ITEM POOL — 60 IPIP-BASED ITEMS
+//  12 per trait, 2 per facet, balanced R/F
+//  R = reverse-scored
+// ═══════════════════════════════════════════
+
+const ITEMS = [
+  // ── OPENNESS (O) ──
+  // O1 Fantasi / Imagination
+  { trait:'O', facet:'O1', da:'Jeg har en livlig fantasi.', en:'I have a vivid imagination.', R:false },
+  { trait:'O', facet:'O1', da:'Jeg har svært ved at forestille mig ting.', en:'I have difficulty imagining things.', R:true },
+  // O2 Æstetik / Aesthetics
+  { trait:'O', facet:'O2', da:'Jeg bliver dybt berørt af kunst og musik.', en:'I am deeply moved by art and music.', R:false },
+  { trait:'O', facet:'O2', da:'Kunst og skønhed interesserer mig ikke særligt.', en:'Art and beauty don\'t particularly interest me.', R:true },
+  // O3 Følelser / Emotionality
+  { trait:'O', facet:'O3', da:'Jeg oplever mine følelser intenst.', en:'I experience my emotions intensely.', R:false },
+  { trait:'O', facet:'O3', da:'Jeg mærker sjældent stærke følelsesmæssige reaktioner.', en:'I rarely feel strong emotional reactions.', R:true },
+  // O4 Handlinger / Adventurousness
+  { trait:'O', facet:'O4', da:'Jeg nyder at prøve nye og anderledes oplevelser.', en:'I enjoy trying new and different experiences.', R:false },
+  { trait:'O', facet:'O4', da:'Jeg foretrækker faste rutiner frem for forandring.', en:'I prefer fixed routines over change.', R:true },
+  // O5 Idéer / Intellect
+  { trait:'O', facet:'O5', da:'Jeg elsker at fordybe mig i komplekse idéer og teorier.', en:'I love diving into complex ideas and theories.', R:false },
+  { trait:'O', facet:'O5', da:'Abstrakte diskussioner keder mig.', en:'Abstract discussions bore me.', R:true },
+  // O6 Værdier / Liberalism
+  { trait:'O', facet:'O6', da:'Jeg udfordrer gerne etablerede normer og traditioner.', en:'I like to challenge established norms and traditions.', R:false },
+  { trait:'O', facet:'O6', da:'Jeg mener at samfundet fungerer bedst med faste regler.', en:'I believe society works best with fixed rules.', R:true },
+
+  // ── CONSCIENTIOUSNESS (C) ──
+  // C1 Kompetence / Self-Efficacy
+  { trait:'C', facet:'C1', da:'Jeg håndterer opgaver effektivt og kompetent.', en:'I handle tasks efficiently and competently.', R:false },
+  { trait:'C', facet:'C1', da:'Jeg tvivler ofte på mine egne evner.', en:'I often doubt my own abilities.', R:true },
+  // C2 Orden / Orderliness
+  { trait:'C', facet:'C2', da:'Jeg holder mine ting velorganiserede.', en:'I keep my things well organized.', R:false },
+  { trait:'C', facet:'C2', da:'Jeg efterlader ofte rod omkring mig.', en:'I often leave a mess around me.', R:true },
+  // C3 Pligtopfyldenhed / Dutifulness
+  { trait:'C', facet:'C3', da:'Jeg tager mine forpligtelser meget seriøst.', en:'I take my obligations very seriously.', R:false },
+  { trait:'C', facet:'C3', da:'Jeg bryder af og til regler uden at tænke over det.', en:'I sometimes break rules without thinking about it.', R:true },
+  // C4 Præstationsstreben / Achievement-Striving
+  { trait:'C', facet:'C4', da:'Jeg sætter høje mål og arbejder hårdt for at nå dem.', en:'I set high goals and work hard to achieve them.', R:false },
+  { trait:'C', facet:'C4', da:'Jeg gør sjældent mere end det absolut nødvendige.', en:'I rarely do more than the absolute minimum.', R:true },
+  // C5 Selvdisciplin / Self-Discipline
+  { trait:'C', facet:'C5', da:'Jeg kan holde fokus på en opgave til den er færdig.', en:'I can stay focused on a task until it\'s done.', R:false },
+  { trait:'C', facet:'C5', da:'Jeg udsætter tit vigtige opgaver.', en:'I often postpone important tasks.', R:true },
+  // C6 Besindighed / Cautiousness
+  { trait:'C', facet:'C6', da:'Jeg tænker grundigt over konsekvenser før jeg handler.', en:'I think carefully about consequences before I act.', R:false },
+  { trait:'C', facet:'C6', da:'Jeg handler impulsivt uden at overveje følgerne.', en:'I act impulsively without considering the consequences.', R:true },
+
+  // ── EXTRAVERSION (E) ──
+  // E1 Varme / Friendliness
+  { trait:'E', facet:'E1', da:'Jeg knytter let bånd til andre mennesker.', en:'I easily form bonds with other people.', R:false },
+  { trait:'E', facet:'E1', da:'Jeg holder folk på afstand følelsesmæssigt.', en:'I keep people at an emotional distance.', R:true },
+  // E2 Selskabelighed / Gregariousness
+  { trait:'E', facet:'E2', da:'Jeg søger aktivt andres selskab og sociale begivenheder.', en:'I actively seek the company of others and social events.', R:false },
+  { trait:'E', facet:'E2', da:'Jeg foretrækker at tilbringe tid alene fremfor i grupper.', en:'I prefer to spend time alone rather than in groups.', R:true },
+  // E3 Dominans / Assertiveness
+  { trait:'E', facet:'E3', da:'Jeg tager naturligt styringen i gruppesammenhænge.', en:'I naturally take charge in group settings.', R:false },
+  { trait:'E', facet:'E3', da:'Jeg holder mig gerne i baggrunden og lader andre bestemme.', en:'I prefer to stay in the background and let others decide.', R:true },
+  // E4 Aktivitet / Activity Level
+  { trait:'E', facet:'E4', da:'Jeg har et højt energiniveau og er altid i gang.', en:'I have a high energy level and am always on the go.', R:false },
+  { trait:'E', facet:'E4', da:'Jeg har et roligt tempo og tager tingene som de kommer.', en:'I have a calm pace and take things as they come.', R:true },
+  // E5 Spændingssøgen / Excitement-Seeking
+  { trait:'E', facet:'E5', da:'Jeg søger spænding og nye oplevelser.', en:'I seek excitement and new experiences.', R:false },
+  { trait:'E', facet:'E5', da:'Jeg undgår risikable eller overvældende situationer.', en:'I avoid risky or overwhelming situations.', R:true },
+  // E6 Positive følelser / Cheerfulness
+  { trait:'E', facet:'E6', da:'Jeg føler mig som regel glad og optimistisk.', en:'I generally feel happy and optimistic.', R:false },
+  { trait:'E', facet:'E6', da:'Jeg oplever sjældent intens glæde eller begejstring.', en:'I rarely experience intense joy or excitement.', R:true },
+
+  // ── AGREEABLENESS (A) ──
+  // A1 Tillid / Trust
+  { trait:'A', facet:'A1', da:'Jeg tror som udgangspunkt på det bedste i andre mennesker.', en:'I generally believe the best about other people.', R:false },
+  { trait:'A', facet:'A1', da:'Jeg er mistænksom over for andres motiver.', en:'I am suspicious of others\' motives.', R:true },
+  // A2 Ligefremhed / Morality/Straightforwardness
+  { trait:'A', facet:'A2', da:'Jeg siger tingene som de er, uden omsvøb.', en:'I say things as they are, without beating around the bush.', R:false },
+  { trait:'A', facet:'A2', da:'Jeg bruger af og til smiger for at få det som jeg vil.', en:'I sometimes use flattery to get what I want.', R:true },
+  // A3 Altruisme / Altruism
+  { trait:'A', facet:'A3', da:'Jeg hjælper gerne andre, selv når det koster mig noget.', en:'I gladly help others, even when it costs me something.', R:false },
+  { trait:'A', facet:'A3', da:'Jeg fokuserer primært på mine egne behov.', en:'I primarily focus on my own needs.', R:true },
+  // A4 Føjelighed / Cooperation
+  { trait:'A', facet:'A4', da:'Jeg prøver at undgå konflikter og finde kompromiser.', en:'I try to avoid conflicts and find compromises.', R:false },
+  { trait:'A', facet:'A4', da:'Jeg har ingen problemer med at konfrontere folk direkte.', en:'I have no problem confronting people directly.', R:true },
+  // A5 Beskedenhed / Modesty
+  { trait:'A', facet:'A5', da:'Jeg praler sjældent med mine præstationer.', en:'I rarely brag about my accomplishments.', R:false },
+  { trait:'A', facet:'A5', da:'Jeg sørger for at andre lægger mærke til mine evner.', en:'I make sure others notice my abilities.', R:true },
+  // A6 Blødhjertethed / Sympathy
+  { trait:'A', facet:'A6', da:'Andres følelser berører mig dybt.', en:'Other people\'s feelings affect me deeply.', R:false },
+  { trait:'A', facet:'A6', da:'Jeg forstår ikke hvorfor folk bliver så følelsesmæssigt påvirkede.', en:'I don\'t understand why people get so emotionally affected.', R:true },
+
+  // ── NEUROTICISM (N) ──
+  // N1 Angst / Anxiety
+  { trait:'N', facet:'N1', da:'Jeg bekymrer mig ofte om ting der måske aldrig sker.', en:'I often worry about things that may never happen.', R:false },
+  { trait:'N', facet:'N1', da:'Jeg føler mig sjældent urolig eller bekymret.', en:'I rarely feel anxious or worried.', R:true },
+  // N2 Fjendtlighed / Anger/Hostility
+  { trait:'N', facet:'N2', da:'Jeg bliver let irriteret eller frustreret.', en:'I get easily irritated or frustrated.', R:false },
+  { trait:'N', facet:'N2', da:'Der skal meget til før jeg mister besindelsen.', en:'It takes a lot for me to lose my composure.', R:true },
+  // N3 Depression
+  { trait:'N', facet:'N3', da:'Jeg føler mig tit trist eller nedtrykt uden klar årsag.', en:'I often feel sad or down without a clear reason.', R:false },
+  { trait:'N', facet:'N3', da:'Jeg er generelt tilfreds og i godt humør.', en:'I am generally content and in a good mood.', R:true },
+  // N4 Selvbevidsthed / Self-Consciousness
+  { trait:'N', facet:'N4', da:'Jeg bekymrer mig meget om hvad andre tænker om mig.', en:'I worry a lot about what others think of me.', R:false },
+  { trait:'N', facet:'N4', da:'Andre menneskers vurdering påvirker mig sjældent.', en:'Other people\'s judgment rarely affects me.', R:true },
+  // N5 Impulsivitet / Immoderation
+  { trait:'N', facet:'N5', da:'Jeg har svært ved at modstå fristelser og impulser.', en:'I have difficulty resisting temptations and impulses.', R:false },
+  { trait:'N', facet:'N5', da:'Jeg har god kontrol over mine lyster og vaner.', en:'I have good control over my desires and habits.', R:true },
+  // N6 Sårbarhed / Vulnerability
+  { trait:'N', facet:'N6', da:'Jeg bliver let overvældet af pres og stress.', en:'I am easily overwhelmed by pressure and stress.', R:false },
+  { trait:'N', facet:'N6', da:'Jeg håndterer kriser med ro og overblik.', en:'I handle crises with calm and composure.', R:true },
+];
+
+// ═══════════════════════════════════════════
+//  TRAIT & FACET METADATA
+// ═══════════════════════════════════════════
+
+const TRAITS = {
+  O: {
+    da: 'Åbenhed', en: 'Openness',
+    color: 'var(--trait-O)', emoji: '🌀',
+    facets: {
+      O1: { da:'Fantasi', en:'Imagination' },
+      O2: { da:'Æstetik', en:'Aesthetics' },
+      O3: { da:'Følelser', en:'Emotionality' },
+      O4: { da:'Handlinger', en:'Adventurousness' },
+      O5: { da:'Idéer', en:'Intellect' },
+      O6: { da:'Værdier', en:'Liberalism' },
+    },
+    descriptions: {
+      da: {
+        high: 'Du er kreativ, nysgerrig og åben over for nye idéer og oplevelser. Du sætter pris på kunst, æstetik og intellektuel udforskning.',
+        mid: 'Du har en balance mellem nysgerrighed og pragmatisme. Du er åben for nye idéer men værdsætter også det velkendte.',
+        low: 'Du er jordnær, praktisk og foretrækker det velkendte. Du fokuserer på konkrete løsninger frem for abstrakte idéer.',
+      },
+      en: {
+        high: 'You are creative, curious, and open to new ideas and experiences. You value art, aesthetics, and intellectual exploration.',
+        mid: 'You have a balance between curiosity and pragmatism. You are open to new ideas but also value the familiar.',
+        low: 'You are grounded, practical, and prefer the familiar. You focus on concrete solutions rather than abstract ideas.',
+      }
+    }
+  },
+  C: {
+    da: 'Samvittighedsfuldhed', en: 'Conscientiousness',
+    color: 'var(--trait-C)', emoji: '🎯',
+    facets: {
+      C1: { da:'Kompetence', en:'Self-Efficacy' },
+      C2: { da:'Orden', en:'Orderliness' },
+      C3: { da:'Pligtopfyldenhed', en:'Dutifulness' },
+      C4: { da:'Præstationsstreben', en:'Achievement-Striving' },
+      C5: { da:'Selvdisciplin', en:'Self-Discipline' },
+      C6: { da:'Besindighed', en:'Cautiousness' },
+    },
+    descriptions: {
+      da: {
+        high: 'Du er organiseret, disciplineret og målrettet. Du planlægger grundigt, holder dine forpligtelser og stræber efter excellence.',
+        mid: 'Du kan være struktureret når det kræves, men nyder også spontanitet. Du finder en balance mellem pligt og frihed.',
+        low: 'Du er spontan, fleksibel og foretrækker at gå med strømmen. Stramme planer og regler kan føles begrænsende for dig.',
+      },
+      en: {
+        high: 'You are organized, disciplined, and goal-oriented. You plan thoroughly, keep your commitments, and strive for excellence.',
+        mid: 'You can be structured when required but also enjoy spontaneity. You find a balance between duty and freedom.',
+        low: 'You are spontaneous, flexible, and prefer to go with the flow. Strict plans and rules can feel limiting to you.',
+      }
+    }
+  },
+  E: {
+    da: 'Ekstraversion', en: 'Extraversion',
+    color: 'var(--trait-E)', emoji: '⚡',
+    facets: {
+      E1: { da:'Varme', en:'Friendliness' },
+      E2: { da:'Selskabelighed', en:'Gregariousness' },
+      E3: { da:'Dominans', en:'Assertiveness' },
+      E4: { da:'Aktivitet', en:'Activity Level' },
+      E5: { da:'Spændingssøgen', en:'Excitement-Seeking' },
+      E6: { da:'Positive følelser', en:'Cheerfulness' },
+    },
+    descriptions: {
+      da: {
+        high: 'Du er energisk, udadvendt og trives i andres selskab. Du tager naturligt styringen og søger aktive, stimulerende omgivelser.',
+        mid: 'Du kan nyde sociale situationer men har også brug for tid alene. Du tilpasser dit energiniveau efter konteksten.',
+        low: 'Du er reserveret, eftertænksom og trives bedst i rolige omgivelser. Du foretrækker dybde i få relationer frem for mange bekendtskaber.',
+      },
+      en: {
+        high: 'You are energetic, outgoing, and thrive in the company of others. You naturally take charge and seek active, stimulating environments.',
+        mid: 'You can enjoy social situations but also need time alone. You adapt your energy level to the context.',
+        low: 'You are reserved, reflective, and thrive in calm environments. You prefer depth in few relationships over many acquaintances.',
+      }
+    }
+  },
+  A: {
+    da: 'Venlighed', en: 'Agreeableness',
+    color: 'var(--trait-A)', emoji: '💗',
+    facets: {
+      A1: { da:'Tillid', en:'Trust' },
+      A2: { da:'Ligefremhed', en:'Straightforwardness' },
+      A3: { da:'Altruisme', en:'Altruism' },
+      A4: { da:'Føjelighed', en:'Cooperation' },
+      A5: { da:'Beskedenhed', en:'Modesty' },
+      A6: { da:'Blødhjertethed', en:'Sympathy' },
+    },
+    descriptions: {
+      da: {
+        high: 'Du er tillidsfuld, empatisk og samarbejdsorienteret. Du sætter andres behov højt og stræber efter harmoni i dine relationer.',
+        mid: 'Du balancerer empati med selvhævdelse. Du er imødekommende men kan også stå fast når det er nødvendigt.',
+        low: 'Du er direkte, selvstændig og fokuseret på dine egne mål. Du prioriterer ærlighed og resultater over at behage andre.',
+      },
+      en: {
+        high: 'You are trusting, empathetic, and cooperation-oriented. You prioritize others\' needs and strive for harmony in your relationships.',
+        mid: 'You balance empathy with assertiveness. You are accommodating but can also stand firm when necessary.',
+        low: 'You are direct, independent, and focused on your own goals. You prioritize honesty and results over pleasing others.',
+      }
+    }
+  },
+  N: {
+    da: 'Neuroticisme', en: 'Neuroticism',
+    color: 'var(--trait-N)', emoji: '🌊',
+    facets: {
+      N1: { da:'Angst', en:'Anxiety' },
+      N2: { da:'Fjendtlighed', en:'Anger/Hostility' },
+      N3: { da:'Depression', en:'Depression' },
+      N4: { da:'Selvbevidsthed', en:'Self-Consciousness' },
+      N5: { da:'Impulsivitet', en:'Immoderation' },
+      N6: { da:'Sårbarhed', en:'Vulnerability' },
+    },
+    descriptions: {
+      da: {
+        high: 'Du oplever følelser intenst og kan være sårbar over for stress. Du er meget opmærksom på potentielle trusler og risici.',
+        mid: 'Du har en moderat følelsesmæssig reaktivitet. Du kan håndtere de fleste stressorer men mærker det i pressede perioder.',
+        low: 'Du er følelsesmæssigt stabil, rolig og robust over for stress. Du bevarer overblikket og lader dig sjældent ryste.',
+      },
+      en: {
+        high: 'You experience emotions intensely and can be sensitive to stress. You are very aware of potential threats and risks.',
+        mid: 'You have moderate emotional reactivity. You can handle most stressors but feel it during intense periods.',
+        low: 'You are emotionally stable, calm, and resilient to stress. You keep composure and are rarely shaken.',
+      }
+    }
+  },
+};
+
+// ═══════════════════════════════════════════
+//  PROFILE TYPE LABELS
+// ═══════════════════════════════════════════
+const PROFILE_TYPES = {
+  da: [
+    { label:'Udforskeren', condition: s => s.O >= 70 && s.E >= 60 },
+    { label:'Arkitekten', condition: s => s.C >= 70 && s.O >= 50 },
+    { label:'Diplomaten', condition: s => s.A >= 70 && s.E >= 50 },
+    { label:'Analytikeren', condition: s => s.O >= 60 && s.C >= 60 && s.E < 50 },
+    { label:'Lederen', condition: s => s.E >= 70 && s.C >= 60 },
+    { label:'Omsorgspersonen', condition: s => s.A >= 70 && s.N <= 40 },
+    { label:'Kunstnersjælen', condition: s => s.O >= 70 && s.N >= 55 },
+    { label:'Strategen', condition: s => s.C >= 65 && s.A < 45 },
+    { label:'Idealisten', condition: s => s.O >= 60 && s.A >= 60 },
+    { label:'Den Stabile', condition: s => s.N <= 30 && s.C >= 55 },
+    { label:'Realisten', condition: s => s.O < 45 && s.C >= 55 },
+    { label:'Eventyreren', condition: s => s.E >= 65 && s.O >= 55 && s.C < 50 },
+    { label:'Tænkeren', condition: s => s.O >= 55 && s.E < 40 },
+    { label:'Din unikke profil', condition: () => true },
+  ],
+  en: [
+    { label:'The Explorer', condition: s => s.O >= 70 && s.E >= 60 },
+    { label:'The Architect', condition: s => s.C >= 70 && s.O >= 50 },
+    { label:'The Diplomat', condition: s => s.A >= 70 && s.E >= 50 },
+    { label:'The Analyst', condition: s => s.O >= 60 && s.C >= 60 && s.E < 50 },
+    { label:'The Leader', condition: s => s.E >= 70 && s.C >= 60 },
+    { label:'The Caregiver', condition: s => s.A >= 70 && s.N <= 40 },
+    { label:'The Artist', condition: s => s.O >= 70 && s.N >= 55 },
+    { label:'The Strategist', condition: s => s.C >= 65 && s.A < 45 },
+    { label:'The Idealist', condition: s => s.O >= 60 && s.A >= 60 },
+    { label:'The Rock', condition: s => s.N <= 30 && s.C >= 55 },
+    { label:'The Realist', condition: s => s.O < 45 && s.C >= 55 },
+    { label:'The Adventurer', condition: s => s.E >= 65 && s.O >= 55 && s.C < 50 },
+    { label:'The Thinker', condition: s => s.O >= 55 && s.E < 40 },
+    { label:'Your unique profile', condition: () => true },
+  ]
+};
+
+// ═══════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════
+let shuffledItems = [];
+let answers = {};
+let currentQuestion = -1;
+
+// ═══════════════════════════════════════════
+//  SHUFFLE (Fisher-Yates)
+// ═══════════════════════════════════════════
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// ═══════════════════════════════════════════
+//  SCREENS
+// ═══════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ═══════════════════════════════════════════
+//  START TEST
+// ═══════════════════════════════════════════
+function startTest() {
+  shuffledItems = shuffle(ITEMS.map((item, i) => ({ ...item, origIdx: i })));
+  answers = {};
+  currentQuestion = 0;
+  showScreen('questionScreen');
+  renderQuestion(0);
+}
+
+// ═══════════════════════════════════════════
+//  RENDER QUESTION
+// ═══════════════════════════════════════════
+const LIKERT_DA = ['Helt uenig', 'Uenig', 'Neutral', 'Enig', 'Helt enig'];
+const LIKERT_EN = ['Strongly disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly agree'];
+
+function renderQuestion(idx) {
+  const item = shuffledItems[idx];
+  const total = shuffledItems.length;
+  const pct = ((idx) / total * 100).toFixed(0);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = `${idx + 1} / ${total}`;
+  document.getElementById('qNumber').textContent = (lang === 'da' ? 'Spørgsmål ' : 'Question ') + (idx + 1);
+  document.getElementById('qText').textContent = item[lang];
+
+  const labels = lang === 'da' ? LIKERT_DA : LIKERT_EN;
+  const container = document.getElementById('likertOptions');
+  container.innerHTML = '';
+  labels.forEach((label, val) => {
+    const btn = document.createElement('button');
+    btn.className = 'likert-option' + (answers[item.origIdx] === val + 1 ? ' selected' : '');
+    btn.innerHTML = `<span class="likert-dot"></span><span>${label}</span>`;
+    btn.onclick = () => selectAnswer(item.origIdx, val + 1);
+    container.appendChild(btn);
+  });
+
+  document.getElementById('btnPrev').disabled = idx === 0;
+  const isLast = idx === total - 1;
+  const nextBtn = document.getElementById('btnNext');
+  nextBtn.textContent = isLast ? (lang === 'da' ? 'Se resultat →' : 'See result →') : (lang === 'da' ? 'Næste →' : 'Next →');
+  nextBtn.disabled = answers[item.origIdx] === undefined;
+}
+
+function selectAnswer(origIdx, value) {
+  answers[origIdx] = value;
+  document.querySelectorAll('.likert-option').forEach((btn, i) => {
+    btn.classList.toggle('selected', i === value - 1);
+  });
+  document.getElementById('btnNext').disabled = false;
+}
+
+function nextQuestion() {
+  if (currentQuestion < shuffledItems.length - 1) {
+    currentQuestion++;
+    renderQuestion(currentQuestion);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } else {
+    showResults();
+  }
+}
+
+function prevQuestion() {
+  if (currentQuestion > 0) {
+    currentQuestion--;
+    renderQuestion(currentQuestion);
+  }
+}
+
+// ═══════════════════════════════════════════
+//  SCORING
+// ═══════════════════════════════════════════
+function computeScores() {
+  const traitScores = {};
+  const facetScores = {};
+  const traitCounts = {};
+  const facetCounts = {};
+
+  for (const key of ['O','C','E','A','N']) {
+    traitScores[key] = 0;
+    traitCounts[key] = 0;
+  }
+
+  ITEMS.forEach((item, idx) => {
+    const raw = answers[idx];
+    if (raw === undefined) return;
+    // Reverse score: 1→5, 2→4, 3→3, 4→2, 5→1
+    const scored = item.R ? (6 - raw) : raw;
+    traitScores[item.trait] += scored;
+    traitCounts[item.trait]++;
+    if (!facetScores[item.facet]) { facetScores[item.facet] = 0; facetCounts[item.facet] = 0; }
+    facetScores[item.facet] += scored;
+    facetCounts[item.facet]++;
+  });
+
+  // Normalize to 0-100 percentile approximation
+  // Each trait has 12 items, score range 12-60
+  // Map linearly: 12→0%, 60→100%
+  const traitPct = {};
+  for (const key of ['O','C','E','A','N']) {
+    const min = traitCounts[key] * 1;
+    const max = traitCounts[key] * 5;
+    traitPct[key] = Math.round(((traitScores[key] - min) / (max - min)) * 100);
+  }
+
+  const facetPct = {};
+  for (const fKey in facetScores) {
+    const min = facetCounts[fKey] * 1;
+    const max = facetCounts[fKey] * 5;
+    facetPct[fKey] = Math.round(((facetScores[fKey] - min) / (max - min)) * 100);
+  }
+
+  return { traitPct, facetPct };
+}
+
+// ═══════════════════════════════════════════
+//  RESULTS
+// ═══════════════════════════════════════════
+function showResults() {
+  showScreen('calcScreen');
+  setTimeout(() => {
+    const { traitPct, facetPct } = computeScores();
+    buildResultsPage(traitPct, facetPct);
+    showScreen('resultsScreen');
+    // Animate bars after render
+    setTimeout(() => {
+      document.querySelectorAll('.trait-bar-fill').forEach(bar => {
+        bar.style.width = bar.dataset.pct + '%';
+      });
+    }, 100);
+  }, 1800);
+}
+
+function getLevel(pct) {
+  if (pct >= 65) return 'high';
+  if (pct >= 35) return 'mid';
+  return 'low';
+}
+
+function getProfileLabel(traitPct) {
+  const types = PROFILE_TYPES[lang];
+  for (const t of types) {
+    if (t.condition(traitPct)) return t.label;
+  }
+  return types[types.length - 1].label;
+}
+
+function buildResultsPage(traitPct, facetPct) {
+  const profileLabel = getProfileLabel(traitPct);
+  const c = document.getElementById('resultsContainer');
+
+  let html = `
+    <div class="results-header fade-up">
+      <div class="profile-label">${profileLabel}</div>
+      <h2 data-da="Din personlighedsprofil" data-en="Your personality profile">${lang === 'da' ? 'Din personlighedsprofil' : 'Your personality profile'}</h2>
+      <p data-da="Baseret på dine 60 svar — scoret med videnskabelig Big Five-metode" data-en="Based on your 60 answers — scored with the scientific Big Five method">${lang === 'da' ? 'Baseret på dine 60 svar — scoret med videnskabelig Big Five-metode' : 'Based on your 60 answers — scored with the scientific Big Five method'}</p>
+    </div>
+  `;
+
+  // Radar SVG
+  html += buildRadarSVG(traitPct);
+
+  // Trait cards
+  const traitOrder = ['O','C','E','A','N'];
+  traitOrder.forEach((key, i) => {
+    const t = TRAITS[key];
+    const pct = traitPct[key];
+    const level = getLevel(pct);
+    const desc = t.descriptions[lang][level];
+    html += `
+      <div class="trait-card fade-up" style="animation-delay:${0.1 + i * 0.08}s">
+        <div class="trait-card-header">
+          <div class="trait-label">
+            <div class="trait-icon" style="background:${t.color}22">${t.emoji}</div>
+            <div class="trait-name">${t[lang]}<small>${t[lang === 'da' ? 'en' : 'da']}</small></div>
+          </div>
+          <div class="trait-pct" style="color:${t.color}">${pct}%</div>
+        </div>
+        <div class="trait-bar-bg">
+          <div class="trait-bar-fill" style="background:${t.color}" data-pct="${pct}"></div>
+        </div>
+        <div class="trait-desc">${desc}</div>
+      </div>
+    `;
+  });
+
+  // Paywall
+  const freeLabel = lang === 'da' ? 'Gratis' : 'Free';
+  const paidLabel = lang === 'da' ? 'Rapport' : 'Report';
+  html += `
+    <div class="paywall-card fade-up">
+      <div class="price-tag">49 kr <small>${lang === 'da' ? 'engangskøb' : 'one-time'}</small></div>
+      <h3 data-da="Få din fulde rapport" data-en="Get your full report">${lang === 'da' ? 'Få din fulde rapport' : 'Get your full report'}</h3>
+      <p data-da="Dybdegående analyse af alle 30 facetter, styrker, blindspots, karriereforslag og mere." data-en="In-depth analysis of all 30 facets, strengths, blindspots, career suggestions and more.">${lang === 'da' ? 'Dybdegående analyse af alle 30 facetter, styrker, blindspots, karriereforslag og mere.' : 'In-depth analysis of all 30 facets, strengths, blindspots, career suggestions and more.'}</p>
+
+      <table class="compare-table">
+        <thead>
+          <tr><th></th><th>${freeLabel}</th><th>${paidLabel}</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>${lang === 'da' ? '5 trait-scores' : '5 trait scores'}</td><td class="check">✓</td><td class="check">✓</td></tr>
+          <tr><td>${lang === 'da' ? 'Overordnet profiltype' : 'Overall profile type'}</td><td class="check">✓</td><td class="check">✓</td></tr>
+          <tr><td>${lang === 'da' ? 'Kort beskrivelse per trait' : 'Brief description per trait'}</td><td class="check">✓</td><td class="check">✓</td></tr>
+          <tr><td>${lang === 'da' ? '30 facet-scores med beskrivelse' : '30 facet scores with descriptions'}</td><td class="cross">–</td><td class="check">✓</td></tr>
+          <tr><td>${lang === 'da' ? 'Styrker og blindspots' : 'Strengths and blindspots'}</td><td class="cross">–</td><td class="check">✓</td></tr>
+          <tr><td>${lang === 'da' ? 'Karriere- og samarbejdsforslag' : 'Career & collaboration suggestions'}</td><td class="cross">–</td><td class="check">✓</td></tr>
+          <tr><td>${lang === 'da' ? 'Percentil-sammenligning' : 'Percentile comparison'}</td><td class="cross">–</td><td class="check">✓</td></tr>
+          <tr><td>${lang === 'da' ? 'Relationer og dagligdag' : 'Relationships & daily life'}</td><td class="cross">–</td><td class="check">✓</td></tr>
+          <tr><td>${lang === 'da' ? 'Personlige udviklingstips' : 'Personal development tips'}</td><td class="cross">–</td><td class="check">✓</td></tr>
+          <tr><td>${lang === 'da' ? 'Shareable profilkort' : 'Shareable profile card'}</td><td class="cross">–</td><td class="check">✓</td></tr>
+          <tr><td>${lang === 'da' ? 'PDF-rapport til download' : 'PDF report for download'}</td><td class="cross">–</td><td class="check">✓</td></tr>
+        </tbody>
+      </table>
+
+      <ul class="paywall-features">
+        <li>${lang === 'da' ? 'Ingen konto nødvendig' : 'No account needed'}</li>
+        <li>${lang === 'da' ? 'Rapport vises med det samme' : 'Report shown immediately'}</li>
+        <li>${lang === 'da' ? 'Også tilgængelig i 4-pakke (99 kr) eller abonnement (89 kr/md)' : 'Also available in 4-pack (99 kr) or subscription (89 kr/mo)'}</li>
+      </ul>
+
+      <button class="btn-buy" onclick="alert('${lang === 'da' ? 'Stripe-integration kommer snart!' : 'Stripe integration coming soon!'}')">
+        ${lang === 'da' ? 'Køb rapport — 49 kr' : 'Buy report — 49 kr'} →
+      </button>
+    </div>
+  `;
+
+  // Save prompt
+  html += `
+    <div style="text-align:center; margin: 24px 0;">
+      <p style="color:var(--text-dim); font-size:0.88rem; margin-bottom:12px;">${lang === 'da' ? 'Vil du gemme dit resultat? Opret gratis konto.' : 'Want to save your result? Create a free account.'}</p>
+      <button class="btn-nav" style="border-color:var(--accent); color:var(--accent);">${lang === 'da' ? 'Gem resultat' : 'Save result'}</button>
+    </div>
+  `;
+
+  // Cross-sell
+  html += `
+    <div class="cross-sell">
+      <h3 data-da="Andre tests du måske vil prøve" data-en="Other tests you might like">${lang === 'da' ? 'Andre tests du måske vil prøve' : 'Other tests you might like'}</h3>
+      <div class="cross-sell-grid">
+        <a class="cross-sell-card" href="adhd-screening.html">
+          <div class="emoji">⚡</div>
+          <div class="name">ADHD-screening</div>
+          <div class="sub">${lang === 'da' ? '30 spørgsmål · 5 min' : '30 questions · 5 min'}</div>
+        </a>
+        <a class="cross-sell-card" href="iq-test.html">
+          <div class="emoji">🧠</div>
+          <div class="name">IQ-test</div>
+          <div class="sub">${lang === 'da' ? '40 spørgsmål · 20 min' : '40 questions · 20 min'}</div>
+        </a>
+        <a class="cross-sell-card" href="autisme-test.html">
+          <div class="emoji">🔬</div>
+          <div class="name">${lang === 'da' ? 'Autisme-test' : 'Autism test'}</div>
+          <div class="sub">${lang === 'da' ? '50 spørgsmål · 10 min' : '50 questions · 10 min'}</div>
+        </a>
+      </div>
+    </div>
+  `;
+
+  c.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════
+//  RADAR / SPIDER CHART (SVG)
+// ═══════════════════════════════════════════
+function buildRadarSVG(traitPct) {
+  const traits = ['O','C','E','A','N'];
+  const labels = traits.map(k => TRAITS[k][lang]);
+  const values = traits.map(k => traitPct[k] / 100);
+  const cx = 170, cy = 170, R = 130;
+  const n = 5;
+  const angleStep = (2 * Math.PI) / n;
+  const startAngle = -Math.PI / 2;
+
+  function polarToXY(angle, r) {
+    return [cx + r * Math.cos(angle), cy + r * Math.sin(angle)];
+  }
+
+  let svg = `<div class="radar-wrap"><svg viewBox="0 0 340 360" xmlns="http://www.w3.org/2000/svg">`;
+
+  // Grid rings
+  for (let ring = 1; ring <= 4; ring++) {
+    const r = R * (ring / 4);
+    let points = '';
+    for (let i = 0; i < n; i++) {
+      const [x, y] = polarToXY(startAngle + i * angleStep, r);
+      points += `${x},${y} `;
+    }
+    svg += `<polygon points="${points}" fill="none" stroke="rgba(0,0,0,0.06)" stroke-width="1"/>`;
+  }
+
+  // Axes
+  for (let i = 0; i < n; i++) {
+    const [x, y] = polarToXY(startAngle + i * angleStep, R);
+    svg += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="rgba(0,0,0,0.08)" stroke-width="1"/>`;
+  }
+
+  // Data polygon
+  let dataPoints = '';
+  for (let i = 0; i < n; i++) {
+    const [x, y] = polarToXY(startAngle + i * angleStep, R * values[i]);
+    dataPoints += `${x},${y} `;
+  }
+  svg += `<polygon points="${dataPoints}" fill="rgba(184,134,11,0.12)" stroke="var(--accent)" stroke-width="2"/>`;
+
+  // Data dots + labels
+  for (let i = 0; i < n; i++) {
+    const [dx, dy] = polarToXY(startAngle + i * angleStep, R * values[i]);
+    svg += `<circle cx="${dx}" cy="${dy}" r="4" fill="var(--accent)"/>`;
+
+    const [lx, ly] = polarToXY(startAngle + i * angleStep, R + 24);
+    const anchor = lx < cx - 10 ? 'end' : lx > cx + 10 ? 'start' : 'middle';
+    svg += `<text x="${lx}" y="${ly + 4}" text-anchor="${anchor}" fill="var(--text-dim)" font-size="11" font-family="Figtree,sans-serif">${labels[i]}</text>`;
+    svg += `<text x="${lx}" y="${ly + 18}" text-anchor="${anchor}" fill="var(--accent)" font-size="12" font-weight="700" font-family="Source Serif 4,serif">${traitPct[traits[i]]}%</text>`;
+  }
+
+  svg += `</svg></div>`;
+  return svg;
+}
+
+// Keyboard nav
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('questionScreen').classList.contains('active')) return;
+  if (e.key >= '1' && e.key <= '5') {
+    const item = shuffledItems[currentQuestion];
+    selectAnswer(item.origIdx, parseInt(e.key));
+    document.querySelectorAll('.likert-option').forEach((btn, i) => {
+      btn.classList.toggle('selected', i === parseInt(e.key) - 1);
+    });
+  }
+  if (e.key === 'Enter' && !document.getElementById('btnNext').disabled) nextQuestion();
+  if (e.key === 'ArrowLeft') prevQuestion();
+});
+</script>
+
+</body>
+</html>
