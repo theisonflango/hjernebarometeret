@@ -13,6 +13,7 @@
 
   var _user = null;
   var _plan = 'free';
+  var _credits = 0;
   var _ready = false;
   var _callbacks = [];
 
@@ -147,8 +148,10 @@
     var { data } = await sb.from('user_profiles').select('plan, report_credits, display_name').eq('id', user.id).single();
     if (data) {
       _plan = data.plan || 'free';
+      _credits = data.report_credits || 0;
     } else {
       _plan = 'free';
+      _credits = 0;
     }
   }
 
@@ -246,6 +249,7 @@
   window.HB_AUTH = {
     get user() { return _user; },
     get plan() { return _plan; },
+    get credits() { return _credits; },
     isAdmin: function() { return _plan === 'admin' || _plan === 'unlimited'; },
     hasPlan: function() { return _plan !== 'free'; },
     isReady: function() { return _ready; },

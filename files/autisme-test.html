@@ -44,6 +44,7 @@ button{font-family:inherit;cursor:pointer}
 <script src="shared/nav.js"></script>
 <script src="shared/footer.js"></script>
 <script src="shared/auth.js"></script>
+<script src="shared/payment.js"></script>
 <script type="text/babel">
 const {useState, useEffect, useRef} = React;
 
@@ -286,6 +287,23 @@ function AutismeTest() {
 
           <div className="aq-result-disclaimer" style={{ background: "#fef9e7", border: "1px solid #f0d78c", borderTop: "none", padding: "24px 40px", borderRadius: "0 0 14px 14px" }}>
             <p style={{ fontSize: 13, lineHeight: 1.7, color: "#7d6608", margin: 0 }}><strong>Ansvarsfraskrivelse:</strong> Screeningsredskab — ikke klinisk diagnose. Individuel variation er betydelig. I Danmark kan din læge henvise til specialiseret autismeudredning.</p>
+          </div>
+
+          {/* Paywall */}
+          <div style={{ marginTop: 24, padding: "28px 24px", borderRadius: 16, background: "linear-gradient(135deg,#fff 0%,#eaf5ef 100%)", border: "1.5px solid rgba(58,125,94,0.25)", textAlign: "center" }}>
+            <h3 style={{ fontFamily: "var(--serif)", fontSize: 19, fontWeight: 600, marginBottom: 6 }}>Få din fulde autisme-rapport</h3>
+            <p style={{ color: "var(--text-2)", fontSize: 13, marginBottom: 16, lineHeight: 1.6 }}>PDF med dybdegående analyse, percentil-rangering, personlige coping-strategier, sensorisk profil og samtaleguide til din læge.</p>
+            <div style={{ fontSize: 28, fontWeight: 700, color: "var(--autism)", marginBottom: 4 }}>49 kr <span style={{ fontSize: 13, fontWeight: 400, color: "var(--text-3)" }}>engangskøb</span></div>
+            <table style={{ width: "100%", maxWidth: 360, margin: "16px auto", fontSize: 12, borderCollapse: "collapse", textAlign: "left" }}>
+              <thead><tr style={{ borderBottom: "1px solid var(--border-2)" }}><th style={{ padding: "6px 8px", color: "var(--text-3)", fontWeight: 500 }}>Indhold</th><th style={{ padding: "6px 8px", textAlign: "center", color: "var(--text-3)", fontWeight: 500 }}>Gratis</th><th style={{ padding: "6px 8px", textAlign: "center", color: "var(--autism)", fontWeight: 600 }}>Rapport</th></tr></thead>
+              <tbody>
+                {[["AQ-50 totalscore","✓","✓"],["Domæneanalyse","✓","✓"],["Styrker & udfordringer","✓","✓"],["Percentil-rangering","—","✓"],["Sensorisk profilanalyse","—","✓"],["Personlige coping-strategier","—","✓"],["Masking-analyse","—","✓"],["Samtaleguide til lægen","—","✓"],["PDF-rapport","—","✓"]].map(([label,free,paid],i) => <tr key={i} style={{ borderBottom: "1px solid var(--border)" }}><td style={{ padding: "6px 8px", color: "var(--text-2)" }}>{label}</td><td style={{ padding: "6px 8px", textAlign: "center", color: free === "✓" ? "#2c5f4b" : "var(--text-4)" }}>{free}</td><td style={{ padding: "6px 8px", textAlign: "center", color: paid === "✓" ? "var(--autism)" : "var(--text-4)" }}>{paid}</td></tr>)}
+              </tbody>
+            </table>
+            <button onClick={() => { if (window.HB_PAY) HB_PAY.checkout('single', 'autisme'); }} style={{ background: "var(--bg-dark)", color: "#fff", border: "none", padding: "13px 28px", borderRadius: 10, fontSize: 14, fontWeight: 600, width: "100%", maxWidth: 340, cursor: "pointer", marginBottom: 8, fontFamily: "var(--sans)" }}>Køb rapport — 49 kr</button>
+            <br/>
+            <button onClick={() => { if (window.HB_PAY) HB_PAY.checkout('unlimited', 'autisme'); }} style={{ background: "transparent", color: "var(--autism)", border: "1.5px solid var(--autism)", padding: "11px 24px", borderRadius: 10, fontSize: 13, fontWeight: 500, cursor: "pointer", marginTop: 4, fontFamily: "var(--sans)" }}>Eller: Ubegrænset — 89 kr/md</button>
+            <div style={{ display: "flex", justifyContent: "center", gap: 14, marginTop: 12, fontSize: 11, color: "var(--text-4)" }}><span>🔒 Sikker betaling</span><span>⚡ Øjeblikkelig adgang</span></div>
           </div>
 
           <div style={{ textAlign: "center", marginTop: 32 }}>

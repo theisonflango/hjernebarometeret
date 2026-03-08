@@ -638,6 +638,7 @@ body {
 <script src="shared/nav.js"></script>
 <script src="shared/footer.js"></script>
 <script src="shared/auth.js"></script>
+<script src="shared/payment.js"></script>
 
 <script>
 // ═══════════════════════════════════════════
@@ -1079,6 +1080,8 @@ function showResults() {
   showScreen('calcScreen');
   setTimeout(() => {
     const { traitPct, facetPct } = computeScores();
+    // Save results for payment flow
+    if (window.HB_PAY) HB_PAY.saveResults('personlighed', { traitPct, facetPct });
     buildResultsPage(traitPct, facetPct);
     showScreen('resultsScreen');
     // Animate bars after render
@@ -1177,8 +1180,12 @@ function buildResultsPage(traitPct, facetPct) {
         <li>${lang === 'da' ? 'Også tilgængelig i 4-pakke (99 kr) eller abonnement (89 kr/md)' : 'Also available in 4-pack (99 kr) or subscription (89 kr/mo)'}</li>
       </ul>
 
-      <button class="btn-buy" onclick="alert('${lang === 'da' ? 'Stripe-integration kommer snart!' : 'Stripe integration coming soon!'}')">
+      <button class="btn-buy" onclick="HB_PAY.checkout('single','personlighed')">
         ${lang === 'da' ? 'Køb rapport — 49 kr' : 'Buy report — 49 kr'} →
+      </button>
+      <br>
+      <button class="btn-buy" style="background:transparent;color:var(--accent);border:1.5px solid var(--accent);margin-top:8px" onclick="HB_PAY.checkout('unlimited','personlighed')">
+        ${lang === 'da' ? 'Eller: Ubegrænset — 89 kr/md' : 'Or: Unlimited — 89 kr/mo'}
       </button>
     </div>
   `;

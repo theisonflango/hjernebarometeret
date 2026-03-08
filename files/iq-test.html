@@ -32,12 +32,13 @@ button{font-family:inherit;cursor:pointer}a{font-family:inherit;text-decoration:
 <script src="shared/nav.js"></script>
 <script src="shared/footer.js"></script>
 <script src="shared/auth.js"></script>
+<script src="shared/payment.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
 <script type="text/babel">
 const{useState,useEffect,useRef,useMemo}=React;
-const STRIPE_LINK="https://buy.stripe.com/YOUR_LINK_HERE";
+/* Stripe handled by shared/payment.js */
 
 /* ═══ COLORS ═══ */
 const C={
@@ -165,8 +166,19 @@ const ANum=({target})=>{const[c,setC]=useState(0);useEffect(()=>{let s=0;const s
 
 /* ═══ MAIN APP ═══ */
 function App(){
-  const[lang,setLang]=useState("da");const[page,setPage]=useState("home");const[cQ,setCQ]=useState(0);const[ans,setAns]=useState({});const[sTime,setSTime]=useState(null);const[elapsed,setElapsed]=useState(0);const[res,setRes]=useState(null);const[showI,setShowI]=useState(true);const[anim,setAnim]=useState(false);const tRef=useRef(null);
+  const[lang,setLang]=useState("da");const[page,setPage]=useState("home");const[cQ,setCQ]=useState(0);const[ans,setAns]=useState({});const[sTime,setSTime]=useState(null);const[elapsed,setElapsed]=useState(0);const[res,setRes]=useState(null);const[showI,setShowI]=useState(true);const[anim,setAnim]=useState(false);const[payLoading,setPayLoading]=useState(false);const tRef=useRef(null);
   const t=T[lang];const qs=useMemo(()=>makeQ(lang),[lang]);
+  // Handle return from Stripe payment
+  useEffect(()=>{
+    var ret=window.HB_PAY&&HB_PAY.handleReturn();
+    if(ret&&ret.success){
+      var saved=HB_PAY.loadResults('iq');
+      if(saved){setRes(saved);setPayLoading(true);go("paid");
+        // Wait for webhook to process
+        HB_PAY.waitForAccess('iq',8).then(()=>setPayLoading(false));
+      }
+    }
+  },[]);
   useEffect(()=>{if(page==="test"&&!showI&&sTime){tRef.current=setInterval(()=>setElapsed(Math.floor((Date.now()-sTime)/1000)),1000);}return()=>clearInterval(tRef.current);},[page,showI,sTime]);
   const fmt=s=>`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
   const go=p=>{setPage(p);window.scrollTo(0,0);};
@@ -174,7 +186,11 @@ function App(){
   const begin=()=>{setShowI(false);setSTime(Date.now());setElapsed(0);};
   const pick=i=>setAns({...ans,[cQ]:i});
   const done=()=>{clearInterval(tRef.current);setRes(calcIQ(ans,qs,Math.floor((Date.now()-sTime)/1000)));setAnim(true);go("results");setTimeout(()=>setAnim(false),2800);};
-  const stripe=()=>{window.open(STRIPE_LINK,"_blank");go("paid");};
+  const buyReport=(productType)=>{
+    if(window.HB_AUTH&&HB_AUTH.isAdmin()){go("paid");return;}
+    HB_PAY.saveResults('iq',res);
+    HB_PAY.checkout(productType||'single','iq');
+  };
   const clsCol={"very-superior":C.green,superior:C.blue,"high-average":C.accent,average:C.yellow,"low-average":"#d97706",borderline:C.red,"extremely-low":"#991b1b"};
 
   /* HOME */
@@ -251,7 +267,7 @@ function App(){
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,maxWidth:360,margin:"0 auto 24px",textAlign:"left"}}>
           {t.unlockFeats.map((f,i)=><div key={i} style={{fontSize:12,color:C.text2,display:"flex",alignItems:"center",gap:6}}><span style={{color:C.green,flexShrink:0}}>✓</span>{f}</div>)}
         </div>
-        <button className="btn-p" style={{width:"100%",maxWidth:380,padding:15,fontSize:15}} onClick={stripe}>{t.unlockBtn}</button>
+        <button className="btn-p" style={{width:"100%",maxWidth:380,padding:15,fontSize:15}} onClick={()=>buyReport('single')}>{t.unlockBtn}</button>
         <div style={{display:"flex",justifyContent:"center",gap:14,marginTop:12,fontSize:11,color:C.text4}}><span>🔒 Sikker betaling</span><span>⚡ Øjeblikkelig adgang</span></div>
       </div>
       <div style={{display:"flex",gap:10,justifyContent:"center"}}><button className="btn-s" onClick={goTest}>{t.retake}</button><button className="btn-s" onClick={()=>go("home")}>← {t.home}</button></div>

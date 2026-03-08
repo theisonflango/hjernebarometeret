@@ -781,6 +781,7 @@ body {
 <script src="shared/nav.js"></script>
 <script src="shared/footer.js"></script>
 <script src="shared/auth.js"></script>
+<script src="shared/payment.js"></script>
 
 <script>
 // ═══════════════════════════════════════════
@@ -1048,6 +1049,9 @@ function calculateAndShowResults() {
     profileDesc = t('Du oplever moderat belastning på tværs af flere dimensioner. Forebyggende tiltag kan hjælpe med at forhindre yderligere eskalering.','You experience moderate strain across multiple dimensions. Preventive measures can help prevent further escalation.');
   }
 
+  // Save results for payment flow
+  if (window.HB_PAY) HB_PAY.saveResults('stress', { pssTotal, pssPct, helpPct, effPct, exhPct, cynPct, accPct, level, burnoutProfile });
+
   // Subscale data
   var subscales = [
     { key:'pss', name:t('Samlet stress (PSS-10)','Overall Stress (PSS-10)'), score:pssTotal, max:40, pct:pssPct, color:'var(--dim-stress)',
@@ -1159,8 +1163,8 @@ function calculateAndShowResults() {
       '<tr><td>' + t('PDF til din læge','PDF for your doctor') + '</td><td class="cross">—</td><td class="check">✓</td></tr>' +
       '<tr><td>' + t('Samtaleguide til lægen','Doctor conversation guide') + '</td><td class="cross">—</td><td class="check">✓</td></tr>' +
     '</tbody></table>' +
-    '<button class="btn-buy">' + t('Køb rapport — 49 kr','Buy report — 49 kr') + '</button>' +
-    '<br><button class="btn-sub-alt">' + t('Eller: Ubegrænset adgang — 89 kr/md','Or: Unlimited access — 89 kr/mo') + '</button>' +
+    '<button class="btn-buy" onclick="HB_PAY.checkout(\'single\',\'stress\')">' + t('Køb rapport — 49 kr','Buy report — 49 kr') + '</button>' +
+    '<br><button class="btn-sub-alt" onclick="HB_PAY.checkout(\'unlimited\',\'stress\')">' + t('Eller: Ubegrænset adgang — 89 kr/md','Or: Unlimited access — 89 kr/mo') + '</button>' +
   '</div>';
 
   // Cross-sell

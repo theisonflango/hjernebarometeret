@@ -83,8 +83,8 @@ footer{padding:36px clamp(20px,4vw,48px);border-top:1px solid var(--border);max-
 <h2>Vælg din plan</h2>
 <div class="pricing-grid">
 <div class="pc"><div class="pc-label">Enkelt rapport</div><div class="pc-price">49 kr</div><p class="pc-desc">Én personlig rapport. Engangskøb — ingen login krævet. Rapport vises med det samme.</p><a href="index.html#tests" class="pc-btn pc-btn-o">Tag en test først</a></div>
-<div class="pc ft"><div class="pc-label">4-pakke</div><div class="pc-price">99 kr <span>— spar 50%</span></div><p class="pc-desc">4 rapport-credits til valgfrie tests. Kræver gratis konto. Credits udløber ikke.</p><span class="pc-tag">Bedste værdi</span><a href="index.html#tests" class="pc-btn pc-btn-s">Kom i gang</a></div>
-<div class="pc"><div class="pc-label">Ubegrænset</div><div class="pc-price">89 kr<span>/md</span></div><p class="pc-desc">Alle rapporter inkl. fremtidige tests. Afmeld når som helst med ét klik.</p><a href="index.html#tests" class="pc-btn pc-btn-o">Kom i gang</a></div>
+<div class="pc ft"><div class="pc-label">4-pakke</div><div class="pc-price">99 kr <span>— spar 50%</span></div><p class="pc-desc">4 rapport-credits til valgfrie tests. Kræver gratis konto. Credits udløber ikke.</p><span class="pc-tag">Bedste værdi</span><button onclick="if(window.HB_PAY)HB_PAY.checkout('pack4',null)" class="pc-btn pc-btn-s" style="border:none;width:100%">Køb 4-pakke</button></div>
+<div class="pc"><div class="pc-label">Ubegrænset</div><div class="pc-price">89 kr<span>/md</span></div><p class="pc-desc">Alle rapporter inkl. fremtidige tests. Afmeld når som helst med ét klik.</p><button onclick="if(window.HB_PAY)HB_PAY.checkout('unlimited',null)" class="pc-btn pc-btn-o" style="border:1.5px solid var(--border-2);width:100%">Start abonnement</button></div>
 </div>
 </div>
 
@@ -93,6 +93,7 @@ footer{padding:36px clamp(20px,4vw,48px);border-top:1px solid var(--border);max-
 <script src="shared/nav.js"></script>
 <script src="shared/footer.js"></script>
 <script src="shared/auth.js"></script>
+<script src="shared/payment.js"></script>
 <script>const o=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('v')})},{threshold:.08});document.querySelectorAll('.rv').forEach(e=>o.observe(e));</script>
 </body>
 </html>
