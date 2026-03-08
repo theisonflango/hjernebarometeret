@@ -13,6 +13,11 @@
     stress: 'stress-udbraendthed-test.html'
   };
 
+  // Report pages (redirected to after successful payment)
+  var REPORT_MAP = {
+    personlighed: 'personlighed-rapport.html'
+  };
+
   // ── Check report access ──
   async function hasAccess(testType) {
     // Admin always has access
@@ -120,7 +125,7 @@
         case 'personlighed':
           if (d.traitPct) {
             var t = d.traitPct;
-            return 'O:' + (t.openness||0).toFixed(0) + ' C:' + (t.conscientiousness||0).toFixed(0) + ' E:' + (t.extraversion||0).toFixed(0) + ' A:' + (t.agreeableness||0).toFixed(0) + ' N:' + (t.neuroticism||0).toFixed(0);
+            return 'O:' + (t.O||0) + ' C:' + (t.C||0) + ' E:' + (t.E||0) + ' A:' + (t.A||0) + ' N:' + (t.N||0);
           }
           return 'Big Five completed';
         case 'stress':
@@ -186,7 +191,7 @@
     var body = {
       product_type: productType,
       test_type: testType || null,
-      success_url: window.location.origin + '/' + (testType ? FILE_MAP[testType] : 'rapporter.html'),
+      success_url: window.location.origin + '/' + (testType ? (REPORT_MAP[testType] || FILE_MAP[testType]) : 'rapporter.html'),
       cancel_url: window.location.href
     };
 

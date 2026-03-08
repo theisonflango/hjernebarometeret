@@ -1076,13 +1076,19 @@ function computeScores() {
 // ═══════════════════════════════════════════
 //  RESULTS
 // ═══════════════════════════════════════════
-function showResults() {
+async function showResults() {
   showScreen('calcScreen');
+  const { traitPct, facetPct } = computeScores();
+  // Save results for payment flow
+  if (window.HB_PAY) HB_PAY.saveResults('personlighed', { traitPct, facetPct });
+
+  // Check access while "calculating" animation plays
+  var userHasAccess = false;
+  if (window.HB_AUTH && HB_AUTH.isAdmin()) userHasAccess = true;
+  else if (window.HB_PAY) userHasAccess = await HB_PAY.hasAccess('personlighed');
+
   setTimeout(() => {
-    const { traitPct, facetPct } = computeScores();
-    // Save results for payment flow
-    if (window.HB_PAY) HB_PAY.saveResults('personlighed', { traitPct, facetPct });
-    buildResultsPage(traitPct, facetPct);
+    buildResultsPage(traitPct, facetPct, userHasAccess);
     showScreen('resultsScreen');
     // Animate bars after render
     setTimeout(() => {
@@ -1107,7 +1113,7 @@ function getProfileLabel(traitPct) {
   return types[types.length - 1].label;
 }
 
-function buildResultsPage(traitPct, facetPct) {
+function buildResultsPage(traitPct, facetPct, hasAccess) {
   const profileLabel = getProfileLabel(traitPct);
   const c = document.getElementById('resultsContainer');
 
@@ -1146,10 +1152,21 @@ function buildResultsPage(traitPct, facetPct) {
     `;
   });
 
-  // Paywall
-  const freeLabel = lang === 'da' ? 'Gratis' : 'Free';
-  const paidLabel = lang === 'da' ? 'Rapport' : 'Report';
-  html += `
+  // Paywall or "Se rapport" link
+  if (hasAccess) {
+    html += `
+    <div class="paywall-card fade-up" style="background:linear-gradient(135deg,#f8f6f0,#fff);border-color:var(--accent)">
+      <h3 style="color:var(--accent)">${lang === 'da' ? '✦ Du har adgang til din fulde rapport' : '✦ You have access to your full report'}</h3>
+      <p>${lang === 'da' ? '30 facetter, styrker, karrierematch, handlingsplan og PDF-download klar til dig.' : '30 facets, strengths, career match, action plan and PDF download ready for you.'}</p>
+      <button class="btn-buy" onclick="window.location.href='personlighed-rapport.html'" style="margin-top:12px">
+        ${lang === 'da' ? 'Se din fulde rapport' : 'View your full report'} →
+      </button>
+    </div>
+    `;
+  } else {
+    const freeLabel = lang === 'da' ? 'Gratis' : 'Free';
+    const paidLabel = lang === 'da' ? 'Rapport' : 'Report';
+    html += `
     <div class="paywall-card fade-up">
       <div class="price-tag">49 kr <small>${lang === 'da' ? 'engangskøb' : 'one-time'}</small></div>
       <h3 data-da="Få din fulde rapport" data-en="Get your full report">${lang === 'da' ? 'Få din fulde rapport' : 'Get your full report'}</h3>
@@ -1188,7 +1205,8 @@ function buildResultsPage(traitPct, facetPct) {
         ${lang === 'da' ? 'Eller: Ubegrænset — 89 kr/md' : 'Or: Unlimited — 89 kr/mo'}
       </button>
     </div>
-  `;
+    `;
+  }
 
   // Save prompt
   html += `

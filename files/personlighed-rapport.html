@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Din Personlighedsrapport — Hjernebarometeret</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,500&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+:root {
+  --bg:#faf9f7; --bg-card:#fff; --bg-warm:#f5f2ee; --bg-dark:#1c1b1a;
+  --text:#1c1b1a; --text-2:#5a5650; --text-3:#8a857e; --text-4:#b5b0a8;
+  --border:#e8e5e0; --border-2:#d5d0c9;
+  --accent:#b8860b; --accent-light:rgba(184,134,11,0.08);
+  --trait-O:#7b68ee; --trait-C:#3cb7a0; --trait-E:#e8873c; --trait-A:#e85d7a; --trait-N:#6a9fdf;
+  --serif:'Source Serif 4',Georgia,serif; --sans:'Figtree',system-ui,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased;padding-top:64px}
+
+/* ── Report layout ── */
+.report{max-width:760px;margin:0 auto;padding:20px}
+.report section{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:32px;margin-bottom:20px}
+.report h2{font-family:var(--serif);font-size:22px;font-weight:600;letter-spacing:-.03em;margin-bottom:16px}
+.report h3{font-family:var(--serif);font-size:17px;font-weight:600;margin-bottom:10px}
+
+/* ── Cover ── */
+.cover{background:var(--bg-dark)!important;color:#faf9f7!important;border:none!important;text-align:center;padding:48px 32px!important;border-radius:16px!important}
+.cover .logo{font-family:var(--serif);font-size:14px;letter-spacing:2px;text-transform:uppercase;opacity:.5;margin-bottom:24px}
+.cover h1{font-family:var(--serif);font-size:clamp(28px,5vw,38px);font-weight:600;letter-spacing:-.03em;margin-bottom:8px}
+.cover .profile-label{font-size:20px;color:var(--accent);font-weight:600;margin:16px 0 8px}
+.cover .date{font-size:13px;opacity:.4;margin-top:16px}
+.cover .disclaimer{font-size:11px;opacity:.35;margin-top:16px;line-height:1.5}
+
+/* ── Summary cards ── */
+.summary-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:16px 0}
+@media(max-width:600px){.summary-grid{grid-template-columns:1fr}}
+.summary-card{padding:16px;border-radius:12px;background:var(--bg-warm);text-align:center}
+.summary-card .num{font-family:var(--serif);font-size:28px;font-weight:700}
+.summary-card .lbl{font-size:12px;color:var(--text-3);margin-top:4px}
+
+/* ── Trait section ── */
+.trait-block{margin-bottom:28px;padding-bottom:28px;border-bottom:1px solid var(--border)}
+.trait-block:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.trait-header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.trait-emoji{font-size:24px}
+.trait-name{font-family:var(--serif);font-size:18px;font-weight:600}
+.trait-score{margin-left:auto;font-family:var(--serif);font-size:22px;font-weight:700}
+.trait-bar{height:8px;border-radius:4px;background:var(--border);margin-bottom:12px;overflow:hidden}
+.trait-bar-fill{height:100%;border-radius:4px;transition:width 1s ease}
+.trait-desc{font-size:14px;color:var(--text-2);line-height:1.7}
+
+/* ── Facet grid ── */
+.facet-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:600px){.facet-grid{grid-template-columns:1fr}}
+.facet-item{padding:12px 14px;border-radius:10px;background:var(--bg-warm);display:flex;justify-content:space-between;align-items:center}
+.facet-name{font-size:13px;font-weight:500}
+.facet-score{font-weight:700;font-size:14px}
+.facet-bar-mini{width:60px;height:4px;border-radius:2px;background:var(--border);margin-left:8px;display:inline-block;vertical-align:middle}
+.facet-bar-mini-fill{height:100%;border-radius:2px}
+
+/* ── Radar ── */
+.radar-container{text-align:center;margin:16px 0}
+.radar-container svg{max-width:380px;width:100%}
+
+/* ── Strengths/challenges ── */
+.sc-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:600px){.sc-grid{grid-template-columns:1fr}}
+.sc-card{padding:20px;border-radius:12px}
+.sc-card.strengths{background:rgba(92,184,92,0.06);border:1px solid rgba(92,184,92,0.2)}
+.sc-card.challenges{background:rgba(217,83,79,0.06);border:1px solid rgba(217,83,79,0.2)}
+.sc-card h3{margin-bottom:12px}
+.sc-item{padding:8px 0;border-bottom:1px solid rgba(0,0,0,.05);font-size:14px;line-height:1.6}
+.sc-item:last-child{border-bottom:none}
+.sc-item strong{display:block;font-size:14px;margin-bottom:2px}
+
+/* ── Action plan ── */
+.action-grid{display:grid;gap:16px}
+.action-card{padding:20px;border-radius:12px;background:var(--bg-warm)}
+.action-card h4{font-family:var(--serif);font-size:15px;font-weight:600;margin-bottom:8px}
+.action-card ul{padding-left:18px;font-size:14px;color:var(--text-2)}
+.action-card li{margin-bottom:6px}
+
+/* ── Career ── */
+.career-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.career-tag{padding:8px 16px;border-radius:20px;background:var(--accent-light);border:1px solid rgba(184,134,11,0.2);font-size:13px;font-weight:500;color:var(--accent)}
+
+/* ── Compatibility ── */
+.compat-item{padding:12px 0;border-bottom:1px solid var(--border);font-size:14px;line-height:1.6}
+.compat-item:last-child{border-bottom:none}
+
+/* ── PDF button ── */
+.pdf-btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:12px;background:var(--bg-dark);color:#fff;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:var(--sans)}
+.pdf-btn:hover{opacity:.9}
+
+/* ── No access ── */
+.no-access{text-align:center;padding:80px 20px;max-width:500px;margin:0 auto}
+.no-access h1{font-family:var(--serif);font-size:28px;margin-bottom:12px}
+.no-access p{color:var(--text-2);margin-bottom:24px}
+.no-access .buy-btn{padding:14px 28px;border-radius:12px;background:var(--bg-dark);color:#fff;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:var(--sans)}
+
+/* ── Loading ── */
+.loading{text-align:center;padding:100px 20px}
+.loading .spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Print/PDF styles */
+@media print{
+  body{padding-top:0}
+  .sn-wrap,.sf-wrap,.pdf-actions,.no-print{display:none!important}
+  .report section{break-inside:avoid;border:none;box-shadow:none}
+  .cover{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+
+<div id="site-nav" data-active="rapporter"></div>
+
+<!-- Loading state -->
+<div id="loading" class="loading">
+  <div class="spinner"></div>
+  <p style="color:var(--text-3)">Indlæser din rapport...</p>
+</div>
+
+<!-- No access state -->
+<div id="no-access" class="no-access" style="display:none">
+  <h1>🔒 Rapport låst</h1>
+  <p>Du har ikke adgang til denne rapport endnu. Køb adgang for at se din fulde personlighedsanalyse med 30 facetter, styrker, karrierematch og handlingsplan.</p>
+  <button class="buy-btn" onclick="if(window.HB_PAY)HB_PAY.checkout('single','personlighed')">Køb rapport — 49 kr</button>
+  <p style="margin-top:12px"><button onclick="if(window.HB_PAY)HB_PAY.checkout('unlimited','personlighed')" style="background:none;border:1.5px solid var(--accent);color:var(--accent);padding:10px 20px;border-radius:10px;font-size:13px;cursor:pointer;font-family:var(--sans)">Eller: Ubegrænset — 89 kr/md</button></p>
+  <p style="margin-top:24px;font-size:13px;color:var(--text-4)"><a href="personlighedstest.html" style="color:var(--text-3)">← Tilbage til testen</a></p>
+</div>
+
+<!-- Report content (hidden until access verified) -->
+<div id="report" class="report" style="display:none">
+
+  <!-- PDF download bar -->
+  <div class="pdf-actions no-print" style="text-align:right;margin-bottom:12px">
+    <button class="pdf-btn" onclick="downloadPDF()">📄 Download PDF</button>
+  </div>
+
+  <div id="report-content">
+
+  <!-- 1. FORSIDE -->
+  <section class="cover">
+    <div class="logo">☉ Hjernebarometeret</div>
+    <h1>Din Personlighedsrapport</h1>
+    <p style="opacity:.6;font-size:14px">Big Five / OCEAN — 60 spørgsmål, 30 facetter</p>
+    <div class="profile-label" id="cover-profile"></div>
+    <div class="date" id="cover-date"></div>
+    <div class="disclaimer">Denne rapport er ikke en klinisk diagnose. Den er baseret på IPIP Big Five og giver indsigt i dine personlighedstræk til personlig udvikling.</div>
+  </section>
+
+  <!-- 2. OPSUMMERING -->
+  <section>
+    <h2>📋 Opsummering</h2>
+    <p id="summary-text" style="font-size:15px;line-height:1.7;color:var(--text-2);margin-bottom:16px"></p>
+    <div class="summary-grid" id="summary-grid"></div>
+    <div id="top-findings" style="margin-top:16px"></div>
+  </section>
+
+  <!-- 3. RADAR DIAGRAM -->
+  <section>
+    <h2>🕸️ Visuel profil</h2>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:8px">Dit personlighedsaftryk sammenlignet med gennemsnittet (50%). Jo længere fra midten, jo stærkere er trækket.</p>
+    <div class="radar-container" id="radar"></div>
+  </section>
+
+  <!-- 4. DETALJERET TRAIT-ANALYSE -->
+  <section>
+    <h2>📊 Detaljeret trait-analyse</h2>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:20px">Dine fem grundlæggende personlighedstræk med percentil-rangering og dybdebeskrivelse.</p>
+    <div id="traits-detail"></div>
+  </section>
+
+  <!-- 5. FACET-ANALYSE (30 facetter) -->
+  <section>
+    <h2>🔬 30-facet dybdeanalyse</h2>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:20px">Hver af de fem traits består af 6 underfacetter. Her er din detaljerede profil.</p>
+    <div id="facets-detail"></div>
+  </section>
+
+  <!-- 6. STYRKER & UDFORDRINGER -->
+  <section>
+    <h2>💎 Styrker & udfordringer</h2>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:16px">Personaliseret baseret på din unikke score-kombination.</p>
+    <div class="sc-grid" id="strengths-challenges"></div>
+  </section>
+
+  <!-- 7. TRAIT-INTERAKTIONER -->
+  <section>
+    <h2>🔗 Trait-interaktioner</h2>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:16px">Dine traits interagerer og skaber unikke mønstre. Her er de vigtigste kombinationer i din profil.</p>
+    <div id="interactions"></div>
+  </section>
+
+  <!-- 8. KARRIEREMATCH -->
+  <section>
+    <h2>💼 Karrierematch</h2>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:16px">Erhverv og roller der typisk matcher din personlighedsprofil.</p>
+    <div id="career"></div>
+  </section>
+
+  <!-- 9. KOMPATIBILITET -->
+  <section>
+    <h2>❤️ Kompatibilitet</h2>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:16px">Hvilke personlighedstyper du typisk trives med — og hvor der kan opstå gnidninger.</p>
+    <div id="compatibility"></div>
+  </section>
+
+  <!-- 10. HANDLINGSPLAN -->
+  <section>
+    <h2>🎯 Personlig udviklingsplan</h2>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:16px">Konkrete skridt til personlig udvikling baseret på din profil.</p>
+    <div class="action-grid" id="action-plan"></div>
+  </section>
+
+  <!-- 11. RESSOURCER -->
+  <section>
+    <h2>📚 Anbefalede ressourcer</h2>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:16px">Bøger, apps og værktøjer tilpasset din profil.</p>
+    <div id="resources"></div>
+  </section>
+
+  <!-- 12. DISCLAIMER -->
+  <section style="background:var(--bg-warm)">
+    <p style="font-size:12px;color:var(--text-3);line-height:1.7">
+      <strong>Om denne rapport:</strong> Denne rapport er genereret af Hjernebarometeret.dk baseret på IPIP Big Five (International Personality Item Pool). Resultater er normaliseret som percentiler (0-100%) baseret på en lineær skala. Rapporten er til personlig indsigt og udvikling — den er ikke en klinisk vurdering og bør ikke bruges som grundlag for professionelle beslutninger. Personlighed er fleksibel og kan ændre sig over tid.
+    </p>
+    <p style="font-size:11px;color:var(--text-4);margin-top:12px">© Hjernebarometeret.dk · hjernebarometeret.dk</p>
+  </section>
+
+  </div><!-- /report-content -->
+</div><!-- /report -->
+
+<div id="site-footer"></div>
+
+<script src="shared/nav.js"></script>
+<script src="shared/footer.js"></script>
+<script src="shared/auth.js"></script>
+<script src="shared/payment.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════
+   PERSONLIGHEDSRAPPORT — Hjernebarometeret
+   ═══════════════════════════════════════════════════ */
+
+// ── Trait data ──
+const T = {
+  O: { name:'Åbenhed', en:'Openness', emoji:'🌀', color:'#7b68ee',
+    facets:{ O1:'Fantasi', O2:'Æstetik', O3:'Følelser', O4:'Handlinger', O5:'Idéer', O6:'Værdier' },
+    high:'Du er kreativ, nysgerrig og åben over for nye idéer og oplevelser. Du sætter pris på kunst, æstetik og intellektuel udforskning. Du trives når du kan udforske nye koncepter og har ofte en rig indre verden af fantasi og idéer.',
+    mid:'Du har en balance mellem nysgerrighed og pragmatisme. Du er åben for nye idéer men værdsætter også det velkendte og gennemprøvede. Du kan skifte mellem kreativ udforskning og praktisk problemløsning.',
+    low:'Du er jordnær, praktisk og foretrækker det velkendte. Du fokuserer på konkrete løsninger frem for abstrakte idéer. Du værdsætter traditioner og foretrækker beviste metoder.'
+  },
+  C: { name:'Samvittighedsfuldhed', en:'Conscientiousness', emoji:'🎯', color:'#3cb7a0',
+    facets:{ C1:'Kompetence', C2:'Orden', C3:'Pligtopfyldenhed', C4:'Præstationsstreben', C5:'Selvdisciplin', C6:'Besindighed' },
+    high:'Du er organiseret, disciplineret og målrettet. Du planlægger grundigt, holder dine forpligtelser og stræber efter excellence. Andre kan regne med dig, og du sætter en ære i at levere kvalitet.',
+    mid:'Du kan være struktureret når det kræves, men nyder også spontanitet. Du finder en balance mellem pligt og frihed, og tilpasser dit strukturniveau til situationen.',
+    low:'Du er spontan, fleksibel og foretrækker at gå med strømmen. Stramme planer og regler kan føles begrænsende for dig. Du trives bedst med frihed og improvisation.'
+  },
+  E: { name:'Ekstraversion', en:'Extraversion', emoji:'⚡', color:'#e8873c',
+    facets:{ E1:'Varme', E2:'Selskabelighed', E3:'Dominans', E4:'Aktivitet', E5:'Spændingssøgen', E6:'Positive følelser' },
+    high:'Du er energisk, udadvendt og trives i andres selskab. Du tager naturligt styringen og søger aktive, stimulerende omgivelser. Social interaktion giver dig energi.',
+    mid:'Du kan nyde sociale situationer men har også brug for tid alene. Du tilpasser dit energiniveau efter konteksten og kan skifte mellem sociale og stille aktiviteter.',
+    low:'Du er reserveret, eftertænksom og trives bedst i rolige omgivelser. Du foretrækker dybde i få relationer frem for mange bekendtskaber. Alenetid giver dig energi.'
+  },
+  A: { name:'Venlighed', en:'Agreeableness', emoji:'💗', color:'#e85d7a',
+    facets:{ A1:'Tillid', A2:'Ligefremhed', A3:'Altruisme', A4:'Føjelighed', A5:'Beskedenhed', A6:'Blødhjertethed' },
+    high:'Du er tillidsfuld, empatisk og samarbejdsorienteret. Du sætter andres behov højt og stræber efter harmoni i dine relationer. Du er naturligt omsorgsfuld og diplomatisk.',
+    mid:'Du balancerer empati med selvhævdelse. Du er imødekommende men kan også stå fast når det er nødvendigt. Du navigerer diplomati og ærlighed efter situationen.',
+    low:'Du er direkte, selvstændig og fokuseret på dine egne mål. Du prioriterer ærlighed og resultater over at behage andre. Du er komfortabel med at udfordre og debattere.'
+  },
+  N: { name:'Neuroticisme', en:'Neuroticism', emoji:'🌊', color:'#6a9fdf',
+    facets:{ N1:'Angst', N2:'Fjendtlighed', N3:'Depression', N4:'Selvbevidsthed', N5:'Impulsivitet', N6:'Sårbarhed' },
+    high:'Du oplever følelser intenst og kan være sårbar over for stress. Du er meget opmærksom på potentielle trusler og risici. Din følsomhed giver dig også dybere empati og kunstnerisk sensibilitet.',
+    mid:'Du har en moderat følelsesmæssig reaktivitet. Du kan håndtere de fleste stressorer men mærker det i pressede perioder. Du har et sundt register af emotionelle reaktioner.',
+    low:'Du er følelsesmæssigt stabil, rolig og robust over for stress. Du bevarer overblikket og lader dig sjældent ryste. Andre ser dig som en klippe i krisetider.'
+  }
+};
+
+// ── Facet descriptions (kort forklaring af hvad facetten måler) ──
+const FACET_DESC = {
+  O1:'Evne til at skabe levende mentale billeder og forestillinger',
+  O2:'Følsomhed over for kunst, musik og visuel skønhed',
+  O3:'Bevidsthed om og intensitet i egne følelsesmæssige oplevelser',
+  O4:'Villighed til at prøve nye aktiviteter og bryde med rutiner',
+  O5:'Intellektuel nysgerrighed og lyst til at udforske abstrakte idéer',
+  O6:'Villighed til at udfordre traditioner og autoriteter',
+  C1:'Tro på egne evner og handlekraft',
+  C2:'Behov for system, struktur og renlighed',
+  C3:'Stærk forpligtelse over for regler og moralske principper',
+  C4:'Ambition og stræben efter høje præstationer',
+  C5:'Evne til at fastholde fokus og gennemføre opgaver',
+  C6:'Tendens til at tænke før handling og overveje konsekvenser',
+  E1:'Evne til at skabe varme, nære forbindelser med andre',
+  E2:'Præference for socialt selskab og gruppeaktiviteter',
+  E3:'Naturlig tendens til at tage lederskab og udtrykke meninger',
+  E4:'Generelt tempo og energiniveau i dagligdagen',
+  E5:'Søgen efter stimulation, risiko og nye oplevelser',
+  E6:'Tilbøjelighed til at opleve glæde, entusiasme og optimisme',
+  A1:'Grundlæggende tro på andres gode intentioner',
+  A2:'Tendens til at udtrykke sig ærligt og direkte',
+  A3:'Villighed til at hjælpe og tage hensyn til andre',
+  A4:'Tendens til at imødekomme andre og undgå konfrontation',
+  A5:'Ydmyghed og tendens til at nedtone egne præstationer',
+  A6:'Følelsesmæssig medfølelse og omsorg for andre',
+  N1:'Tendens til bekymring, nervøsitet og uro',
+  N2:'Tilbøjelighed til irritation, frustration og vrede',
+  N3:'Tendens til tristhed, modløshed og tomhed',
+  N4:'Følsomhed over for andres vurdering og sociale situationer',
+  N5:'Vanskelighed ved at modstå impulser og fristelser',
+  N6:'Følsomhed over for pres, stress og krav'
+};
+
+// ── Archetype profiles ──
+const PROFILES = [
+  { label:'Udforskeren', test:s=>s.O>=70&&s.E>=60,
+    desc:'Du er drevet af en brændende nysgerrighed og et energisk temperament. Du kombinerer intellektuel åbenhed med social energi, hvilket gør dig til en naturlig opdagelsesrejsende — både i idéernes og den fysiske verden. Du inspirerer andre med din entusiasme og evne til at se muligheder hvor andre ser begrænsninger.',
+    careers:['Iværksætter','Journalist','Rejseleder','Kreativ direktør','Forsker','Produktudvikler','Konsulent','Filmskaber'],
+    thrives:'Andre udforskere og visionære typer. Du har brug for en partner der deler din lyst til nye oplevelser.',
+    friction:'Meget strukturerede typer kan opleve dig som rastløs, mens du kan opleve dem som begrænsende.'
+  },
+  { label:'Arkitekten', test:s=>s.C>=70&&s.O>=50,
+    desc:'Du kombinerer disciplineret struktur med intellektuel nysgerrighed. Du er en strategisk tænker der bygger systemer og løsninger med omhu. Din styrke ligger i at omsætte komplekse idéer til gennemførlige planer. Du er den der får visionerne til at lande i virkeligheden.',
+    careers:['Software-arkitekt','Ingeniør','Projektleder','Analytiker','Økonom','Revisor','Urbanplanlægger','Underviser'],
+    thrives:'Typer der værdsætter kompetence og pålidelighed. Du trives med partnere der er organiserede men også kan overraske dig.',
+    friction:'Meget spontane, ustrukturerede typer kan frustrere dig, og du kan virke kontrollerende på dem.'
+  },
+  { label:'Diplomaten', test:s=>s.A>=70&&s.E>=50,
+    desc:'Du er en naturlig brobygger og harmoniskaber. Din kombination af empati og social energi gør dig til en person der bringer mennesker sammen. Du har en sjælden evne til at forstå forskellige perspektiver og finde fælles grund. Andre føler sig set og hørt i dit selskab.',
+    careers:['HR-konsulent','Terapeut','Socialrådgiver','Mediator','Lærer','Sygeplejerske','Kommunikationschef','NGO-leder'],
+    thrives:'De fleste typer — din tilpasningsevne er din styrke. Du trives særligt med åbne, kommunikative typer.',
+    friction:'Meget direkte, konfronterende typer kan overvælde dig, og du risikerer at tilsidesætte egne behov.'
+  },
+  { label:'Analytikeren', test:s=>s.O>=60&&s.C>=60&&s.E<50,
+    desc:'Du er en grundig tænker der kombinerer intellektuel dybde med systematisk tilgang. Du foretrækker kvalitet over kvantitet — i både arbejde og relationer. Din styrke er at analysere komplekse problemer i dybden og levere gennemtænkte løsninger.',
+    careers:['Forsker','Datascientist','Systemudvikler','Revisor','Filosof','Redaktør','Strateg','Laborant'],
+    thrives:'Andre intellektuelle typer der respekterer dybde og eftertænksomhed. Du foretrækker få, men dybe relationer.',
+    friction:'Meget sociale, overfladiske interaktioner dræner dig, og du kan virke fjern eller utilgængelig.'
+  },
+  { label:'Lederen', test:s=>s.E>=70&&s.C>=60,
+    desc:'Du er en naturlig leder med energi og struktur. Du kombinerer karisma med organisationsevne, hvilket gør dig effektiv til at motivere teams og drive projekter frem. Du sætter ambitiøse mål og har disciplinen til at nå dem.',
+    careers:['CEO','Salgschef','Politiker','Eventmanager','Militærofficer','Sportstrainer','Advokat','Entreprenør'],
+    thrives:'Typer der respekterer din drivkraft og kan holde trit. Du har brug for en partner der er stærk nok til at udfordre dig.',
+    friction:'Passive eller ubesluttsomme typer frustrerer dig. Du kan virke dominerende eller utålmodig.'
+  },
+  { label:'Omsorgspersonen', test:s=>s.A>=70&&s.N<=40,
+    desc:'Du kombinerer dyb empati med emotionel stabilitet — en sjælden og værdifuld kombination. Du er den der holder gruppen sammen, støtter andre uden selv at gå i stykker. Din robuste omsorgsevne gør dig til en klippe for familie og venner.',
+    careers:['Læge','Psykolog','Pædagog','Familieterapeut','Hospicemedarbejder','Skoleleder','Mentor','Coach'],
+    thrives:'Typer der værdsætter omsorg og stabilitet. Du trives med partnere der også kan tage sig af dig.',
+    friction:'Du risikerer at tiltrække mennesker der udnytter din godhed. Sæt grænser for at beskytte dig selv.'
+  },
+  { label:'Kunstnersjælen', test:s=>s.O>=70&&s.N>=55,
+    desc:'Du oplever verden intenst og kreativt. Din høje åbenhed kombineret med emotionel følsomhed giver dig en kunstnerisk sensibilitet som få har. Du ser nuancer og dybde i alt fra musik til menneskelige relationer. Din kreativitet næres af din følelsesmæssige dybde.',
+    careers:['Kunstner','Musiker','Forfatter','Designer','Terapeut','Fotograf','Skuespiller','Kreativ skribent'],
+    thrives:'Andre kreative sjæle og følelsesmæssigt åbne typer. Du har brug for en partner der forstår din intensitet.',
+    friction:'Meget rationelle, følelseskolde typer kan virke afvisende for dig. Du kan virke overdramatisk for dem.'
+  },
+  { label:'Strategen', test:s=>s.C>=65&&s.A<45,
+    desc:'Du er resultatorienteret, disciplineret og villig til at træffe svære beslutninger. Du kombinerer struktur med en direkte kommunikationsstil der skærer igennem. Du er effektiv og målrettet — og forventer det samme af andre.',
+    careers:['Management konsulent','Kirurg','Jurist','Finansanalytiker','Militærstrateg','Iværksætter','CTO','Revisor'],
+    thrives:'Andre ambitiøse typer der respekterer direkte kommunikation og resultater.',
+    friction:'Meget følsomme typer kan opleve dig som kold eller hensynsløs. Du kan opleve dem som ineffektive.'
+  },
+  { label:'Idealisten', test:s=>s.O>=60&&s.A>=60,
+    desc:'Du kombinerer kreativ vision med dyb empati. Du drømmer om en bedre verden og har den medmenneskelighed der skal til for at arbejde mod den. Du er den der ser potentialet i mennesker og idéer og dedikerer dig til at realisere det.',
+    careers:['Socialarbejder','Lærer','Frivilligkoordinator','Miljøkonsulent','Psykolog','Non-profit leder','Forfatter','Rådgiver'],
+    thrives:'Typer der deler dine værdier og kan engagere sig i meningsfulde samtaler.',
+    friction:'Kyniske eller overfladiske typer kan desillusionere dig. Du risikerer at brænde ud på urealistiske forventninger.'
+  },
+  { label:'Den Stabile', test:s=>s.N<=30&&s.C>=55,
+    desc:'Du er en klippe af ro og pålidelighed. Din emotionelle stabilitet kombineret med struktur gør dig til en person andre naturligt søger i krisetider. Du bevarer overblikket når andre mister det, og leverer konsistent kvalitet.',
+    careers:['Pilot','Kirurg','Dommer','Ingeniør','Controller','Bankrådgiver','Administrator','Forsikringsrådgiver'],
+    thrives:'De fleste typer — din stabilitet skaber tryghed. Du trives med partnere der bringer spontanitet og følelsesmæssig dybde.',
+    friction:'Du kan virke følelsesløs eller kedelig for meget følelsesintense typer. De kan frustrere dig med drama.'
+  },
+  { label:'Realisten', test:s=>s.O<45&&s.C>=55,
+    desc:'Du er praktisk, jordnær og handlingsorienteret. Du fokuserer på hvad der virker og leverer konkrete resultater. Du har ikke brug for store visioner — du har brug for klare mål og en plan. Din styrke er eksekvering.',
+    careers:['Håndværker','Driftsleder','Regnskabsfører','Logistiker','Tekniker','Landmand','Økonomiansvarlig','Politibetjent'],
+    thrives:'Andre praktiske typer der værdsætter handling over snak. Du trives med partnere der er pålidelige og stabile.',
+    friction:'Meget abstrakte, filosofiske typer kan frustrere dig med "hvad nu hvis"-diskussioner.'
+  },
+  { label:'Eventyreren', test:s=>s.E>=65&&s.O>=55&&s.C<50,
+    desc:'Du er spontan, social og elsker nye oplevelser. Du lever i nuet og søger spænding og frihed. Rutiner og regler føles som fængsler for dig — du trives når du kan improvisere og følge din nysgerrighed.',
+    careers:['Iværksætter','Bartender','Rejseguide','Event-planner','Skuespiller','Sælger','DJ','Content creator'],
+    thrives:'Andre spontane, eventyrlystne typer. Du har brug for en partner der kan holde trit med dit tempo.',
+    friction:'Meget strukturerede typer oplever dig som uansvarlig. Du oplever dem som kedelige.'
+  },
+  { label:'Tænkeren', test:s=>s.O>=55&&s.E<40,
+    desc:'Du er reflekteret, intellektuel og foretrækker dybde over bredde. Du trives med komplekse idéer og stille eftertanke. Din styrke er at se mønstre og sammenhænge som andre overser. Du bidrager med indsigt og perspektiv.',
+    careers:['Filosof','Forsker','Forfatter','Programmør','Arkivar','Bibliotekar','Historiker','Professor'],
+    thrives:'Andre intellektuelle typer der respekterer stilhed og dybde i samtaler.',
+    friction:'Meget sociale, højrøstede typer dræner din energi. Du kan virke arrogant eller uinteresseret.'
+  },
+  { label:'Din unikke profil', test:()=>true,
+    desc:'Din kombination af traits er unik og passer ikke i en standard-kategori — og det er en styrke! Du har en nuanceret personlighed der tilpasser sig forskellige kontekster. Din mangfoldighed gør dig fleksibel og svær at sætte i bås.',
+    careers:['Generalist','Portfoliokarriere','Konsulent','Underviser','Freelancer','Projektleder','Kreativt erhverv','Iværksætter'],
+    thrives:'Typer der værdsætter din mangfoldighed og er åbne for overraskelser.',
+    friction:'Typer der har brug for at kategorisere andre kan finde dig forvirrende.'
+  }
+];
+
+// ── Trait interaction patterns ──
+const INTERACTIONS = [
+  { test:s=>s.O>=60&&s.C<40, title:'Høj Åbenhed + Lav Samvittighedsfuldhed',
+    text:'Du er kreativ og fuld af idéer, men kan have svært ved at gennemføre dem. Du starter mange projekter men færdiggør få. Tip: Brug din kreativitet til at gøre struktur sjovt — brug farver, visuelle tools, og korte sprints i stedet for lange planer.'
+  },
+  { test:s=>s.E>=60&&s.A<40, title:'Høj Ekstraversion + Lav Venlighed',
+    text:'Du er social og udadvendt, men på dine egne præmisser. Du er den naturlige debattør der nyder diskussioner og ikke er bange for konfrontation. Din direkte stil er effektiv i forretning men kan skabe friktion i nære relationer.'
+  },
+  { test:s=>s.N>=60&&s.C>=60, title:'Høj Neuroticisme + Høj Samvittighedsfuldhed',
+    text:'Du er perfektionistisk med høje standarder — men din bekymring kan forstærke presset. Du leverer konsistent kvalitet, men prisen er ofte stress og selvkritik. Tip: Øv dig i "good enough" og sæt realistiske deadlines.'
+  },
+  { test:s=>s.O>=60&&s.A>=60, title:'Høj Åbenhed + Høj Venlighed',
+    text:'Du er empatisk, kreativ og idealistisk. Du ser det bedste i mennesker og idéer. Din kombination gør dig til en naturlig rådgiver og inspirator, men pas på ikke at brænde ud på andres problemer.'
+  },
+  { test:s=>s.E<40&&s.N>=60, title:'Lav Ekstraversion + Høj Neuroticisme',
+    text:'Du er introvert og følelsesmæssigt sensitiv. Social interaktion kan både dræne og bekymre dig. Din styrke er dybde og eftertanke, men isolation kan forstærke negative tanker. Prioriter få, trygge relationer.'
+  },
+  { test:s=>s.C>=60&&s.E>=60, title:'Høj Samvittighedsfuldhed + Høj Ekstraversion',
+    text:'Du er både ambitiøs og karismatisk — en naturlig leder. Du har energien til at drive projekter og disciplinen til at gennemføre dem. Du inspirerer andre med din kombination af handling og vision.'
+  },
+  { test:s=>s.O<40&&s.N<40, title:'Lav Åbenhed + Lav Neuroticisme',
+    text:'Du er praktisk, stabil og forudsigelig på den bedste måde. Du er en klippe i hverdagen og trives med rutiner og gennemprøvede metoder. Andre søger dig for din pålidelige, jordnære tilgang.'
+  },
+  { test:s=>s.A>=60&&s.N>=60, title:'Høj Venlighed + Høj Neuroticisme',
+    text:'Du er dybt empatisk men kan absorbere andres følelser. Din omsorg for andre kombineret med følelsesmæssig sensitivitet gør dig til en fantastisk ven, men du skal passe på dine grænser.'
+  }
+];
+
+// ── Build report ──
+function buildReport(data) {
+  const tp = data.traitPct || {};
+  const fp = data.facetPct || {};
+  const s = { O:tp.O||50, C:tp.C||50, E:tp.E||50, A:tp.A||50, N:tp.N||50 };
+
+  // Find profile
+  const profile = PROFILES.find(p => p.test(s));
+
+  // ── Cover ──
+  document.getElementById('cover-profile').textContent = '« ' + profile.label + ' »';
+  document.getElementById('cover-date').textContent = new Date().toLocaleDateString('da-DK', { year:'numeric', month:'long', day:'numeric' });
+
+  // ── Summary ──
+  const highest = Object.entries(s).sort((a,b)=>b[1]-a[1])[0];
+  const lowest = Object.entries(s).sort((a,b)=>a[1]-b[1])[0];
+  document.getElementById('summary-text').innerHTML = profile.desc;
+  document.getElementById('summary-grid').innerHTML =
+    '<div class="summary-card"><div class="num" style="color:'+T[highest[0]].color+'">'+highest[1]+'%</div><div class="lbl">Stærkeste: '+T[highest[0]].name+'</div></div>' +
+    '<div class="summary-card"><div class="num" style="color:'+T[lowest[0]].color+'">'+lowest[1]+'%</div><div class="lbl">Laveste: '+T[lowest[0]].name+'</div></div>' +
+    '<div class="summary-card"><div class="num" style="color:var(--accent)">'+profile.label+'</div><div class="lbl">Din profiltype</div></div>';
+
+  // Top findings
+  var findings = [];
+  if (s.O >= 70) findings.push('🌀 Du scorer markant højt på <strong>Åbenhed</strong> — du er blandt de mest nysgerrige og kreative.');
+  if (s.O <= 30) findings.push('🌀 Du scorer lavt på <strong>Åbenhed</strong> — du er exceptionelt praktisk og jordbunden.');
+  if (s.C >= 70) findings.push('🎯 Du scorer markant højt på <strong>Samvittighedsfuldhed</strong> — du er blandt de mest disciplinerede.');
+  if (s.C <= 30) findings.push('🎯 Du scorer lavt på <strong>Samvittighedsfuldhed</strong> — du er exceptionelt spontan og frihedssøgende.');
+  if (s.E >= 70) findings.push('⚡ Du scorer markant højt på <strong>Ekstraversion</strong> — du er blandt de mest udadvendte.');
+  if (s.E <= 30) findings.push('⚡ Du scorer lavt på <strong>Ekstraversion</strong> — du er dybt introvert og selvstændig.');
+  if (s.A >= 70) findings.push('💗 Du scorer markant højt på <strong>Venlighed</strong> — du er exceptionelt empatisk.');
+  if (s.A <= 30) findings.push('💗 Du scorer lavt på <strong>Venlighed</strong> — du er exceptionelt selvstændig og direkte.');
+  if (s.N >= 70) findings.push('🌊 Du scorer markant højt på <strong>Neuroticisme</strong> — du oplever følelser meget intenst.');
+  if (s.N <= 30) findings.push('🌊 Du scorer lavt på <strong>Neuroticisme</strong> — du er exceptionelt emotionelt stabil.');
+  if (findings.length > 0) {
+    document.getElementById('top-findings').innerHTML = '<h3>🔍 Vigtigste fund</h3>' + findings.slice(0,3).map(f => '<p style="font-size:14px;color:var(--text-2);margin:8px 0;line-height:1.6">'+f+'</p>').join('');
+  }
+
+  // ── Radar ──
+  buildRadar(s);
+
+  // ── Trait detail ──
+  var traitsHTML = '';
+  ['O','C','E','A','N'].forEach(k => {
+    var pct = s[k];
+    var level = pct >= 65 ? 'high' : pct >= 35 ? 'mid' : 'low';
+    var percentileText = 'Du scorer højere end ca. ' + pct + '% af befolkningen på dette område.';
+    traitsHTML += '<div class="trait-block">' +
+      '<div class="trait-header">' +
+        '<span class="trait-emoji">'+T[k].emoji+'</span>' +
+        '<span class="trait-name">'+T[k].name+' <span style="font-size:13px;color:var(--text-3);font-family:var(--sans);font-weight:400">('+T[k].en+')</span></span>' +
+        '<span class="trait-score" style="color:'+T[k].color+'">'+pct+'%</span>' +
+      '</div>' +
+      '<div class="trait-bar"><div class="trait-bar-fill" style="width:'+pct+'%;background:'+T[k].color+'"></div></div>' +
+      '<p style="font-size:12px;color:var(--text-3);margin-bottom:8px">'+percentileText+'</p>' +
+      '<p class="trait-desc">'+T[k][level]+'</p>' +
+    '</div>';
+  });
+  document.getElementById('traits-detail').innerHTML = traitsHTML;
+
+  // ── Facet detail ──
+  var facetsHTML = '';
+  ['O','C','E','A','N'].forEach(k => {
+    facetsHTML += '<h3 style="margin-top:20px;margin-bottom:10px">'+T[k].emoji+' '+T[k].name+'</h3>';
+    facetsHTML += '<div class="facet-grid">';
+    Object.keys(T[k].facets).forEach(fk => {
+      var fPct = fp[fk] !== undefined ? fp[fk] : 50;
+      facetsHTML += '<div class="facet-item">' +
+        '<div><div class="facet-name">'+T[k].facets[fk]+'</div>' +
+        '<div style="font-size:11px;color:var(--text-3);margin-top:2px">'+( FACET_DESC[fk] || '')+'</div></div>' +
+        '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">' +
+          '<div class="facet-bar-mini"><div class="facet-bar-mini-fill" style="width:'+fPct+'%;background:'+T[k].color+'"></div></div>' +
+          '<span class="facet-score" style="color:'+T[k].color+'">'+fPct+'%</span>' +
+        '</div>' +
+      '</div>';
+    });
+    facetsHTML += '</div>';
+  });
+  document.getElementById('facets-detail').innerHTML = facetsHTML;
+
+  // ── Strengths & Challenges ──
+  var strengths = [], challenges = [];
+  if (s.O >= 60) strengths.push({ t:'Kreativitet & nysgerrighed', d:'Din høje åbenhed gør dig innovativ og modtagelig for nye idéer. Du ser muligheder hvor andre ser begrænsninger.' });
+  if (s.C >= 60) strengths.push({ t:'Selvdisciplin & pålidelighed', d:'Din samvittighedsfuldhed betyder at du leverer hvad du lover. Andre kan regne med dig.' });
+  if (s.E >= 60) strengths.push({ t:'Social energi & karisma', d:'Din ekstraversion giver dig naturlig karisma og evne til at motivere og engagere andre.' });
+  if (s.A >= 60) strengths.push({ t:'Empati & samarbejdsevne', d:'Din venlighed gør dig til en naturlig teambuilder og konfliktløser.' });
+  if (s.N <= 40) strengths.push({ t:'Emotionel robusthed', d:'Din lave neuroticisme giver dig ro under pres og evne til at træffe klare beslutninger i stressede situationer.' });
+  if (s.O < 40) strengths.push({ t:'Praktisk handlekraft', d:'Din jordnære tilgang betyder at du fokuserer på hvad der virker i stedet for at spilde tid på urealistiske idéer.' });
+  if (s.E < 40) strengths.push({ t:'Eftertænksomhed & dybde', d:'Din introversion giver dig evnen til at tænke dybt og finde indsigter andre overser.' });
+
+  if (s.O < 40) challenges.push({ t:'Modstand mod forandring', d:'Du kan have tendens til at afvise nye idéer for hurtigt. Prøv at give uvante forslag en chance.' });
+  if (s.C < 40) challenges.push({ t:'Struktur & gennemførelse', d:'Du kan starte mange ting uden at færdiggøre dem. Prøv at prioritere 1-2 projekter ad gangen.' });
+  if (s.E < 40) challenges.push({ t:'Networking & synlighed', d:'Din introversion kan gøre det svært at skabe professionelle kontakter. Prøv kvalitet over kvantitet.' });
+  if (s.A < 40) challenges.push({ t:'Interpersonelle relationer', d:'Din direkte stil kan virke hård. Prøv at balancere ærlighed med empati i feedback.' });
+  if (s.N >= 60) challenges.push({ t:'Stress & bekymring', d:'Din følelsesmæssige intensitet kan føre til overthinking. Prøv mindfulness eller journaling.' });
+  if (s.C >= 80) challenges.push({ t:'Perfektionisme', d:'Dine høje standarder kan forsinke dig og skabe unødig stress. Øv dig i "good enough".' });
+  if (s.A >= 80) challenges.push({ t:'Grænser & selvhævdelse', d:'Din stærke empati kan gøre det svært at sige nej. Øv dig i at prioritere dine egne behov.' });
+
+  if (strengths.length === 0) strengths.push({ t:'Balanceret profil', d:'Du har en velbalanceret profil uden ekstreme scores — dette giver dig fleksibilitet i mange kontekster.' });
+  if (challenges.length === 0) challenges.push({ t:'Ingen markante udfordringer', d:'Din balancerede profil betyder færre blinde vinkler, men vær opmærksom på at identificere specifikke udviklingsområder.' });
+
+  document.getElementById('strengths-challenges').innerHTML =
+    '<div class="sc-card strengths"><h3 style="color:#3B9979">✦ Styrker</h3>' + strengths.slice(0,4).map(s => '<div class="sc-item"><strong>'+s.t+'</strong>'+s.d+'</div>').join('') + '</div>' +
+    '<div class="sc-card challenges"><h3 style="color:#c0392b">✧ Udfordringer</h3>' + challenges.slice(0,4).map(c => '<div class="sc-item"><strong>'+c.t+'</strong>'+c.d+'</div>').join('') + '</div>';
+
+  // ── Interactions ──
+  var matchedInteractions = INTERACTIONS.filter(i => i.test(s));
+  if (matchedInteractions.length > 0) {
+    document.getElementById('interactions').innerHTML = matchedInteractions.slice(0,3).map(i =>
+      '<div style="padding:16px 20px;border-radius:12px;background:var(--bg-warm);margin-bottom:12px">' +
+        '<h4 style="font-size:14px;font-weight:600;margin-bottom:6px">'+i.title+'</h4>' +
+        '<p style="font-size:14px;color:var(--text-2);line-height:1.7">'+i.text+'</p>' +
+      '</div>'
+    ).join('');
+  } else {
+    document.getElementById('interactions').innerHTML = '<p style="color:var(--text-3);font-size:14px">Din profil har en jævn fordeling uden markante trait-interaktioner.</p>';
+  }
+
+  // ── Career ──
+  document.getElementById('career').innerHTML =
+    '<p style="font-size:14px;color:var(--text-2);margin-bottom:12px">Baseret på din <strong>'+profile.label+'</strong>-profil matcher du typisk disse erhverv:</p>' +
+    '<div class="career-list">' + profile.careers.map(c => '<span class="career-tag">'+c+'</span>').join('') + '</div>' +
+    '<p style="font-size:12px;color:var(--text-3);margin-top:16px">Bemærk: Karrierematch er baseret på forskning i personlighed og erhverv (Holland-koder, O*NET). Det er vejledende — passion og kompetence er vigtigere end personlighedsmatch.</p>';
+
+  // ── Compatibility ──
+  document.getElementById('compatibility').innerHTML =
+    '<div class="compat-item"><strong style="color:#3B9979">💚 Du trives med:</strong><br>' + profile.thrives + '</div>' +
+    '<div class="compat-item"><strong style="color:#e8873c">🔶 Mulige gnidninger:</strong><br>' + profile.friction + '</div>' +
+    '<p style="font-size:12px;color:var(--text-3);margin-top:12px">Kompatibilitet handler ikke om at finde en kopi af dig selv, men om at forstå hvor dine naturlige interaktionsmønstre skaber harmoni eller udfordring.</p>';
+
+  // ── Action plan ──
+  var actions = [];
+  actions.push({ title:'📅 I morgen (3 hurtige ting)', items:[] });
+  actions.push({ title:'📋 Ugentlig plan', items:[] });
+  actions.push({ title:'🎯 Månedligt mål', items:[] });
+
+  if (s.N >= 60) { actions[0].items.push('Skriv 3 ting du er taknemmelig for (5 min)'); actions[1].items.push('Prøv 10 minutters mindfulness dagligt'); actions[2].items.push('Etabler en fast stresshåndteringsrutine'); }
+  if (s.C < 45) { actions[0].items.push('Skriv de 3 vigtigste opgaver for i morgen'); actions[1].items.push('Brug en simpel to-do app (fx Todoist, Things)'); actions[2].items.push('Gennemfør ét projekt helt færdigt'); }
+  if (s.E < 40) { actions[0].items.push('Send én besked til en ven du ikke har talt med i et stykke tid'); actions[1].items.push('Planlæg én social aktivitet om ugen (lille er fint)'); actions[2].items.push('Udvid dit sociale netværk med én ny kontakt'); }
+  if (s.A < 40) { actions[0].items.push('Giv ét oprigtigt kompliment'); actions[1].items.push('Øv aktiv lytning i samtaler (gentag hvad den anden siger)'); actions[2].items.push('Arbejd på at give feedback der er ærlig OG empatisk'); }
+  if (s.O >= 60) { actions[0].items.push('Lær én ny ting du ikke vidste (podcast, artikel, YouTube)'); actions[1].items.push('Prøv én ny aktivitet eller rute denne uge'); actions[2].items.push('Start et kreativt projekt du har udskudt'); }
+  if (s.O < 40) { actions[0].items.push('Prøv noget nyt til frokost'); actions[1].items.push('Læs en artikel om et emne du normalt ville ignorere'); actions[2].items.push('Tag på en udstilling eller oplev noget kulturelt du normalt ikke ville'); }
+
+  // Defaults
+  if (actions[0].items.length < 2) actions[0].items.push('Reflektér over hvad der giver dig mest energi i hverdagen', 'Skriv én styrke ned du er glad for');
+  if (actions[1].items.length < 2) actions[1].items.push('Prioritér de relationer der giver dig mest', 'Blokér tid til aktiviteter der matcher dine styrker');
+  if (actions[2].items.length < 1) actions[2].items.push('Sæt ét konkret udviklingsmål baseret på din rapports udfordringer');
+
+  document.getElementById('action-plan').innerHTML = actions.map(a =>
+    '<div class="action-card"><h4>'+a.title+'</h4><ul>' + a.items.map(i => '<li>'+i+'</li>').join('') + '</ul></div>'
+  ).join('');
+
+  // ── Resources ──
+  var resources = [];
+  resources.push({ cat:'📖 Bøger', items:['<em>Quiet</em> — Susan Cain (introversion & styrker)','<em>Personality Isn\'t Permanent</em> — Benjamin Hardy','<em>Atomic Habits</em> — James Clear (vaner & selvudvikling)'] });
+  if (s.N >= 55) resources.push({ cat:'🧘 Mindfulness', items:['Headspace eller Calm app (daglig meditation)','<em>Full Catastrophe Living</em> — Jon Kabat-Zinn','MindHelper.dk (gratis danske øvelser)'] });
+  if (s.C < 45) resources.push({ cat:'📱 Struktur-apps', items:['Todoist (simpel opgavestyring)','Notion (fleksibelt planlægningsværktøj)','Forest (fokus-app med gamification)'] });
+  resources.push({ cat:'🔬 Videnskab', items:['16personalities.com (alternativ personlighedstest)','understandmyself.com (Big Five af Dr. Jordan Peterson)','IPIP.ori.org (den videnskabelige kilde bag testen)'] });
+
+  document.getElementById('resources').innerHTML = resources.map(r =>
+    '<div style="margin-bottom:16px"><h4 style="font-size:14px;font-weight:600;margin-bottom:8px">'+r.cat+'</h4>' +
+    '<ul style="padding-left:18px;font-size:14px;color:var(--text-2)">' + r.items.map(i => '<li style="margin-bottom:4px">'+i+'</li>').join('') + '</ul></div>'
+  ).join('');
+}
+
+// ── Radar chart ──
+function buildRadar(s) {
+  const traits = ['O','C','E','A','N'];
+  const values = traits.map(k => s[k] / 100);
+  const labels = traits.map(k => T[k].name);
+  const colors = traits.map(k => T[k].color);
+  const cx = 170, cy = 170, R = 130;
+  const n = 5;
+  const step = (2 * Math.PI) / n;
+  const start = -Math.PI / 2;
+  const p = (a, r) => [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+
+  var svg = '<svg viewBox="0 0 340 360" xmlns="http://www.w3.org/2000/svg">';
+
+  // Grid
+  for (var ring = 1; ring <= 4; ring++) {
+    var r = R * ring / 4;
+    var pts = traits.map((_, i) => p(start + i * step, r).join(',')).join(' ');
+    svg += '<polygon points="'+pts+'" fill="none" stroke="rgba(0,0,0,0.06)" stroke-width="1"/>';
+    if (ring === 2) { // 50% label
+      svg += '<text x="'+(cx+4)+'" y="'+(cy-r+12)+'" fill="rgba(0,0,0,0.15)" font-size="9" font-family="Figtree">50%</text>';
+    }
+  }
+
+  // Axes
+  traits.forEach((_, i) => {
+    var [x, y] = p(start + i * step, R);
+    svg += '<line x1="'+cx+'" y1="'+cy+'" x2="'+x+'" y2="'+y+'" stroke="rgba(0,0,0,0.08)" stroke-width="1"/>';
+  });
+
+  // Average fill (50%)
+  var avgPts = traits.map((_, i) => p(start + i * step, R * 0.5).join(',')).join(' ');
+  svg += '<polygon points="'+avgPts+'" fill="rgba(0,0,0,0.03)" stroke="rgba(0,0,0,0.06)" stroke-width="1" stroke-dasharray="4,4"/>';
+
+  // Data polygon
+  var dataPts = traits.map((_, i) => p(start + i * step, R * values[i]).join(',')).join(' ');
+  svg += '<polygon points="'+dataPts+'" fill="rgba(184,134,11,0.12)" stroke="#b8860b" stroke-width="2.5"/>';
+
+  // Dots + labels
+  traits.forEach((k, i) => {
+    var [dx, dy] = p(start + i * step, R * values[i]);
+    svg += '<circle cx="'+dx+'" cy="'+dy+'" r="5" fill="'+colors[i]+'" stroke="#fff" stroke-width="2"/>';
+    var [lx, ly] = p(start + i * step, R + 28);
+    var anchor = lx < cx - 10 ? 'end' : lx > cx + 10 ? 'start' : 'middle';
+    svg += '<text x="'+lx+'" y="'+(ly+4)+'" text-anchor="'+anchor+'" fill="var(--text-2)" font-size="12" font-weight="500" font-family="Figtree,sans-serif">'+labels[i]+'</text>';
+    svg += '<text x="'+lx+'" y="'+(ly+19)+'" text-anchor="'+anchor+'" fill="'+colors[i]+'" font-size="14" font-weight="700" font-family="Source Serif 4,serif">'+s[k]+'%</text>';
+  });
+
+  svg += '</svg>';
+  document.getElementById('radar').innerHTML = svg;
+}
+
+// ── PDF download ──
+function downloadPDF() {
+  var el = document.getElementById('report-content');
+  var opt = {
+    margin: [10, 10, 10, 10],
+    filename: 'Hjernebarometeret-Personlighedsrapport.pdf',
+    image: { type: 'jpeg', quality: 0.95 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+  };
+  html2pdf().set(opt).from(el).save();
+}
+
+// ── Init ──
+(async function init() {
+  // Handle payment return
+  var paymentReturn = false;
+  if (window.HB_PAY) {
+    var ret = HB_PAY.handleReturn();
+    if (ret && ret.success) {
+      paymentReturn = true;
+      if (ret.token) {
+        localStorage.setItem('hb_report_token_personlighed', ret.token);
+      }
+    }
+  }
+
+  // Wait for auth to be ready
+  if (window.HB_AUTH) {
+    await new Promise(r => HB_AUTH.onReady(r));
+  }
+
+  // Check access — use waitForAccess after payment return (webhook may be delayed)
+  var hasAccess = false;
+  if (window.HB_AUTH && HB_AUTH.isAdmin()) {
+    hasAccess = true;
+  } else if (paymentReturn && window.HB_PAY) {
+    document.querySelector('#loading p').textContent = 'Bekræfter betaling...';
+    hasAccess = await HB_PAY.waitForAccess('personlighed', 10);
+  } else if (window.HB_PAY) {
+    hasAccess = await HB_PAY.hasAccess('personlighed');
+  }
+
+  if (!hasAccess) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('no-access').style.display = 'block';
+    return;
+  }
+
+  // Load results
+  var data = null;
+  if (window.HB_PAY) data = HB_PAY.loadResults('personlighed');
+  if (!data && window.HB_PAY) data = await HB_PAY.loadResultsFromDB('personlighed');
+
+  if (!data) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('no-access').style.display = 'block';
+    document.querySelector('#no-access h1').textContent = '📊 Ingen resultater fundet';
+    document.querySelector('#no-access p').textContent = 'Du skal gennemføre personlighedstesten først, før du kan se din rapport.';
+    document.querySelector('#no-access .buy-btn').textContent = 'Tag personlighedstesten';
+    document.querySelector('#no-access .buy-btn').onclick = function(){ window.location.href='personlighedstest.html'; };
+    return;
+  }
+
+  // Build report
+  buildReport(data);
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('report').style.display = 'block';
+})();
+</script>
+
+</body>
+</html>
