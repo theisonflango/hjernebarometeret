@@ -626,6 +626,11 @@ function Results({profile,answers,demo,mode}){
   const ti=getTreatmentInfo(profile);
   const isDiva=mode==="diva";
 
+  // Gem resultater ved visning
+  useEffect(()=>{
+    if(window.HB_PAY) HB_PAY.saveResults('adhd', profile);
+  },[]);
+
   const doExport=()=>{
     const text=isDiva?generateDivaExport(answers,demo,profile):generateQuickExport(answers,demo,profile);
     navigator.clipboard?.writeText(text).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),3000);});

@@ -60,11 +60,13 @@
     return false;
   }
 
-  // ── Save test results to localStorage before redirect ──
+  // ── Save test results to localStorage + database ──
   function saveResults(testType, data) {
     try {
       localStorage.setItem('hb_results_' + testType, JSON.stringify(data));
     } catch(e) {}
+    // Also save to database (fire-and-forget)
+    _saveResultsToDB(testType, data);
   }
 
   function loadResults(testType) {
@@ -72,6 +74,100 @@
       var saved = localStorage.getItem('hb_results_' + testType);
       return saved ? JSON.parse(saved) : null;
     } catch(e) { return null; }
+  }
+
+  // ── Save results to Supabase database ──
+  async function _saveResultsToDB(testType, data) {
+    try {
+      var sb = window.HB_AUTH && HB_AUTH.supabase;
+      if (!sb) return;
+
+      var row = {
+        test_type: testType,
+        result_data: data,
+        score_summary: _makeSummary(testType, data),
+        completed_at: new Date().toISOString()
+      };
+
+      // Attach user or anonymous token
+      if (window.HB_AUTH && HB_AUTH.user) {
+        row.user_id = HB_AUTH.user.id;
+      } else {
+        var token = localStorage.getItem('hb_report_token_' + testType);
+        if (!token) {
+          token = crypto.randomUUID ? crypto.randomUUID() : 'anon-' + Date.now();
+          localStorage.setItem('hb_report_token_' + testType, token);
+        }
+        row.anonymous_token = token;
+      }
+
+      await sb.from('test_results').insert(row);
+    } catch(e) {
+      console.warn('Could not save results to DB:', e);
+    }
+  }
+
+  // ── Generate human-readable score summary ──
+  function _makeSummary(testType, d) {
+    try {
+      switch(testType) {
+        case 'iq':
+          return 'IQ: ' + (d.iq || '?') + ' (' + (d.cls || '?') + '), ' + (d.cor||0) + '/' + (d.tot||40) + ' korrekte';
+        case 'adhd':
+          return 'ADHD ' + (d.mode||'?') + ': ' + (d.totalPct||0).toFixed(0) + '%, ' + (d.level||'?') + ', ' + (d.profileType||'?');
+        case 'autisme':
+          return 'AQ: ' + (d.t||0) + '/50, kategori: ' + (d.category||'?');
+        case 'personlighed':
+          if (d.traitPct) {
+            var t = d.traitPct;
+            return 'O:' + (t.openness||0).toFixed(0) + ' C:' + (t.conscientiousness||0).toFixed(0) + ' E:' + (t.extraversion||0).toFixed(0) + ' A:' + (t.agreeableness||0).toFixed(0) + ' N:' + (t.neuroticism||0).toFixed(0);
+          }
+          return 'Big Five completed';
+        case 'stress':
+          return 'PSS: ' + (d.pssTotal||0) + '/40 (' + (d.pssPct||0).toFixed(0) + '%), ' + (d.burnoutProfile||'?');
+        default:
+          return testType + ' completed';
+      }
+    } catch(e) { return testType + ' completed'; }
+  }
+
+  // ── Load results from database (for logged-in users) ──
+  async function loadResultsFromDB(testType) {
+    try {
+      var sb = window.HB_AUTH && HB_AUTH.supabase;
+      if (!sb || !window.HB_AUTH || !HB_AUTH.user) return null;
+
+      var { data } = await sb
+        .from('test_results')
+        .select('result_data, completed_at')
+        .eq('user_id', HB_AUTH.user.id)
+        .eq('test_type', testType)
+        .order('completed_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      return data ? data.result_data : null;
+    } catch(e) { return null; }
+  }
+
+  // ── Get all results history for logged-in user ──
+  async function getResultsHistory(testType) {
+    try {
+      var sb = window.HB_AUTH && HB_AUTH.supabase;
+      if (!sb || !window.HB_AUTH || !HB_AUTH.user) return [];
+
+      var query = sb
+        .from('test_results')
+        .select('test_type, score_summary, completed_at')
+        .eq('user_id', HB_AUTH.user.id)
+        .order('completed_at', { ascending: false })
+        .limit(50);
+
+      if (testType) query = query.eq('test_type', testType);
+
+      var { data } = await query;
+      return data || [];
+    } catch(e) { return []; }
   }
 
   // ── Initiate Stripe Checkout ──
@@ -205,6 +301,8 @@
     handleReturn: handleReturn,
     saveResults: saveResults,
     loadResults: loadResults,
+    loadResultsFromDB: loadResultsFromDB,
+    getResultsHistory: getResultsHistory,
     useCredit: useCredit
   };
 })();

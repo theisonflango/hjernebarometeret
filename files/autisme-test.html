@@ -216,6 +216,12 @@ function AutismeTest() {
     const cm = gender === "male" ? 17.8 : gender === "female" ? 15.4 : 16.4;
     const catLabel = cat === "high" ? "Markant" : cat === "elevated" ? "Forhøjet" : cat === "average" ? "Typisk" : "Lav";
 
+    // Gem resultater i database (kører én gang ved første render af results)
+    if (!window._aqSaved) {
+      window._aqSaved = true;
+      if (window.HB_PAY) HB_PAY.saveResults('autisme', { t: total, d: ds, category: cat, categoryLabel: catLabel });
+    }
+
     return (
       <div style={{ minHeight: "calc(100vh - 64px)", background: "var(--bg)", fontFamily: "var(--sans)", padding: "40px 20px" }}>
         <div style={{ maxWidth: 740, margin: "0 auto" }}>
