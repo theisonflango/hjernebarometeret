@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Din autisme-rapport — Hjernebarometeret</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,500&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+:root {
+  --bg:#faf9f7; --bg-card:#fff; --bg-warm:#f5f2ee; --bg-dark:#1c1b1a;
+  --text:#1c1b1a; --text-2:#5a5650; --text-3:#8a857e; --text-4:#b5b0a8;
+  --border:#e8e5e0; --border-2:#d5d0c9;
+  --accent:#3a7d5e; --accent-light:rgba(58,125,94,0.08);
+  --green:#3B9979; --yellow:#D4920B; --red:#C0392B;
+  --serif:'Source Serif 4',Georgia,serif; --sans:'Figtree',system-ui,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased;padding-top:64px}
+
+/* ── Report layout ── */
+.report{max-width:760px;margin:0 auto;padding:20px}
+.report section{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:32px;margin-bottom:20px}
+.report h2{font-family:var(--serif);font-size:22px;font-weight:600;letter-spacing:-.03em;margin-bottom:16px}
+.report h3{font-family:var(--serif);font-size:17px;font-weight:600;margin-bottom:10px}
+
+/* ── Cover ── */
+.cover{background:var(--bg-dark)!important;color:#faf9f7!important;border:none!important;text-align:center;padding:48px 32px!important;border-radius:16px!important}
+.cover .logo{font-family:var(--serif);font-size:14px;letter-spacing:2px;text-transform:uppercase;opacity:.5;margin-bottom:24px}
+.cover h1{font-family:var(--serif);font-size:clamp(28px,5vw,38px);font-weight:600;letter-spacing:-.03em;margin-bottom:8px}
+.cover .profile-label{font-size:20px;font-weight:600;margin:16px 0 8px}
+.cover .date{font-size:13px;opacity:.4;margin-top:16px}
+.cover .disclaimer{font-size:11px;opacity:.35;margin-top:16px;line-height:1.5}
+
+/* ── Summary cards ── */
+.summary-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:16px 0}
+@media(max-width:600px){.summary-grid{grid-template-columns:1fr}}
+.summary-card{padding:16px;border-radius:12px;background:var(--bg-warm);text-align:center}
+.summary-card .num{font-family:var(--serif);font-size:28px;font-weight:700}
+.summary-card .lbl{font-size:12px;color:var(--text-3);margin-top:4px}
+
+/* ── Domain bars ── */
+.domain-block{margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border)}
+.domain-block:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.domain-header{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.domain-name{font-family:var(--serif);font-size:16px;font-weight:600}
+.domain-score{margin-left:auto;font-family:var(--serif);font-size:20px;font-weight:700}
+.domain-bar{height:8px;border-radius:4px;background:var(--border);overflow:hidden}
+.domain-bar-fill{height:100%;border-radius:4px;transition:width 1s ease}
+.domain-desc{font-size:14px;color:var(--text-2);line-height:1.7;margin-top:8px}
+
+/* ── Radar ── */
+.radar-container{text-align:center;margin:16px 0}
+.radar-container svg{max-width:380px;width:100%}
+
+/* ── Strengths/challenges ── */
+.sc-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:600px){.sc-grid{grid-template-columns:1fr}}
+.sc-card{padding:20px;border-radius:12px}
+.sc-card.strengths{background:rgba(92,184,92,0.06);border:1px solid rgba(92,184,92,0.2)}
+.sc-card.challenges{background:rgba(217,83,79,0.06);border:1px solid rgba(217,83,79,0.2)}
+.sc-item{padding:8px 0;border-bottom:1px solid rgba(0,0,0,.05);font-size:14px;line-height:1.6}
+.sc-item:last-child{border-bottom:none}
+.sc-item strong{display:block;font-size:14px;margin-bottom:2px}
+
+/* ── Category cards ── */
+.category-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin:16px 0}
+@media(max-width:600px){.category-grid{grid-template-columns:1fr 1fr}}
+.category-card{padding:14px;border-radius:12px;border:1.5px solid var(--border);text-align:center}
+.category-card.active{border-color:var(--accent);background:var(--accent-light)}
+.category-card h4{font-size:13px;font-weight:600;margin-bottom:4px}
+.category-card p{font-size:11px;color:var(--text-2);line-height:1.4}
+
+/* ── Coping toolkit ── */
+.coping-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:600px){.coping-grid{grid-template-columns:1fr}}
+.coping-card{padding:16px;border-radius:12px;background:var(--bg-warm)}
+.coping-card h4{font-size:14px;font-weight:600;margin-bottom:6px}
+.coping-card p{font-size:13px;color:var(--text-2);line-height:1.6}
+
+/* ── Sensory grid ── */
+.sensory-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:16px 0}
+@media(max-width:600px){.sensory-grid{grid-template-columns:1fr}}
+.sensory-card{padding:16px;border-radius:12px;background:var(--bg-warm);text-align:center}
+.sensory-card .icon{font-size:28px;margin-bottom:8px}
+.sensory-card h4{font-size:13px;font-weight:600;margin-bottom:4px}
+.sensory-card p{font-size:12px;color:var(--text-2);line-height:1.5}
+
+/* ── Action plan ── */
+.action-grid{display:grid;gap:16px}
+.action-card{padding:20px;border-radius:12px;background:var(--bg-warm)}
+.action-card h4{font-family:var(--serif);font-size:15px;font-weight:600;margin-bottom:8px}
+.action-card ul{padding-left:18px;font-size:14px;color:var(--text-2)}
+.action-card li{margin-bottom:6px}
+
+/* ── PDF button ── */
+.pdf-btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:12px;background:var(--bg-dark);color:#fff;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:var(--sans)}
+.pdf-btn:hover{opacity:.9}
+
+/* ── No access ── */
+.no-access{text-align:center;padding:80px 20px;max-width:500px;margin:0 auto}
+.no-access h1{font-family:var(--serif);font-size:28px;margin-bottom:12px}
+.no-access p{color:var(--text-2);margin-bottom:24px}
+.no-access .buy-btn{padding:14px 28px;border-radius:12px;background:var(--bg-dark);color:#fff;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:var(--sans)}
+
+/* ── Loading ── */
+.loading{text-align:center;padding:100px 20px}
+.loading .spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Doctor section ── */
+.doctor-section{background:var(--bg-warm)!important;border:2px solid var(--accent)!important}
+.doctor-section h2{color:var(--accent)}
+
+/* Print/PDF styles */
+@media print{
+  body{padding-top:0}
+  .sn-wrap,.sf-wrap,.pdf-actions,.no-print{display:none!important}
+  .report section{break-inside:avoid;border:none;box-shadow:none}
+  .cover{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+
+<div id="site-nav" data-active="rapporter"></div>
+
+<!-- Loading state -->
+<div id="loading" class="loading">
+  <div class="spinner"></div>
+  <p style="color:var(--text-3)">Indlæser din rapport...</p>
+</div>
+
+<!-- No access state -->
+<div id="no-access" class="no-access" style="display:none">
+  <h1>🔒 Rapport låst</h1>
+  <p>Du har ikke adgang til denne rapport endnu. Køb adgang for at se din fulde autisme-analyse med sensorisk profil, masking-analyse og personlige strategier.</p>
+  <button class="buy-btn" onclick="if(window.HB_PAY)HB_PAY.checkout('single','autisme')">Køb rapport — 49 kr</button>
+  <p style="margin-top:12px"><button onclick="if(window.HB_PAY)HB_PAY.checkout('unlimited','autisme')" style="background:none;border:1.5px solid var(--accent);color:var(--accent);padding:10px 20px;border-radius:10px;font-size:13px;cursor:pointer;font-family:var(--sans)">Eller: Ubegrænset — 89 kr/md</button></p>
+  <p style="margin-top:24px;font-size:13px;color:var(--text-4)"><a href="/tests/autisme.html" style="color:var(--text-3)">← Tilbage til testen</a></p>
+</div>
+
+<!-- Report content (hidden until access verified) -->
+<div id="report" class="report" style="display:none">
+
+  <!-- PDF download bar -->
+  <div class="pdf-actions no-print" style="text-align:right;margin-bottom:12px">
+    <button class="pdf-btn" onclick="downloadPDF()">📄 Download PDF</button>
+  </div>
+
+  <div id="report-content">
+
+  <!-- 1. FORSIDE -->
+  <section class="cover">
+    <div class="logo">☉ Hjernebarometeret</div>
+    <h1>Din autisme-rapport</h1>
+    <p style="opacity:.6;font-size:14px">AQ-50 · Baron-Cohen et al. (2001)</p>
+    <div class="profile-label" id="cover-profile" style="color:var(--accent)"></div>
+    <div class="date" id="cover-date"></div>
+    <div class="disclaimer">Denne rapport er ikke en klinisk diagnose. Den er baseret på det videnskabeligt validerede AQ-50 screeningsværktøj og giver indsigt i dit autistiske trækprofil til dialog med en fagperson.</div>
+  </section>
+
+  <!-- 2. OPSUMMERING -->
+  <section>
+    <h2>📋 Opsummering</h2>
+    <div id="red-flags"></div>
+    <p id="summary-text" style="font-size:15px;line-height:1.7;color:var(--text-2);margin-bottom:16px"></p>
+    <div class="summary-grid" id="summary-grid"></div>
+    <div id="top-findings" style="margin-top:16px"></div>
+  </section>
+
+  <!-- 2b. DIFFERENTIALDIAGNOSER -->
+  <section id="differential-section" style="display:none">
+    <h2>⚖️ Andre mulige forklaringer</h2>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:16px">Screening-tests kan ikke skelne mellem tilstande med overlappende symptomer. Følgende tilstande kan give lignende scores — dette er vigtigt at drøfte med en fagperson.</p>
+    <div id="differential-dx"></div>
+  </section>
+
+  <!-- 3. KATEGORIKLASSIFICERING -->
+  <section>
+    <h2>🧩 Profilklassificering</h2>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:16px">AQ-50 bruger validerede tærskelværdier fra Baron-Cohen et al. (2001) og Woodbury-Smith et al. (2005). Din profil er markeret nedenfor.</p>
+    <div class="category-grid" id="categories"></div>
+    <div id="aq-scale" style="margin-top:16px"></div>
+  </section>
+
+  <!-- 4. RADAR DIAGRAM -->
+  <section>
+    <h2>🕸️ Domæneprofil</h2>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:8px">Dit trækprofil på tværs af de 5 AQ-50 domæner. Jo længere fra midten, jo stærkere er de autistiske træk i det domæne.</p>
+    <div class="radar-container" id="radar"></div>
+  </section>
+
+  <!-- 5. DETALJERET DOMÆNE-ANALYSE -->
+  <section>
+    <h2>📊 Detaljeret domæneanalyse</h2>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:20px">Dine scores på hvert af de 5 domæner med individuelle anbefalinger.</p>
+    <div id="domains-detail"></div>
+  </section>
+
+  <!-- 6. STYRKER & UDFORDRINGER -->
+  <section>
+    <h2>💎 Styrker & udfordringer</h2>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:16px">Autisme er en neurologisk variation — ikke en defekt. Din profil bringer unikke styrker sammen med specifikke udfordringer.</p>
+    <div class="sc-grid" id="strengths-challenges"></div>
+  </section>
+
+  <!-- 7. SENSORISK PROFIL -->
+  <section>
+    <h2>🎧 Sensorisk profil</h2>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:8px">Autisme påvirker ofte sensorisk processering. Nedenstående er <em>estimeret</em> ud fra dine AQ-50 domænescores — ikke direkte målt.</p>
+    <p style="font-size:12px;color:var(--text-4);margin-bottom:16px;line-height:1.6"><strong>Bemærk:</strong> AQ-50 måler ikke sensorisk processering direkte. For en egentlig sensorisk profil anbefales Sensory Profile-2 (Dunn, 2014) eller lignende klinisk instrument.</p>
+    <div id="sensory-profile"></div>
+  </section>
+
+  <!-- 8. CAMOUFLERING & MASKING -->
+  <section>
+    <h2>🎭 Camouflering & masking</h2>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:16px">Mange autistiske voksne (især kvinder) "masker" — dvs. skjuler autistiske træk for at passe ind. Dette er energikrævende og kan føre til udbrændthed.</p>
+    <div id="masking-analysis"></div>
+  </section>
+
+  <!-- 9. PERSONLIG VÆRKTØJSKASSE -->
+  <section>
+    <h2>🧰 Din personlige værktøjskasse</h2>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:16px">Evidensbaserede strategier tilpasset din profil.</p>
+    <div class="coping-grid" id="coping-toolkit"></div>
+  </section>
+
+  <!-- 10. STØTTE & TILPASNING -->
+  <section>
+    <h2>🤝 Støtte & tilpasning</h2>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:16px">Autisme er ikke en sygdom der skal behandles, men en neurologisk variation der kan understøttes.</p>
+    <div id="support-section"></div>
+  </section>
+
+  <!-- 11. FAGLIGE STYRKEOMRÅDER -->
+  <section>
+    <h2>💼 Faglige styrkeområder</h2>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:16px">Dine autistiske træk kan være professionelle superkræfter i de rigtige kontekster.</p>
+    <div id="career-section"></div>
+  </section>
+
+  <!-- 12. HANDLINGSPLAN -->
+  <section>
+    <h2>🎯 Personlig handlingsplan</h2>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:16px">Konkrete skridt tilpasset din profil.</p>
+    <div class="action-grid" id="action-plan"></div>
+  </section>
+
+  <!-- 13. TIL DIN LÆGE -->
+  <section class="doctor-section">
+    <h2>🩺 Til din læge</h2>
+    <p style="font-size:13px;color:var(--text-2);margin-bottom:16px">Denne sektion er designet til at tage med til din læge. Print eller download som PDF.</p>
+    <div id="doctor-section"></div>
+  </section>
+
+  <!-- 14. RESSOURCER -->
+  <section>
+    <h2>📚 Anbefalede ressourcer</h2>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:16px">Bøger, organisationer og videnskabelige kilder tilpasset din profil.</p>
+    <div id="resources"></div>
+  </section>
+
+  <!-- 15. FORVENTNINGSAFSTEMNING -->
+  <section>
+    <h2>⏳ Hvad kan du forvente?</h2>
+    <div id="expectations"></div>
+  </section>
+
+  <!-- 16. DISCLAIMER -->
+  <section style="background:var(--bg-warm)">
+    <p style="font-size:12px;color:var(--text-3);line-height:1.7">
+      <strong>Om denne rapport:</strong> Denne rapport er genereret af Hjernebarometeret.dk baseret på AQ-50 (Autism Spectrum Quotient), et valideret screeningsværktøj udviklet af Baron-Cohen et al. (2001) ved Cambridge Autism Research Centre. Rapporten er til personlig indsigt og dialog med sundhedsfaglige — den er <strong>ikke en diagnose</strong>. Kun en specialiseret psykiater eller psykolog kan stille en autismediagnose efter formel udredning.
+    </p>
+    <p style="font-size:12px;color:var(--text-3);line-height:1.7;margin-top:8px">
+      <strong>Neurodiversitet:</strong> Denne rapport tager udgangspunkt i en styrkebaseret tilgang. Autisme er en naturlig neurologisk variation, ikke en sygdom. Vi anerkender, at autistiske træk medfører både styrker og udfordringer.
+    </p>
+    <p style="font-size:11px;color:var(--text-4);margin-top:12px">© Hjernebarometeret.dk · hjernebarometeret.dk</p>
+  </section>
+
+  </div><!-- /report-content -->
+</div><!-- /report -->
+
+<div id="site-footer"></div>
+
+<script src="../shared/nav.js"></script>
+<script src="../shared/footer.js"></script>
+<script src="../shared/auth.js"></script>
+<script src="../shared/payment.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════
+   AUTISME-RAPPORT — Hjernebarometeret
+   AQ-50 (Baron-Cohen et al., 2001)
+   ═══════════════════════════════════════════════════ */
+
+// ── Domain data ──
+var DOMAINS = {
+  social: { name:'Sociale færdigheder', emoji:'👥', color:'#2e6b9e',
+    high:'Du oplever markante udfordringer i sociale situationer. Social interaktion kræver bevidst kognitiv indsats, og du foretrækker sandsynligvis dybe en-til-en-relationer over gruppesammenhænge. Dette er en af de mest kendetegnende autistiske træk.',
+    elevated:'Du har moderate udfordringer i sociale situationer. Du fungerer i velkendte sociale miljøer, men nye eller uformelle sammenhænge kan være drænende.',
+    typical:'Dit sociale domæne ligger inden for normalområdet. Sociale situationer kræver generelt ikke uforholdsmæssig kognitiv energi.',
+    low:'Sociale situationer falder dig naturligt. Du navigerer ubesværet i sociale sammenhænge.',
+    tips_high:['Prioritér kvalitet over kvantitet i sociale relationer','Brug "sociale pauser" — træk dig tilbage 10-15 min ved overstimulation','Planlæg social energi: én stor social begivenhed pr. uge max','Kommunikér dine behov: "Jeg har brug for lidt alene-tid" er OK'],
+    tips_elevated:['Brug sociale scripts til nye situationer','Planlæg pauser mellem sociale aktiviteter','Find sociale sammenhænge med faste rammer (hobby-grupper, strukturerede aktiviteter)']
+  },
+  switching: { name:'Opmærksomhedsskift', emoji:'🔄', color:'#8e44ad',
+    high:'Du har en stærk præference for rutine og forudsigelighed. Uventede ændringer kan udløse markant stress. Denne egenskab er en styrke i kontekster der kræver konsistens og systematik.',
+    elevated:'Du har en moderat præference for struktur. Du klarer ændringer, men de koster mere energi end for de fleste.',
+    typical:'Du balancerer fint mellem struktur og fleksibilitet.',
+    low:'Du er fleksibel og tilpasser dig let nye situationer.',
+    tips_high:['Brug visuelle tidsplaner og overgangsritualer','Giv dig selv varsling: "Om 10 minutter skifter vi opgave"','Etablér faste ankerpunkter i din dag','Ved uventede ændringer: Giv dig selv 5 min til at omstille mentalt'],
+    tips_elevated:['Etablér faste morgen- og aftenrutiner','Hold en buffer i din kalender til uventede hændelser']
+  },
+  detail: { name:'Opmærksomhed på detaljer', emoji:'🔍', color:'#e67e22',
+    high:'Du har exceptionel detaljeperception — Mottron et al. (2006) kalder dette "Enhanced Perceptual Functioning". Du opfanger detaljer, mønstre og sammenhænge som andre overser. Dette er en markant styrke i mange professionelle kontekster.',
+    elevated:'Du er mere detaljeorienteret end gennemsnittet. Du lægger mærke til nuancer og mønstre.',
+    typical:'Din detaljeperception er gennemsnitlig — en balance mellem detaljer og helhedsbillede.',
+    low:'Du fokuserer primært på det overordnede billede (global processering).',
+    tips_high:['Kanalisér din detaljeperception professionelt (kvalitetssikring, research, dataanalyse)','Sæt deadlines for "godt nok" — perfektionisme kan bremse','Brug Pomodoro-teknik for at undgå hyperfokus-fælder','Øv "zoom ud"-øvelser: Stop, træk vejret, se det store billede'],
+    tips_elevated:['Brug din detaljesans som professionel styrke','Vær opmærksom på perfektionistiske tendenser under pres']
+  },
+  communication: { name:'Kommunikation', emoji:'💬', color:'#c0392b',
+    high:'Du oplever markante forskelle i kommunikationsstil sammenlignet med den neurotypiske norm. Du kommunikerer sandsynligvis direkte, ærligt og præcist, men implicitte sociale regler og smalltalk kan kræve bevidst dekodning.',
+    elevated:'Du har moderate kommunikationsudfordringer. Formel kommunikation er typisk en styrke, mens uformel smalltalk kræver mere energi.',
+    typical:'Din kommunikationsstil ligger inden for normalområdet.',
+    low:'Kommunikation falder dig naturligt, inklusive aflæsning af sociale signaler.',
+    tips_high:['Bed om eksplicit kommunikation: "Kan du sige det direkte?"','Forbered 2-3 "sikre" samtaleemner til social small talk','Brug visuelle hjælpemidler (noter, diagrammer) i kommunikation','Din direkte kommunikationsstil er en styrke i professionelle kontekster'],
+    tips_elevated:['Forbered samtale-scripts til nye sociale situationer','Brug PEERS-programmet (Laugeson, 2014) som inspiration']
+  },
+  imagination: { name:'Forestillingsevne', emoji:'💭', color:'#27ae60',
+    high:'Du har en stærkere systematisk end narrativ/fiktiv tænkning. Du foretrækker fakta, logik og systemer over fiktive scenarier. Baron-Cohen kalder dette "hyper-systemizing".',
+    elevated:'Du har en blanding af systematisk og narrativ tænkning, med en vis præference for det systematiske.',
+    typical:'Du balancerer mellem systematisk og fantasifuld tænkning.',
+    low:'Du har stærk forestillingsevne og narrativ tænkning.',
+    tips_high:['Brug strukturerede metoder til perspektivtagning','Spørg direkte i stedet for at antage andres tanker','Kanalisér din systematiske tænkning professionelt','Brug konkrete eksempler fremfor hypotetiske scenarier'],
+    tips_elevated:['Bed om konkrete eksempler i abstrakte diskussioner','Brug din systematiske tænkning som supplement til kreativitet']
+  }
+};
+
+var DOMAIN_KEYS = ['social','switching','detail','communication','imagination'];
+var DOMAIN_COLORS = { social:'#2e6b9e', switching:'#8e44ad', detail:'#e67e22', communication:'#c0392b', imagination:'#27ae60' };
+
+// ── Category/profile data ──
+var CATEGORIES = {
+  high: {
+    label:'Markant', title:'Markant autistisk profil', range:'Score 32–50',
+    color:'#c0392b', bg:'#fdf0ef', border:'#e6a09a',
+    summary:'Din score placerer dig i det interval, hvor ca. 80% af klinisk diagnosticerede autistiske voksne befinder sig (Baron-Cohen et al., 2001). Kun ca. 2% af den generelle kontrolgruppe scorer i dette interval. Din profil indikerer en kognitiv og perceptuel stil, der markant adskiller sig fra den neurotypiske norm — dette er ikke i sig selv en svaghed, men en anderledes neurologisk arkitektur med specifikke styrker og udfordringer.',
+    strengths:[
+      { t:'Hyper-systemisering og mønstergenkendelse', d:'Forskning af Baron-Cohen et al. (2009) viser, at autistiske hjerner er prædisponerede for exceptionel mønstergenkendelse og systemisk tænkning.' },
+      { t:'Skærpet detaljeperception', d:'Mottron et al. (2006) dokumenterede "Enhanced Perceptual Functioning" — en forstærket sansemæssig perception.' },
+      { t:'Konsistens og moralsk integritet', d:'Forskning viser, at autistiske personer er mere konsistente i deres adfærd på tværs af kontekster (Woods & Estes, 2023).' },
+      { t:'Dyb fokusering (hyperfokus)', d:'Evnen til intens, vedvarende koncentration omkring emner af interesse.' }
+    ],
+    challenges:[
+      { t:'Social navigation', d:'Automatisk inferens om andres mentale tilstande kan være mindre intuitiv (Baron-Cohen, 1995).' },
+      { t:'Eksekutive funktioner og fleksibilitet', d:'Op mod 80% af autistiske voksne oplever udfordringer med eksekutive funktioner (Wallace et al., 2016).' },
+      { t:'Sensorisk overbelastning', d:'Sensorisk hypersensitivitet er neurologisk dokumenteret i autisme (Baron-Cohen et al., 2009).' },
+      { t:'Camouflering og udbrændthed', d:'Mange autistiske voksne engagerer sig i "masking", hvilket er forbundet med øget risiko for angst og depression.' }
+    ],
+    exercises:[
+      { t:'Mindfulness-baseret stressreduktion (MBSR)', d:'Et systematisk review fra 2024 (Simione et al.) bekræfter, at mindfulness reducerer angst og stress hos autistiske voksne. Start med 5 minutters krops-scanning.' },
+      { t:'Struktureret daglig rutine med visuel støtte', d:'Brug time-blocking, farvekodet kalender og daglige tjeklister. Faste rutiner reducerer kognitiv belastning markant.' },
+      { t:'Energiregnskab (social energi-budgettering)', d:'Kortlæg dine daglige aktiviteter som energi-givende eller energi-drænende. Planlæg restitutionstid efter sociale begivenheder.' },
+      { t:'Kognitiv adfærdsterapi (CBT) — autisme-tilpasset', d:'Sizoo & Kuiper (2017) dokumenterede, at både CBT og MBSR reducerer angst og depression hos autistiske voksne.' }
+    ],
+    careers:'Softwareudvikling, dataanalyse, videnskabelig forskning, matematik, kreative fag (musik, kunst), revisorarbejde, tekniske specialistfunktioner, kvalitetssikring, arkivering og biblioteksvidenskab.'
+  },
+  elevated: {
+    label:'Forhøjet', title:'Forhøjet autistisk profil', range:'Score 26–31',
+    color:'#d68910', bg:'#fef9e7', border:'#f0d78c',
+    summary:'Din score overstiger den kliniske screeningtærskel på 26 (Woodbury-Smith et al., 2005). Du befinder dig i en gråzone, hvor dine autistiske træk er klinisk signifikante. Yderligere udredning anbefales for at afklare billedet.',
+    strengths:[
+      { t:'Analytisk og systematisk tænkning', d:'Du har sandsynligvis en stærkere end gennemsnitlig tendens til systematisk informationsbehandling.' },
+      { t:'Dybde i interesseområder', d:'Fokuserede interesser kan kanaliseres til professionel ekspertise (Murray et al., 2005).' },
+      { t:'Pålidelighed og direkte kommunikation', d:'Autistisk-kongruent kommunikation er kendetegnet ved ærlighed og præcision.' }
+    ],
+    challenges:[
+      { t:'Social energiforvaltning', d:'Social interaktion kan kræve betydelig kognitiv indsats (Livingston et al., 2019).' },
+      { t:'Fleksibilitet ved uventede ændringer', d:'Uventede planændringer kan forårsage disproportionel stress.' },
+      { t:'Sensorisk følsomhed', d:'Udvalgte sensoriske domæner med forhøjet følsomhed.' }
+    ],
+    exercises:[
+      { t:'Selvobservations-journaling', d:'Hold dagbog over situationer, der dræner eller genoplader dig. Identificér mønstre over 2 uger.' },
+      { t:'Sensorisk profil-kortlægning', d:'Udarbejd et personligt sensorisk profil: Hvilke lyde, lys, teksturer påvirker dig? Planlæg tilpasninger.' },
+      { t:'Strukturerede sociale scripts', d:'Forbered samtale-scripts. PEERS-programmet (Laugeson, 2014) viser forbedrede sociale resultater.' },
+      { t:'Mindfulness og kropsbevidsthed', d:'En meta-analyse fra 2024 bekræfter, at mindfulness forbedrer opmærksomhed og stressregulering.' }
+    ],
+    careers:'Projektledelse i tekniske domæner, UX-research, datavidenskab, teknisk skrivning, forskning og akademia, systemadministration.'
+  },
+  average: {
+    label:'Typisk', title:'Typisk neurokognitiv profil', range:'Score 17–25',
+    color:'#2c7a3e', bg:'#eafaf1', border:'#a3d9b1',
+    summary:'Din score ligger inden for normalområdet (gennemsnit ca. 16,4; Ruzich et al., 2015). En score i dette interval udelukker dog ikke autisme — camouflering kan reducere AQ-scoren markant, særligt hos kvinder (Hull et al., 2017).',
+    strengths:[
+      { t:'Balanceret kognitiv profil', d:'Balance mellem detaljeorientering og helhedstænkning (Happé & Frith, 2006).' },
+      { t:'Social fleksibilitet', d:'Sociale situationer kræver generelt ikke uforholdsmæssig kognitiv energi.' },
+      { t:'Adaptiv opmærksomhedsstyring', d:'Både fokuseret dybdearbejde og fleksibel omstilling.' }
+    ],
+    challenges:[
+      { t:'Specifikke subkliniske træk', d:'Domæner med forhøjet score (6+) kan indikere specifikke autistiske træk trods normal totalscore.' },
+      { t:'Kontekstafhængig belastning', d:'Under stress kan subkliniske træk forstærkes og blive funktionelt begrænsende.' }
+    ],
+    exercises:[
+      { t:'Styrkebaseret selvforståelse', d:'Undersøg dine domænescores for at identificere unikke styrker og potentielle sårbarhedsområder.' },
+      { t:'Generel kognitiv sundhed', d:'Fysisk aktivitet (30+ min/dag), søvnhygiejne og sociale relationer vedligeholder kognitiv fleksibilitet.' }
+    ],
+    careers:'Stor fleksibilitet i karrierevalg. Dine domænescores kan afsløre specifikke styrker du kan bygge videre på.'
+  },
+  low: {
+    label:'Lav', title:'Lav autistisk profil', range:'Score 0–16',
+    color:'#2471a3', bg:'#ebf5fb', border:'#a9cfe3',
+    summary:'Din score ligger under populationsgennemsnittet. En lav AQ-score udelukker dog ikke autisme — camouflering kan kraftigt påvirke resultatet (Hull et al., 2017). Hvis du søgte denne test pga. oplevede udfordringer, bør du overveje formel udredning uanset score.',
+    strengths:[
+      { t:'Intuitiv social navigation', d:'Ubesværet i sociale situationer.' },
+      { t:'Kognitiv fleksibilitet', d:'God evne til at håndtere uventede ændringer og omstille sig.' },
+      { t:'Global processering', d:'Stærk helhedstænkning (Frith, 1989).' }
+    ],
+    challenges:[
+      { t:'Potentiel camouflering', d:'Hvis du søgte denne test pga. oplevede udfordringer, er camouflering en mulighed — særligt hos kvinder.' }
+    ],
+    exercises:[
+      { t:'Overvej komorbide tilstande', d:'ADHD, angst og sensorisk processeringsforstyrrelse kan overlappe med autistiske træk.' },
+      { t:'Selvrefleksion over kompensation', d:'Reflektér over om du "performer" social adfærd automatisk — dette kan indikere ubevidst camouflering.' }
+    ],
+    careers:'Ingen specifikke autisme-relaterede karriereovervejelser. Fokusér på dine individuelle domænescores for indsigt.'
+  }
+};
+
+// ── Build report ──
+function buildReport(data) {
+  var total = data.t || 0;
+  var ds = data.d || {};
+  var cat = data.category || 'average';
+  var catLabel = data.categoryLabel || 'Typisk';
+  var profile = CATEGORIES[cat] || CATEGORIES.average;
+
+  // Cover
+  document.getElementById('cover-profile').textContent = '« ' + profile.title + ' — AQ ' + total + '/50 »';
+  document.getElementById('cover-date').textContent = new Date().toLocaleDateString('da-DK', { year:'numeric', month:'long', day:'numeric' });
+
+  // Red flags
+  var flags = '';
+  if (cat === 'high') {
+    flags = '<div style="padding:20px;border-radius:12px;background:rgba(192,57,43,0.06);border:1px solid rgba(192,57,43,0.2);margin-bottom:16px"><h4 style="color:var(--red);font-size:15px;margin-bottom:6px">⚠️ Klinisk signifikant score — overvej formel udredning</h4><p style="font-size:14px;color:var(--text-2);line-height:1.7">Din score befinder sig i det interval, hvor 80% af diagnosticerede autistiske voksne scorer. Vi anbefaler at drøfte resultatet med din læge og bede om henvisning til specialiseret autismeudredning. Brug "Til din læge"-sektionen nedenfor.</p></div>';
+  }
+  document.getElementById('red-flags').innerHTML = flags;
+
+  // Summary
+  document.getElementById('summary-text').innerHTML = profile.summary;
+
+  // Summary grid
+  var topDomain = DOMAIN_KEYS.reduce(function(a,b){ return (ds[a]||0) > (ds[b]||0) ? a : b; });
+  document.getElementById('summary-grid').innerHTML =
+    '<div class="summary-card"><div class="num" style="color:'+profile.color+'">'+total+'</div><div class="lbl">AQ-50 total (af 50)</div></div>' +
+    '<div class="summary-card"><div class="num" style="color:'+profile.color+'">'+catLabel+'</div><div class="lbl">'+profile.range+'</div></div>' +
+    '<div class="summary-card"><div class="num" style="color:'+profile.color+'">'+(ds[topDomain]||0)+'/10</div><div class="lbl">Højeste: '+DOMAINS[topDomain].name+'</div></div>';
+
+  // Top findings
+  var findings = [];
+  if (total >= 32) findings.push('🔴 Din totalscore på <strong>'+total+'</strong> ligger over den kliniske tærskel (32) — formel udredning anbefales.');
+  else if (total >= 26) findings.push('🟡 Din totalscore på <strong>'+total+'</strong> overstiger screeningtærsklen (26) — yderligere vurdering anbefales.');
+  DOMAIN_KEYS.forEach(function(k){ if ((ds[k]||0) >= 7) findings.push(DOMAINS[k].emoji+' Markant forhøjet <strong>'+DOMAINS[k].name.toLowerCase()+'</strong> ('+ds[k]+'/10) — klinisk relevant.'); });
+  if (findings.length > 0) {
+    document.getElementById('top-findings').innerHTML = '<h3>🔍 Vigtigste fund</h3>' + findings.slice(0,4).map(function(f){ return '<p style="font-size:14px;color:var(--text-2);margin:8px 0;line-height:1.6">'+f+'</p>'; }).join('');
+  }
+
+  // Differential diagnoses
+  if (cat === 'high' || cat === 'elevated') {
+    var ddx = [
+      { emoji:'😰', title:'Social angst', desc:'Social angst kan give undgåelse af sociale situationer, ubehag i grupper og overdreven selvmonitorering — symptomer der overlapper med AQ-50\'s sociale domæne. Forskellen: Social angst er drevet af frygt for negativ vurdering, mens autisme handler om et anderledes socialt processeringsmønster.' },
+      { emoji:'⚡', title:'ADHD', desc:'30-50% af autistiske voksne har også ADHD. Opmærksomhedsproblemer, eksekutive vanskeligheder og impulsivitet kan overlappe. Hvis du scorer højt på begge screeninger, bør begge tilstande udredes.' },
+      { emoji:'😔', title:'Depression/alexithymi', desc:'Depression kan give social tilbagetrækning og flad affekt der ligner autistiske træk. Alexithymi (svært ved at identificere egne følelser) forekommer i både autisme og depression.' },
+      { emoji:'🎭', title:'Personlighedsforstyrrelser', desc:'Visse personlighedstræk (f.eks. undgående eller skizoid personlighed) kan overlappe med AQ-50\'s domæner. Klinisk udredning skelner mellem disse.' },
+      { emoji:'🧠', title:'Sensorisk processeringsforstyrrelse', desc:'Sensorisk overfølsomhed kan forekomme uden autisme. Hvis dine primære udfordringer er sensoriske, kan en ergoterapeut med sensorisk specialisering være relevant.' }
+    ];
+    var ddxHTML = '';
+    ddx.forEach(function(d) {
+      ddxHTML += '<div style="padding:16px;border-radius:12px;background:var(--bg-warm);margin-bottom:12px"><h4 style="font-size:14px;font-weight:600;margin-bottom:6px">'+d.emoji+' '+d.title+'</h4><p style="font-size:14px;color:var(--text-2);line-height:1.7;margin:0">'+d.desc+'</p></div>';
+    });
+    document.getElementById('differential-dx').innerHTML = ddxHTML;
+    document.getElementById('differential-section').style.display = '';
+  }
+
+  // Categories
+  var catHTML = '';
+  [
+    { key:'low', label:'Lav', range:'0–16', desc:'Under gennemsnittet' },
+    { key:'average', label:'Typisk', range:'17–25', desc:'Normalområdet' },
+    { key:'elevated', label:'Forhøjet', range:'26–31', desc:'Over screeningtærskel' },
+    { key:'high', label:'Markant', range:'32–50', desc:'Klinisk signifikant' }
+  ].forEach(function(c){
+    var active = c.key === cat ? ' active' : '';
+    catHTML += '<div class="category-card'+active+'"><h4>'+c.label+'</h4><p>'+c.range+'</p><p style="font-size:10px;color:var(--text-3)">'+c.desc+'</p>'+(active?'<div style="margin-top:6px;font-size:11px;color:var(--accent);font-weight:600">← Din profil</div>':'')+'</div>';
+  });
+  document.getElementById('categories').innerHTML = catHTML;
+
+  // AQ scale
+  document.getElementById('aq-scale').innerHTML =
+    '<div style="position:relative;height:44px;margin:20px 0 8px">' +
+      '<div style="position:absolute;top:16px;left:0;right:0;height:8px;background:linear-gradient(to right, #a9cfe3 0%, #a3d9b1 33%, #f0d78c 52%, #e6a09a 100%);border-radius:4px"></div>' +
+      '<div style="position:absolute;top:4px;left:'+Math.min((total/50)*100,98)+'%;transform:translateX(-50%);transition:left 1s cubic-bezier(0.22,1,0.36,1)"><div style="width:20px;height:20px;border-radius:50%;background:var(--bg-dark);border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.2)"></div></div>' +
+    '</div>' +
+    '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-3)"><span>0</span><span>Gns. (16,4)</span><span>Screen (26)</span><span>Klinisk (32)</span><span>50</span></div>';
+
+  // Radar
+  buildRadar(DOMAIN_KEYS.map(function(k){ return { name:DOMAINS[k].name, pct:(ds[k]||0)*10, color:DOMAINS[k].color }; }));
+
+  // Domain detail
+  var domainsHTML = '';
+  DOMAIN_KEYS.forEach(function(k){
+    var dom = DOMAINS[k];
+    var score = ds[k] || 0;
+    var pct = score * 10;
+    var level = score >= 7 ? 'high' : score >= 5 ? 'elevated' : score >= 3 ? 'typical' : 'low';
+    var desc = dom[level] || dom.typical;
+    var levelLabel = score >= 8 ? 'Meget høj' : score >= 6 ? 'Forhøjet' : score >= 4 ? 'Moderat' : 'Lav';
+    var levelColor = score >= 8 ? '#c0392b' : score >= 6 ? '#d68910' : score >= 4 ? '#7d8c42' : '#2471a3';
+    var tips = score >= 7 ? (dom.tips_high || []) : score >= 5 ? (dom.tips_elevated || []) : [];
+
+    domainsHTML += '<div class="domain-block">' +
+      '<div class="domain-header">' +
+        '<span style="font-size:22px">'+dom.emoji+'</span>' +
+        '<span class="domain-name">'+dom.name+'</span>' +
+        '<span style="font-size:12px;padding:3px 10px;border-radius:12px;background:'+levelColor+'18;color:'+levelColor+';font-weight:600;margin-left:auto;margin-right:12px">'+levelLabel+'</span>' +
+        '<span class="domain-score" style="color:'+dom.color+'">'+score+'<span style="font-size:12px;font-weight:400;color:var(--text-3)">/10</span></span>' +
+      '</div>' +
+      '<div class="domain-bar"><div class="domain-bar-fill" style="width:'+pct+'%;background:'+dom.color+'"></div></div>' +
+      '<p class="domain-desc">'+desc+'</p>';
+
+    if (tips.length > 0) {
+      domainsHTML += '<div style="margin-top:12px;padding:12px 16px;border-radius:10px;background:var(--accent-light);font-size:13px"><strong style="color:var(--accent)">Anbefalinger:</strong><ul style="padding-left:16px;margin-top:6px;color:var(--text-2)">';
+      tips.forEach(function(t){ domainsHTML += '<li style="margin-bottom:4px">'+t+'</li>'; });
+      domainsHTML += '</ul></div>';
+    }
+    domainsHTML += '</div>';
+  });
+  document.getElementById('domains-detail').innerHTML = domainsHTML;
+
+  // Strengths & Challenges
+  document.getElementById('strengths-challenges').innerHTML =
+    '<div class="sc-card strengths"><h3 style="color:#3B9979">✦ Styrker</h3>' + profile.strengths.map(function(s){ return '<div class="sc-item"><strong>'+s.t+'</strong><span style="font-size:13px;color:var(--text-2)">'+s.d+'</span></div>'; }).join('') + '</div>' +
+    '<div class="sc-card challenges"><h3 style="color:#c0392b">✧ Udfordringer</h3>' + profile.challenges.map(function(c){ return '<div class="sc-item"><strong>'+c.t+'</strong><span style="font-size:13px;color:var(--text-2)">'+c.d+'</span></div>'; }).join('') + '</div>';
+
+  // Sensory profile
+  var sensoryHTML = '';
+  var detailScore = ds.detail || 0;
+  var socialScore = ds.social || 0;
+  var switchScore = ds.switching || 0;
+
+  var sensoryAreas = [
+    { icon:'👂', title:'Lyd', level: detailScore >= 6 ? 'Forhøjet følsomhed' : 'Moderat', desc: detailScore >= 6 ? 'Du lægger sandsynligvis mærke til lyde, andre ikke hører. Støjende miljøer kan være overvældende. Overvej støjreducerende høretelefoner.' : 'Du har moderat lydfølsomhed. Du kan opleve ubehag ved visse lyde.', color: detailScore >= 6 ? '#c0392b' : '#7d8c42' },
+    { icon:'👁️', title:'Syn/lys', level: detailScore >= 7 ? 'Forhøjet følsomhed' : 'Moderat', desc: detailScore >= 7 ? 'Stærkt lys (fluorescerende belysning, sollys) kan være belastende. Overvej blålysfilter og dæmpet belysning.' : 'Din visuelle processering er typisk, men du kan have præferencer for bestemte lysforhold.', color: detailScore >= 7 ? '#c0392b' : '#7d8c42' },
+    { icon:'🤲', title:'Berøring/tekstur', level: switchScore >= 6 ? 'Muligt forhøjet' : 'Typisk', desc: switchScore >= 6 ? 'Du kan have præferencer for bestemte materialer og teksturer. Sømme, mærkater eller visse stoffer kan være irriterende.' : 'Din taktile processering ligger sandsynligvis inden for normalområdet.', color: switchScore >= 6 ? '#d68910' : '#2c7a3e' },
+    { icon:'👃', title:'Lugt', level: detailScore >= 5 ? 'Muligt forhøjet' : 'Typisk', desc: detailScore >= 5 ? 'Din detaljeperception kan inkludere forstærket lugtsans. Stærke parfumer eller kemiske lugte kan forstyrre.' : 'Din lugtsans ligger typisk inden for normalområdet.', color: detailScore >= 5 ? '#d68910' : '#2c7a3e' },
+    { icon:'🧠', title:'Social stimulation', level: socialScore >= 6 ? 'Forhøjet belastning' : 'Moderat', desc: socialScore >= 6 ? 'Sociale situationer er en markant kilde til sensorisk og kognitiv belastning. Du har behov for planlagt restitution.' : 'Sociale situationer kræver moderat energi. Du kan deltage, men bør planlæg pauser.', color: socialScore >= 6 ? '#c0392b' : '#7d8c42' },
+    { icon:'⚡', title:'Overbelastning', level: total >= 26 ? 'Risiko for meltdown/shutdown' : 'Lav risiko', desc: total >= 26 ? 'Ved akkumuleret sensorisk/social overbelastning er der risiko for meltdown (udadreagerende) eller shutdown (indadvendt nedlukning). Lær dine advarselssignaler at kende.' : 'Din overordnede belastningsrisiko er moderat. Du har sandsynligvis gode coping-mekanismer.', color: total >= 26 ? '#c0392b' : '#2c7a3e' }
+  ];
+
+  sensoryHTML += '<div class="sensory-grid">';
+  sensoryAreas.forEach(function(s){
+    sensoryHTML += '<div class="sensory-card"><div class="icon">'+s.icon+'</div><h4>'+s.title+'</h4><div style="font-size:11px;padding:3px 10px;border-radius:10px;background:'+s.color+'18;color:'+s.color+';font-weight:600;display:inline-block;margin-bottom:6px">'+s.level+'</div><p>'+s.desc+'</p></div>';
+  });
+  sensoryHTML += '</div>';
+
+  if (total >= 26) {
+    sensoryHTML += '<div style="margin-top:16px;padding:16px;border-radius:10px;background:var(--accent-light);font-size:13px;color:var(--text-2);line-height:1.7"><strong>💡 Sensorisk beredskabsplan:</strong> Identificér dine top-3 sensoriske triggere. Lav en "nødkit" (ørepropper, solbriller, fidget toy, tyggegummi) og planlæg flugtmuligheder til sociale begivenheder.</div>';
+  }
+  document.getElementById('sensory-profile').innerHTML = sensoryHTML;
+
+  // Masking analysis
+  var maskHTML = '';
+  var maskRisk = 'lav';
+  var maskScore = 0;
+  if (socialScore >= 5) maskScore++;
+  if ((ds.communication || 0) >= 5) maskScore++;
+  if (total >= 26) maskScore++;
+  if (cat === 'high') maskScore++;
+  maskRisk = maskScore >= 3 ? 'høj' : maskScore >= 2 ? 'moderat' : 'lav';
+
+  var maskColor = maskRisk === 'høj' ? '#c0392b' : maskRisk === 'moderat' ? '#d68910' : '#2c7a3e';
+  maskHTML += '<div style="padding:20px;border-radius:12px;background:'+maskColor+'08;border:1px solid '+maskColor+'30;margin-bottom:16px">';
+  maskHTML += '<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px"><span style="font-size:24px">🎭</span><div><div style="font-family:var(--serif);font-size:17px;font-weight:600">Maskingsrisiko: '+maskRisk.charAt(0).toUpperCase()+maskRisk.slice(1)+'</div><div style="font-size:12px;color:var(--text-3)">Baseret på din social- og kommunikationsprofil</div></div></div>';
+
+  if (maskRisk === 'høj') {
+    maskHTML += '<p style="font-size:14px;color:var(--text-2);line-height:1.7;margin-bottom:12px">Din profil tyder på, at du sandsynligvis bruger betydelig energi på at camouflere autistiske træk. Hull et al. (2017) viste, at kvinder masker mere end mænd, og at masking er forbundet med forsinket diagnose, angst, depression og udbrændthed.</p>';
+    maskHTML += '<h4 style="font-size:14px;font-weight:600;margin-bottom:8px">Tegn på camouflering:</h4>';
+    maskHTML += '<ul style="padding-left:18px;font-size:13px;color:var(--text-2);line-height:1.7"><li>Du føler dig udmattet efter sociale situationer der virker "lette" for andre</li><li>Du kopierer andres kropssprog, ansigtsudtryk eller talemåder</li><li>Du føler dig "falsk" eller som om du spiller en rolle</li><li>Du har brug for lang restitutionstid alene efter sociale begivenheder</li><li>Folk er overraskede når du fortæller om dine udfordringer</li></ul>';
+    maskHTML += '<div style="margin-top:12px;padding:12px 16px;border-radius:10px;background:var(--bg-warm)"><strong style="font-size:13px">Anbefaling:</strong><span style="font-size:13px;color:var(--text-2)"> Reducér gradvist masking i trygge miljøer. Find autistiske fællesskaber hvor du kan være dig selv. Overvej terapi med en autisme-specialiseret terapeut.</span></div>';
+  } else if (maskRisk === 'moderat') {
+    maskHTML += '<p style="font-size:14px;color:var(--text-2);line-height:1.7">Du har moderate tegn på camouflering. Du tilpasser sandsynligvis din adfærd i sociale situationer, men ikke i ekstrem grad. Vær opmærksom på energiforbruget ved social tilpasning.</p>';
+  } else {
+    maskHTML += '<p style="font-size:14px;color:var(--text-2);line-height:1.7">Din profil tyder ikke på markant camouflering. Du præsenterer dig sandsynligvis autentisk i de fleste situationer.</p>';
+  }
+  maskHTML += '</div>';
+
+  // CAT-Q reference
+  maskHTML += '<div style="padding:16px;border-radius:10px;background:var(--bg-warm);font-size:13px;color:var(--text-2);line-height:1.7"><strong>Videnskabelig baggrund:</strong> Camouflering er målt med CAT-Q (Camouflaging Autistic Traits Questionnaire; Hull et al., 2019). AQ-50 måler ikke direkte masking, men din profil giver indicier. Kvinder scorer gennemsnitligt lavere på AQ-50 trods samme symptomintensitet — dette tilskrives camouflering.</div>';
+  document.getElementById('masking-analysis').innerHTML = maskHTML;
+
+  // Coping toolkit
+  document.getElementById('coping-toolkit').innerHTML = profile.exercises.map(function(e){
+    return '<div class="coping-card"><h4>'+e.t+'</h4><p>'+e.d+'</p></div>';
+  }).join('');
+
+  // Support section
+  var supHTML = '';
+  supHTML += '<div style="margin-bottom:16px"><h3>🧠 Terapi & psykologisk støtte</h3>';
+  supHTML += '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px;margin:12px 0">';
+  supHTML += '<thead><tr style="border-bottom:2px solid var(--border-2)"><th style="text-align:left;padding:10px 8px;font-weight:600;font-size:12px;color:var(--text-3)">Tilgang</th><th style="text-align:left;padding:10px 8px;font-weight:600;font-size:12px;color:var(--text-3)">Evidens</th><th style="text-align:left;padding:10px 8px;font-weight:600;font-size:12px;color:var(--text-3)">Hjælper med</th></tr></thead><tbody>';
+  [
+    { name:'CBT (autisme-tilpasset)', ev:'Moderat', helps:'Angst, depression, rigide tankemønstre' },
+    { name:'MBSR / Mindfulness', ev:'Moderat', helps:'Stressregulering, sensorisk overbelastning, angst' },
+    { name:'Ergoterapi (sensorisk)', ev:'Moderat', helps:'Sensorisk integration, hverdagsmestring' },
+    { name:'Social færdighedstræning', ev:'Moderat', helps:'Social navigation, kommunikation' },
+    { name:'Acceptance & Commitment Therapy', ev:'Lovende', helps:'Selvaccept, psykologisk fleksibilitet' }
+  ].forEach(function(t){
+    supHTML += '<tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 8px"><strong>'+t.name+'</strong></td><td style="padding:10px 8px">'+t.ev+'</td><td style="padding:10px 8px;color:var(--text-2)">'+t.helps+'</td></tr>';
+  });
+  supHTML += '</tbody></table></div></div>';
+
+  supHTML += '<div style="padding:16px;border-radius:10px;background:var(--accent-light);font-size:13px;color:var(--text-2);line-height:1.7;margin-bottom:16px"><strong>Vigtigt:</strong> Autisme er ikke en sygdom og kræver ikke "behandling" af selve autismen. Støtte fokuserer på at reducere barrierer, styrke coping-strategier og behandle eventuelle komorbide tilstande (angst, depression, ADHD).</div>';
+
+  if (cat === 'high' || cat === 'elevated') {
+    supHTML += '<div style="margin-bottom:16px"><h3>💊 Medicin (kun ved komorbiditet)</h3>';
+    supHTML += '<p style="font-size:13px;color:var(--text-3);margin-bottom:12px">Der findes ingen medicin mod autisme. Medicin bruges kun til komorbide tilstande:</p>';
+    supHTML += '<ul style="padding-left:18px;font-size:14px;color:var(--text-2);line-height:1.8">';
+    supHTML += '<li><strong>Angst:</strong> SSRI (Sertralin, Escitalopram) — moderat evidens</li>';
+    supHTML += '<li><strong>ADHD (40% komorbiditet):</strong> Stimulanter (Elvanse/Ritalin) — stærk evidens</li>';
+    supHTML += '<li><strong>Søvnproblemer (50-80%):</strong> Melatonin — moderat evidens</li>';
+    supHTML += '<li><strong>Depression:</strong> SSRI — moderat evidens, men start lavt og titrer langsomt</li>';
+    supHTML += '</ul></div>';
+  }
+
+  supHTML += '<div><h3>🏠 Hverdagstilpasninger</h3>';
+  supHTML += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">';
+  [
+    { t:'Sensorisk miljø', d:'Dæmpet belysning, støjreducering, behagelige tekstiler. Skab en "safe space" derhjemme.' },
+    { t:'Visuel struktur', d:'Brug time-blocking, farvekodet kalender, tjeklister. Ydre struktur kompenserer for indre kaos.' },
+    { t:'Sociale strategier', d:'Planlæg sociale pauser, brug scripts, kommunikér dine behov tydeligt til nære relationer.' },
+    { t:'Energiforvaltning', d:'Spoon theory: Du har begrænsede "spoons" (energienheder). Planlæg og prioritér dit forbrug.' }
+  ].forEach(function(a){
+    supHTML += '<div style="padding:16px;border-radius:12px;background:var(--bg-warm)"><h4 style="font-size:14px;font-weight:600;margin-bottom:6px">'+a.t+'</h4><p style="font-size:13px;color:var(--text-2);line-height:1.6">'+a.d+'</p></div>';
+  });
+  supHTML += '</div></div>';
+  document.getElementById('support-section').innerHTML = supHTML;
+
+  // Career section
+  var careerHTML = '<p style="font-size:14px;color:var(--text-2);line-height:1.7;margin-bottom:16px">'+profile.careers+'</p>';
+
+  // Domain-specific career insights
+  var careerInsights = [];
+  if ((ds.detail || 0) >= 6) careerInsights.push({ icon:'🔍', title:'Detaljeorienterede roller', desc:'Kvalitetssikring, revision, dataanalyse, forskning, programmering — din exceptionelle detaljeperception er eftertragtet.' });
+  if ((ds.switching || 0) >= 6) careerInsights.push({ icon:'🔄', title:'Rutinebaserede roller', desc:'Jobfunktioner med forudsigelig struktur: administration, systemvedligeholdelse, laboratoriearbejde, logistik.' });
+  if ((ds.imagination || 0) >= 6) careerInsights.push({ icon:'💭', title:'Systematiske roller', desc:'Roller der belønner logisk/systematisk tænkning: programmering, matematik, ingeniørarbejde, videnskab.' });
+  if ((ds.social || 0) <= 4) careerInsights.push({ icon:'👥', title:'Sociale roller mulige', desc:'Din sociale profil tillader roller med moderate sociale krav: projektledelse, undervisning, rådgivning.' });
+
+  if (careerInsights.length > 0) {
+    careerHTML += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">';
+    careerInsights.forEach(function(c){
+      careerHTML += '<div style="padding:16px;border-radius:12px;background:var(--bg-warm)"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:20px">'+c.icon+'</span><h4 style="font-size:14px;font-weight:600">'+c.title+'</h4></div><p style="font-size:13px;color:var(--text-2);line-height:1.6">'+c.desc+'</p></div>';
+    });
+    careerHTML += '</div>';
+  }
+
+  careerHTML += '<div style="margin-top:16px;padding:16px;border-radius:10px;background:var(--bg-warm);font-size:13px;color:var(--text-2);line-height:1.7"><strong>Arbejdsplads-tilpasninger:</strong> Under dansk lovgivning har du ret til rimelige tilpasninger. Overvej: fleksibel arbejdstid, hjemmearbejde, skærmede arbejdspladser, skriftlige instruktioner, og forudsigelige mødestrukturer.</div>';
+  document.getElementById('career-section').innerHTML = careerHTML;
+
+  // Action plan
+  var actions = [];
+  if (cat === 'high') {
+    actions.push({ title:'📅 Denne uge', items:['Book tid hos din læge til at drøfte dine AQ-50 resultater','Lav din personlige sensoriske profil: Skriv top-5 triggere ned','Start et "energiregnskab": Hvad dræner? Hvad genoplader?'] });
+    actions.push({ title:'📋 Inden for 1 måned', items:['Bed om henvisning til specialiseret autismeudredning','Find et autistisk fællesskab online (fx Autismeforeningen)','Etablér en fast daglig rutine med visuel støtte','Anskaf et sensorisk nødkit (ørepropper, solbriller, fidget)'] });
+    actions.push({ title:'🎯 Inden for 3 måneder', items:['Gennemfør formel udredning (ventetid varierer)','Overvej autisme-specialiseret terapeut','Identificér arbejdsplads-tilpasninger der kan hjælpe','Del dine resultater med nære relationer (når du er klar)'] });
+  } else if (cat === 'elevated') {
+    actions.push({ title:'📅 Denne uge', items:['Reflektér over dine domænescores — hvilke matcher dine oplevelser?','Start selvobservations-journaling: Hvad koster energi?','Undersøg Autismeforeningens ressourcer'] });
+    actions.push({ title:'📋 Inden for 1 måned', items:['Tal med din læge om dine resultater','Overvej formel udredning for afklaring','Prøv mindfulness (5 min/dag) — start med apps som Headspace'] });
+    actions.push({ title:'🎯 Inden for 3 måneder', items:['Vurder om formel autismeudredning vil gavne dig','Implementér de mest relevante hverdagstilpasninger','Opbyg et støttenetværk (online eller lokalt)'] });
+  } else {
+    actions.push({ title:'📅 Denne uge', items:['Gennemgå dine domænescores for eventuelle spidser','Reflektér over om du genkender camouflering hos dig selv'] });
+    actions.push({ title:'📋 Inden for 1 måned', items:['Overvej om komorbide tilstande (ADHD, angst) bør udredes','Optimér din generelle kognitive sundhed: motion, søvn, stressreduktion'] });
+    actions.push({ title:'🎯 Langsigtede mål', items:['Brug dine domæne-styrker aktivt i karriere og hverdag','Vedligehold sund livsstil og stressforebyggelse'] });
+  }
+  document.getElementById('action-plan').innerHTML = actions.map(function(a){
+    return '<div class="action-card"><h4>'+a.title+'</h4><ul>'+a.items.map(function(i){return '<li>'+i+'</li>';}).join('')+'</ul></div>';
+  }).join('');
+
+  // Doctor section
+  var docHTML = '<div style="font-size:14px;line-height:1.8;color:var(--text-2)">';
+  docHTML += '<h3 style="margin-bottom:12px">Klinisk opsummering</h3>';
+  docHTML += '<p><strong>Test:</strong> AQ-50 (Autism Spectrum Quotient; Baron-Cohen et al., 2001)</p>';
+  docHTML += '<p><strong>Dato:</strong> '+new Date().toLocaleDateString('da-DK')+'</p>';
+  docHTML += '<p><strong>Total AQ-score:</strong> '+total+'/50 — '+catLabel+' ('+profile.range+')</p>';
+  docHTML += '<p><strong>Domænescores:</strong> Social '+( ds.social||0)+'/10 · Skift '+(ds.switching||0)+'/10 · Detaljer '+(ds.detail||0)+'/10 · Kommunikation '+(ds.communication||0)+'/10 · Forestilling '+(ds.imagination||0)+'/10</p>';
+  if (cat === 'high') docHTML += '<p style="color:var(--red)"><strong>Klinisk signifikant score — henvisning til autismeudredning anbefales.</strong></p>';
+  else if (cat === 'elevated') docHTML += '<p style="color:var(--yellow)"><strong>Score over screeningtærskel — yderligere vurdering anbefales.</strong></p>';
+
+  docHTML += '<h3 style="margin-top:20px;margin-bottom:12px">Normative referencedata</h3>';
+  docHTML += '<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="border-bottom:2px solid var(--border-2)"><th style="text-align:left;padding:8px 0">Gruppe</th><th style="text-align:center;padding:8px 0">Gns. AQ</th><th style="text-align:center;padding:8px 0">Patientens score</th></tr></thead><tbody>';
+  [{ g:'Generel befolkning', s:'16,4' },{ g:'Screeningtærskel', s:'26' },{ g:'Klinisk tærskel', s:'32' },{ g:'Diagnosticerede voksne', s:'35,8' }].forEach(function(r){
+    docHTML += '<tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 0;color:var(--text-2)">'+r.g+'</td><td style="text-align:center;padding:8px 0;color:var(--text-3);font-family:var(--serif)">'+r.s+'</td><td style="text-align:center;padding:8px 0;font-weight:700;color:'+profile.color+';font-family:var(--serif)">'+total+'</td></tr>';
+  });
+  docHTML += '</tbody></table>';
+
+  docHTML += '<h3 style="margin-top:20px;margin-bottom:12px">Samtaleguide — sætninger du kan bruge</h3>';
+  docHTML += '<ul style="padding-left:18px">';
+  docHTML += '<li>"Jeg har taget en valideret autisme-screening (AQ-50) og scorer '+total+' af 50, hvilket er '+(cat==='high'?'klinisk signifikant':cat==='elevated'?'over screeningtærsklen':'inden for normalområdet')+'."</li>';
+  if (cat === 'high' || cat === 'elevated') {
+    docHTML += '<li>"Mine primære udfordringer ligger i '+(DOMAIN_KEYS.filter(function(k){return (ds[k]||0)>=6;}).map(function(k){return DOMAINS[k].name.toLowerCase();}).join(', ') || 'flere domæner')+'."</li>';
+    docHTML += '<li>"Jeg vil gerne bede om en henvisning til specialiseret autismeudredning."</li>';
+    docHTML += '<li>"Jeg har medbragt en opsummering af mine resultater som udgangspunkt for samtalen."</li>';
+  }
+  docHTML += '</ul>';
+  docHTML += '<p style="margin-top:12px;font-size:12px;color:var(--text-3)"><strong>Kliniske cutoffs:</strong> Screeningtærskel 26+ (Woodbury-Smith et al., 2005; sensitivitet 95%, specificitet 52%). Klinisk tærskel 32+ (Baron-Cohen et al., 2001; 80% af diagnosticerede scorer her).</p>';
+  docHTML += '</div>';
+  document.getElementById('doctor-section').innerHTML = docHTML;
+
+  // Resources
+  var resHTML = '';
+  resHTML += '<div style="margin-bottom:16px"><h4 style="font-size:14px;font-weight:600;margin-bottom:8px">📖 Bøger</h4><ul style="padding-left:18px;font-size:14px;color:var(--text-2)"><li style="margin-bottom:4px"><em>Anderledes normal</em> — Nanna Filt Frandsen (dansk)</li><li style="margin-bottom:4px"><em>Unmasking Autism</em> — Devon Price</li><li style="margin-bottom:4px"><em>Neurotribes</em> — Steve Silberman</li><li style="margin-bottom:4px"><em>Is This Autism?</em> — Donna Henderson et al.</li></ul></div>';
+  resHTML += '<div style="margin-bottom:16px"><h4 style="font-size:14px;font-weight:600;margin-bottom:8px">🇩🇰 Danske organisationer</h4><ul style="padding-left:18px;font-size:14px;color:var(--text-2)"><li style="margin-bottom:4px">Autismeforeningen (autismeforening.dk) — rådgivning, netværk, videnscenter</li><li style="margin-bottom:4px">Landsforeningen Autisme (LFA) — politisk interesseorganisation</li><li style="margin-bottom:4px">Specialisterne (specialisterne.dk) — autisme-fokuseret rekruttering</li><li style="margin-bottom:4px">Psykiatrifonden (psykiatrifonden.dk)</li><li style="margin-bottom:4px">Din egen læge → henvisning til specialiseret autismeudredning</li></ul></div>';
+  resHTML += '<div style="margin-bottom:16px"><h4 style="font-size:14px;font-weight:600;margin-bottom:8px">🌐 Online fællesskaber</h4><ul style="padding-left:18px;font-size:14px;color:var(--text-2)"><li style="margin-bottom:4px">r/autism og r/AutismInWomen (Reddit)</li><li style="margin-bottom:4px">Facebook-grupper: "Autisme i Danmark", "Kvinder med autisme DK"</li><li style="margin-bottom:4px">Wrong Planet (wrongplanet.net) — internationalt forum</li></ul></div>';
+  resHTML += '<div><h4 style="font-size:14px;font-weight:600;margin-bottom:8px">🔬 Videnskab</h4><ul style="padding-left:18px;font-size:14px;color:var(--text-2)"><li style="margin-bottom:4px">Baron-Cohen et al. (2001). The AQ. J. Autism Dev. Disord., 31(1), 5–17.</li><li style="margin-bottom:4px">Mottron et al. (2006). Enhanced perceptual functioning. JADD.</li><li style="margin-bottom:4px">Hull et al. (2017). "Putting on my best normal." JADD, 47, 2519–2534.</li><li style="margin-bottom:4px">Hull et al. (2019). CAT-Q. JADD, 49, 819–833.</li><li style="margin-bottom:4px">Woodbury-Smith et al. (2005). Screening adults for Asperger. JADD.</li><li style="margin-bottom:4px">Happé & Frith (2006). Weak coherence account. JADD.</li><li style="margin-bottom:4px">Simione et al. (2024). MBIs for ASD. Brain Sciences.</li><li style="margin-bottom:4px">Sizoo & Kuiper (2017). CBT and MBSR for ASD. RASD.</li></ul></div>';
+  document.getElementById('resources').innerHTML = resHTML;
+
+  // Expectations
+  var expHTML = '<div style="font-size:14px;color:var(--text-2);line-height:1.7">';
+  if (cat === 'high' || cat === 'elevated') {
+    expHTML += '<div style="margin-bottom:16px"><strong>🏥 Udredningsforløb:</strong> I Danmark henviser din læge til en specialiseret psykiatrisk afdeling. Udredningen tager typisk 2-6 måneder og inkluderer klinisk interview, anamneseoptagelse, pårørendeinterview og neuropsykologisk testning. Ventetiden varierer fra 3-18 måneder afhængigt af region.</div>';
+    expHTML += '<div style="margin-bottom:16px"><strong>📋 Hvad en diagnose kan give:</strong> Selvforståelse, adgang til støtte og tilpasninger, fællesskab med andre autistiske, mulighed for specialiseret terapi, arbejdsplads-tilpasninger under lovgivning.</div>';
+    expHTML += '<div style="margin-bottom:16px"><strong>🧠 Terapi:</strong> CBT og mindfulness viser effekt inden for 8-16 sessioner. Fokus er på angst/depression (komorbiditet), ikke på at "fikse" autisme. ACT (Acceptance & Commitment Therapy) er lovende for selvaccept.</div>';
+  }
+  expHTML += '<div style="margin-bottom:16px"><strong>💚 Hvad selvforståelse KAN:</strong> Reducere selvkritik ("der er intet galt med mig — min hjerne fungerer anderledes"). Forbedre relationer (nære kan forstå dine behov bedre). Give redskaber til at navigere en neurotypisk verden. Styrke selvaccept og autentisk selvudtryk.</div>';
+  expHTML += '<div style="margin-bottom:16px"><strong>❌ Hvad det IKKE handler om:</strong> Autisme er ikke en sygdom der skal kureres. Det handler ikke om at "blive normal", men om at finde din vej — med de styrker og udfordringer din neurologiske profil bringer.</div>';
+  if (cat === 'high') {
+    expHTML += '<div style="padding:16px;border-radius:10px;background:rgba(192,57,43,0.06);border:1px solid rgba(192,57,43,0.2)"><strong>🆘 Hvis du er i krise:</strong> Ring til Livslinien: 70 201 201 (24/7). Psykiatrisk akutmodtagelse: Ring 1813 (Region H) eller 112.</div>';
+  }
+  expHTML += '</div>';
+  document.getElementById('expectations').innerHTML = expHTML;
+}
+
+// ── Radar chart ──
+function buildRadar(dims) {
+  var n = dims.length;
+  var cx = 170, cy = 170, R = 130;
+  var step = (2 * Math.PI) / n;
+  var start = -Math.PI / 2;
+  function p(a, r) { return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; }
+
+  var svg = '<svg viewBox="0 0 340 360" xmlns="http://www.w3.org/2000/svg">';
+
+  // Grid rings
+  for (var ring = 1; ring <= 4; ring++) {
+    var r = R * ring / 4;
+    var pts = [];
+    for (var i = 0; i < n; i++) pts.push(p(start + i * step, r).join(','));
+    svg += '<polygon points="'+pts.join(' ')+'" fill="none" stroke="rgba(0,0,0,0.06)" stroke-width="1"/>';
+    if (ring === 2) svg += '<text x="'+(cx+4)+'" y="'+(cy-r+12)+'" fill="rgba(0,0,0,0.15)" font-size="9" font-family="Figtree">50%</text>';
+  }
+
+  // Axes
+  for (var i = 0; i < n; i++) {
+    var ep = p(start + i * step, R);
+    svg += '<line x1="'+cx+'" y1="'+cy+'" x2="'+ep[0]+'" y2="'+ep[1]+'" stroke="rgba(0,0,0,0.08)" stroke-width="1"/>';
+  }
+
+  // Data polygon
+  var dataPts = [];
+  for (var i = 0; i < n; i++) dataPts.push(p(start + i * step, R * (dims[i].pct / 100)).join(','));
+  svg += '<polygon points="'+dataPts.join(' ')+'" fill="rgba(58,125,94,0.12)" stroke="#3a7d5e" stroke-width="2.5"/>';
+
+  // Dots + labels
+  for (var i = 0; i < n; i++) {
+    var dp = p(start + i * step, R * (dims[i].pct / 100));
+    svg += '<circle cx="'+dp[0]+'" cy="'+dp[1]+'" r="5" fill="'+dims[i].color+'" stroke="#fff" stroke-width="2"/>';
+    var lp = p(start + i * step, R + 28);
+    var anchor = lp[0] < cx - 10 ? 'end' : lp[0] > cx + 10 ? 'start' : 'middle';
+    svg += '<text x="'+lp[0]+'" y="'+(lp[1]+4)+'" text-anchor="'+anchor+'" fill="var(--text-2)" font-size="11" font-weight="500" font-family="Figtree,sans-serif">'+dims[i].name+'</text>';
+    svg += '<text x="'+lp[0]+'" y="'+(lp[1]+19)+'" text-anchor="'+anchor+'" fill="'+dims[i].color+'" font-size="14" font-weight="700" font-family="Source Serif 4,serif">'+dims[i].pct+'%</text>';
+  }
+
+  svg += '</svg>';
+  document.getElementById('radar').innerHTML = svg;
+}
+
+// ── PDF download ──
+function downloadPDF() {
+  var el = document.getElementById('report-content');
+  var opt = {
+    margin: [10, 10, 10, 10],
+    filename: 'Hjernebarometeret-Autisme-Rapport.pdf',
+    image: { type: 'jpeg', quality: 0.95 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+  };
+  html2pdf().set(opt).from(el).save();
+}
+
+// ── Init ──
+(async function init() {
+  // Handle payment return
+  var paymentReturn = false;
+  if (window.HB_PAY) {
+    var ret = HB_PAY.handleReturn();
+    if (ret && ret.success) {
+      paymentReturn = true;
+      if (ret.token) localStorage.setItem('hb_report_token_autisme', ret.token);
+    }
+  }
+
+  // Wait for auth
+  if (window.HB_AUTH) await new Promise(function(r){ HB_AUTH.onReady(r); });
+
+  // Check access
+  var hasAccess = false;
+  if (window.HB_AUTH && HB_AUTH.isAdmin()) {
+    hasAccess = true;
+  } else if (paymentReturn && window.HB_PAY) {
+    document.querySelector('#loading p').textContent = 'Bekræfter betaling...';
+    hasAccess = await HB_PAY.waitForAccess('autisme', 10);
+  } else if (window.HB_PAY) {
+    hasAccess = await HB_PAY.hasAccess('autisme');
+  }
+
+  if (!hasAccess) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('no-access').style.display = 'block';
+    return;
+  }
+
+  // Load results
+  var data = null;
+  if (window.HB_PAY) data = HB_PAY.loadResults('autisme');
+  if (!data && window.HB_PAY) data = await HB_PAY.loadResultsFromDB('autisme');
+
+  if (!data) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('no-access').style.display = 'block';
+    document.querySelector('#no-access h1').textContent = '📊 Ingen resultater fundet';
+    document.querySelector('#no-access p').textContent = 'Du skal gennemføre autisme-testen først, før du kan se din rapport.';
+    document.querySelector('#no-access .buy-btn').textContent = 'Tag autisme-testen';
+    document.querySelector('#no-access .buy-btn').onclick = function(){ window.location.href='/tests/autisme.html'; };
+    return;
+  }
+
+  // Build report
+  buildReport(data);
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('report').style.display = 'block';
+})();
+</script>
+
+</body>
+</html>

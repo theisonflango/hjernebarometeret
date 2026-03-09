@@ -7,7 +7,7 @@
 <meta name="description" content="Gratis professionel IQ-test. 40 kalibrerede spørgsmål på tværs af 6 kognitive kategorier.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,500&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared/styles.css">
+<link rel="stylesheet" href="../shared/styles.css">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#faf9f7;--bg-card:#fff;--bg-warm:#f5f2ee;--bg-dark:#1c1b1a;--text:#1c1b1a;--text-2:#5a5650;--text-3:#8a857e;--text-4:#b5b0a8;--border:#e8e5e0;--border-2:#d5d0c9;--accent:#2c5f4b;--accent-light:#e8f0ec;--serif:'Source Serif 4',Georgia,serif;--sans:'Figtree',system-ui,sans-serif}
@@ -29,10 +29,10 @@ button{font-family:inherit;cursor:pointer}a{font-family:inherit;text-decoration:
 <div id="site-nav"></div>
 <div id="app"></div>
 <div id="site-footer"></div>
-<script src="shared/nav.js"></script>
-<script src="shared/footer.js"></script>
-<script src="shared/auth.js"></script>
-<script src="shared/payment.js"></script>
+<script src="../shared/nav.js"></script>
+<script src="../shared/footer.js"></script>
+<script src="../shared/auth.js"></script>
+<script src="../shared/payment.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
@@ -308,13 +308,13 @@ function App(){
       navEl.innerHTML='';
       footerEl.style.display='none';
       // Re-run nav injection with test mode
-      var s=document.createElement('script');s.src='shared/nav.js';s.onload=function(){this.remove()};document.body.appendChild(s);
+      var s=document.createElement('script');s.src='../shared/nav.js';s.onload=function(){this.remove()};document.body.appendChild(s);
     } else {
       navEl.removeAttribute('data-test-mode');
       navEl.innerHTML='';
       footerEl.style.display='';
-      var s1=document.createElement('script');s1.src='shared/nav.js';s1.onload=function(){this.remove()};document.body.appendChild(s1);
-      var s2=document.createElement('script');s2.src='shared/footer.js';s2.onload=function(){this.remove()};document.body.appendChild(s2);
+      var s1=document.createElement('script');s1.src='../shared/nav.js';s1.onload=function(){this.remove()};document.body.appendChild(s1);
+      var s2=document.createElement('script');s2.src='../shared/footer.js';s2.onload=function(){this.remove()};document.body.appendChild(s2);
     }
   },[page]);
 

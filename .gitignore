@@ -19,24 +19,15 @@ Thumbs.db
 # Node (if any)
 node_modules/
 
-# Legacy folders (not for deployment)
-ADHD-Screening/
-Autisme/
-CogniQ/
-Personlighedstest/
-stress/
+# Legacy files (moved to _legacy/, not for deployment)
+_legacy/
 
 # Project docs with credentials (not for public repo)
 CLAUDE.md
 claude.md
 
-# Internal docs (not for public site)
-files/CLAUDE-CODE-BRIEF.md
-files/claude.md
-files/iq-test-original.html
+# Internal docs
+docs/
 
 # Dev files
 *.zip
-*-prompt.md
-*.jsx
-hjernebarometeret-landing*.html

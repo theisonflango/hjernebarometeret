@@ -7,7 +7,7 @@
 <meta name="description" content="Gratis autisme-screening baseret på AQ-50 (Baron-Cohen et al., 2001). 50 spørgsmål, 5 domæner, detaljeret resultat.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,500&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared/styles.css">
+<link rel="stylesheet" href="../shared/styles.css">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -41,10 +41,10 @@ button{font-family:inherit;cursor:pointer}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
-<script src="shared/nav.js"></script>
-<script src="shared/footer.js"></script>
-<script src="shared/auth.js"></script>
-<script src="shared/payment.js"></script>
+<script src="../shared/nav.js"></script>
+<script src="../shared/footer.js"></script>
+<script src="../shared/auth.js"></script>
+<script src="../shared/payment.js"></script>
 <script type="text/babel">
 const {useState, useEffect, useRef} = React;
 
@@ -319,8 +319,8 @@ function AutismeTest() {
           <div style={{ textAlign: "center", marginTop: 32, marginBottom: 40 }}>
             <p style={{ fontFamily: "var(--serif)", fontSize: 16, fontWeight: 500, color: "var(--text)", marginBottom: 16 }}>Andre tests du måske er interesseret i</p>
             <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-              <a href="adhd-screening.html" style={{ padding: "10px 20px", background: "#eaf1f7", color: "#2e6b9e", borderRadius: 8, fontSize: 13, fontWeight: 600, textDecoration: "none" }}>⚡ ADHD-screening</a>
-              <a href="iq-test.html" style={{ padding: "10px 20px", background: "#f0ebf5", color: "#6b4c9a", borderRadius: 8, fontSize: 13, fontWeight: 600, textDecoration: "none" }}>◈ IQ-test</a>
+              <a href="/tests/adhd.html" style={{ padding: "10px 20px", background: "#eaf1f7", color: "#2e6b9e", borderRadius: 8, fontSize: 13, fontWeight: 600, textDecoration: "none" }}>⚡ ADHD-screening</a>
+              <a href="/tests/iq.html" style={{ padding: "10px 20px", background: "#f0ebf5", color: "#6b4c9a", borderRadius: 8, fontSize: 13, fontWeight: 600, textDecoration: "none" }}>◈ IQ-test</a>
             </div>
           </div>
 

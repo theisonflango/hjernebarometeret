@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Din ADHD-rapport — Hjernebarometeret</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,500&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+:root {
+  --bg:#faf9f7; --bg-card:#fff; --bg-warm:#f5f2ee; --bg-dark:#1c1b1a;
+  --text:#1c1b1a; --text-2:#5a5650; --text-3:#8a857e; --text-4:#b5b0a8;
+  --border:#e8e5e0; --border-2:#d5d0c9;
+  --accent:#2e6b9e; --accent-light:rgba(46,107,158,0.08);
+  --green:#3B9979; --yellow:#D4920B; --red:#C0392B;
+  --serif:'Source Serif 4',Georgia,serif; --sans:'Figtree',system-ui,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased;padding-top:64px}
+
+/* ── Report layout ── */
+.report{max-width:760px;margin:0 auto;padding:20px}
+.report section{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:32px;margin-bottom:20px}
+.report h2{font-family:var(--serif);font-size:22px;font-weight:600;letter-spacing:-.03em;margin-bottom:16px}
+.report h3{font-family:var(--serif);font-size:17px;font-weight:600;margin-bottom:10px}
+
+/* ── Cover ── */
+.cover{background:var(--bg-dark)!important;color:#faf9f7!important;border:none!important;text-align:center;padding:48px 32px!important;border-radius:16px!important}
+.cover .logo{font-family:var(--serif);font-size:14px;letter-spacing:2px;text-transform:uppercase;opacity:.5;margin-bottom:24px}
+.cover h1{font-family:var(--serif);font-size:clamp(28px,5vw,38px);font-weight:600;letter-spacing:-.03em;margin-bottom:8px}
+.cover .profile-label{font-size:20px;font-weight:600;margin:16px 0 8px}
+.cover .date{font-size:13px;opacity:.4;margin-top:16px}
+.cover .disclaimer{font-size:11px;opacity:.35;margin-top:16px;line-height:1.5}
+
+/* ── Summary cards ── */
+.summary-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:16px 0}
+@media(max-width:600px){.summary-grid{grid-template-columns:1fr}}
+.summary-card{padding:16px;border-radius:12px;background:var(--bg-warm);text-align:center}
+.summary-card .num{font-family:var(--serif);font-size:28px;font-weight:700}
+.summary-card .lbl{font-size:12px;color:var(--text-3);margin-top:4px}
+
+/* ── Domain bars ── */
+.domain-block{margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border)}
+.domain-block:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.domain-header{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.domain-name{font-family:var(--serif);font-size:16px;font-weight:600}
+.domain-score{margin-left:auto;font-family:var(--serif);font-size:20px;font-weight:700}
+.domain-bar{height:8px;border-radius:4px;background:var(--border);overflow:hidden}
+.domain-bar-fill{height:100%;border-radius:4px;transition:width 1s ease}
+.domain-desc{font-size:14px;color:var(--text-2);line-height:1.7;margin-top:8px}
+
+/* ── Radar ── */
+.radar-container{text-align:center;margin:16px 0}
+.radar-container svg{max-width:380px;width:100%}
+
+/* ── Strengths/challenges ── */
+.sc-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:600px){.sc-grid{grid-template-columns:1fr}}
+.sc-card{padding:20px;border-radius:12px}
+.sc-card.strengths{background:rgba(92,184,92,0.06);border:1px solid rgba(92,184,92,0.2)}
+.sc-card.challenges{background:rgba(217,83,79,0.06);border:1px solid rgba(217,83,79,0.2)}
+.sc-item{padding:8px 0;border-bottom:1px solid rgba(0,0,0,.05);font-size:14px;line-height:1.6}
+.sc-item:last-child{border-bottom:none}
+.sc-item strong{display:block;font-size:14px;margin-bottom:2px}
+
+/* ── Subtype cards ── */
+.subtype-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:16px 0}
+@media(max-width:600px){.subtype-grid{grid-template-columns:1fr}}
+.subtype-card{padding:16px;border-radius:12px;border:1.5px solid var(--border);text-align:center}
+.subtype-card.active{border-color:var(--accent);background:var(--accent-light)}
+.subtype-card h4{font-size:14px;font-weight:600;margin-bottom:6px}
+.subtype-card p{font-size:12px;color:var(--text-2);line-height:1.5}
+
+/* ── Treatment table ── */
+.med-table{width:100%;border-collapse:collapse;font-size:13px;margin:16px 0}
+.med-table th{text-align:left;padding:10px 8px;border-bottom:2px solid var(--border-2);font-weight:600;font-size:12px;color:var(--text-3)}
+.med-table td{padding:10px 8px;border-bottom:1px solid var(--border);vertical-align:top}
+.med-table tr:last-child td{border-bottom:none}
+@media(max-width:600px){.med-table{font-size:11px}.med-table th,.med-table td{padding:8px 4px}}
+
+/* ── Action plan ── */
+.action-grid{display:grid;gap:16px}
+.action-card{padding:20px;border-radius:12px;background:var(--bg-warm)}
+.action-card h4{font-family:var(--serif);font-size:15px;font-weight:600;margin-bottom:8px}
+.action-card ul{padding-left:18px;font-size:14px;color:var(--text-2)}
+.action-card li{margin-bottom:6px}
+
+/* ── Coping toolkit ── */
+.coping-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:600px){.coping-grid{grid-template-columns:1fr}}
+.coping-card{padding:16px;border-radius:12px;background:var(--bg-warm)}
+.coping-card h4{font-size:14px;font-weight:600;margin-bottom:6px}
+.coping-card p{font-size:13px;color:var(--text-2);line-height:1.6}
+
+/* ── Red flag ── */
+.red-flag{padding:20px;border-radius:12px;background:rgba(192,57,43,0.06);border:1px solid rgba(192,57,43,0.2);margin-bottom:16px}
+.red-flag h4{color:var(--red);font-size:15px;margin-bottom:6px}
+.red-flag p{font-size:14px;color:var(--text-2);line-height:1.7}
+
+/* ── PDF button ── */
+.pdf-btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:12px;background:var(--bg-dark);color:#fff;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:var(--sans)}
+.pdf-btn:hover{opacity:.9}
+
+/* ── No access ── */
+.no-access{text-align:center;padding:80px 20px;max-width:500px;margin:0 auto}
+.no-access h1{font-family:var(--serif);font-size:28px;margin-bottom:12px}
+.no-access p{color:var(--text-2);margin-bottom:24px}
+.no-access .buy-btn{padding:14px 28px;border-radius:12px;background:var(--bg-dark);color:#fff;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:var(--sans)}
+
+/* ── Loading ── */
+.loading{text-align:center;padding:100px 20px}
+.loading .spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Doctor section ── */
+.doctor-section{background:var(--bg-warm)!important;border:2px solid var(--accent)!important}
+.doctor-section h2{color:var(--accent)}
+
+/* Print/PDF styles */
+@media print{
+  body{padding-top:0}
+  .sn-wrap,.sf-wrap,.pdf-actions,.no-print{display:none!important}
+  .report section{break-inside:avoid;border:none;box-shadow:none}
+  .cover{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+
+<div id="site-nav" data-active="rapporter"></div>
+
+<!-- Loading state -->
+<div id="loading" class="loading">
+  <div class="spinner"></div>
+  <p style="color:var(--text-3)">Indlæser din rapport...</p>
+</div>
+
+<!-- No access state -->
+<div id="no-access" class="no-access" style="display:none">
+  <h1>🔒 Rapport låst</h1>
+  <p>Du har ikke adgang til denne rapport endnu. Køb adgang for at se din fulde ADHD-analyse med subtypeklassificering, behandlingsguide og handlingsplan.</p>
+  <button class="buy-btn" onclick="if(window.HB_PAY)HB_PAY.checkout('single','adhd')">Køb rapport — 49 kr</button>
+  <p style="margin-top:12px"><button onclick="if(window.HB_PAY)HB_PAY.checkout('unlimited','adhd')" style="background:none;border:1.5px solid var(--accent);color:var(--accent);padding:10px 20px;border-radius:10px;font-size:13px;cursor:pointer;font-family:var(--sans)">Eller: Ubegrænset — 89 kr/md</button></p>
+  <p style="margin-top:24px;font-size:13px;color:var(--text-4)"><a href="/tests/adhd.html" style="color:var(--text-3)">← Tilbage til testen</a></p>
+</div>
+
+<!-- Report content (hidden until access verified) -->
+<div id="report" class="report" style="display:none">
+
+  <!-- PDF download bar -->
+  <div class="pdf-actions no-print" style="text-align:right;margin-bottom:12px">
+    <button class="pdf-btn" onclick="downloadPDF()">📄 Download PDF</button>
+  </div>
+
+  <div id="report-content">
+
+  <!-- 1. FORSIDE -->
+  <section class="cover">
+    <div class="logo">☉ Hjernebarometeret</div>
+    <h1>Din ADHD-rapport</h1>
+    <p style="opacity:.6;font-size:14px" id="cover-mode"></p>
+    <div class="profile-label" id="cover-profile" style="color:var(--accent)"></div>
+    <div class="date" id="cover-date"></div>
+    <div class="disclaimer">Denne rapport er ikke en klinisk diagnose. Den er baseret på validerede screeningsinstrumenter og giver indsigt i dit symptommønster til dialog med en sundhedsfaglig professionel.</div>
+  </section>
+
+  <!-- 2. OPSUMMERING -->
+  <section>
+    <h2>📋 Opsummering</h2>
+    <div id="red-flags"></div>
+    <p id="summary-text" style="font-size:15px;line-height:1.7;color:var(--text-2);margin-bottom:16px"></p>
+    <div class="summary-grid" id="summary-grid"></div>
+    <div id="top-findings" style="margin-top:16px"></div>
+  </section>
+
+  <!-- 2b. DIFFERENTIALDIAGNOSER -->
+  <section id="differential-section" style="display:none">
+    <h2>⚖️ Andre mulige forklaringer</h2>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:16px">Screening-tests kan ikke skelne mellem tilstande med overlappende symptomer. Følgende tilstande kan give lignende scores — dette er vigtigt at drøfte med en fagperson.</p>
+    <div id="differential-dx"></div>
+  </section>
+
+  <!-- 3. SUBTYPEKLASSIFICERING -->
+  <section>
+    <h2>🧩 Subtypeklassificering</h2>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:16px">ADHD præsenterer sig i tre undertyper ifølge DSM-5. Din profil matcher den markerede type.</p>
+    <div class="subtype-grid" id="subtypes"></div>
+    <div id="subtype-detail" style="margin-top:16px"></div>
+  </section>
+
+  <!-- 4. RADAR DIAGRAM -->
+  <section>
+    <h2>🕸️ Symptomprofil</h2>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:8px">Dit symptommønster på tværs af domæner. Jo længere fra midten, jo stærkere er symptomerne i det domæne.</p>
+    <div class="radar-container" id="radar"></div>
+  </section>
+
+  <!-- 5. DETALJERET DOMÆNE-ANALYSE -->
+  <section>
+    <h2>📊 Detaljeret domæne-analyse</h2>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:20px">Dine scores på hvert symptomdomæne som andel af maksimal score, med hverdagseksempler.</p>
+    <div id="domains-detail"></div>
+  </section>
+
+  <!-- 6. HVERDAGSIMPACT -->
+  <section>
+    <h2>🏠 Hverdagsimpact</h2>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:16px">Sådan viser dine specifikke scores sig typisk i dagligdagen.</p>
+    <div id="everyday-impact"></div>
+  </section>
+
+  <!-- 7. STYRKER & UDFORDRINGER -->
+  <section>
+    <h2>💎 Styrker & udfordringer</h2>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:16px">ADHD er ikke kun udfordringer — det bringer også unikke styrker.</p>
+    <div class="sc-grid" id="strengths-challenges"></div>
+  </section>
+
+  <!-- 8. PERSONLIG VÆRKTØJSKASSE -->
+  <section>
+    <h2>🧰 Din personlige værktøjskasse</h2>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:16px">Evidensbaserede coping-strategier tilpasset din profil.</p>
+    <div class="coping-grid" id="coping-toolkit"></div>
+  </section>
+
+  <!-- 9. BEHANDLINGSMULIGHEDER -->
+  <section>
+    <h2>💊 Behandlingsmuligheder</h2>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:16px">Evidensbaseret information om medicin og terapi. Baseret på Lancet Psychiatry (Cortese 2018; Ostinelli 2024).</p>
+    <div id="treatment"></div>
+  </section>
+
+  <!-- 10. HANDLINGSPLAN -->
+  <section>
+    <h2>🎯 Personlig handlingsplan</h2>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:16px">Konkrete skridt tilpasset din profil.</p>
+    <div class="action-grid" id="action-plan"></div>
+  </section>
+
+  <!-- 11. TIL DIN LÆGE -->
+  <section class="doctor-section">
+    <h2>🩺 Til din læge</h2>
+    <p style="font-size:13px;color:var(--text-2);margin-bottom:16px">Denne sektion er designet til at tage med til din læge. Print eller download som PDF.</p>
+    <div id="doctor-section"></div>
+  </section>
+
+  <!-- 12. RESSOURCER -->
+  <section>
+    <h2>📚 Anbefalede ressourcer</h2>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:16px">Bøger, apps og organisationer tilpasset din profil.</p>
+    <div id="resources"></div>
+  </section>
+
+  <!-- 13. FORVENTNINGSAFSTEMNING -->
+  <section>
+    <h2>⏳ Hvad kan du forvente?</h2>
+    <div id="expectations"></div>
+  </section>
+
+  <!-- 14. DISCLAIMER -->
+  <section style="background:var(--bg-warm)">
+    <p style="font-size:12px;color:var(--text-3);line-height:1.7">
+      <strong>Om denne rapport:</strong> Denne rapport er genereret af Hjernebarometeret.dk baseret på validerede ADHD-screeningsinstrumenter. Hurtig screening anvender etablerede symptomdomæner, mens DIVA-moden følger DSM-5's diagnostiske kriterier. Rapporten er til personlig indsigt og dialog med sundhedsfaglige — den er <strong>ikke en diagnose</strong>. Kun en psykiater eller speciallæge kan stille en ADHD-diagnose efter formel udredning.
+    </p>
+    <p style="font-size:12px;color:var(--text-3);line-height:1.7;margin-top:8px">
+      <strong>Behandlingsinformation:</strong> Medicin- og terapidata er baseret på meta-analyser fra Lancet Psychiatry (Cortese et al. 2018; Ostinelli et al. 2024). Behandlingsvalg bør altid ske i samråd med din læge.
+    </p>
+    <p style="font-size:11px;color:var(--text-4);margin-top:12px">© Hjernebarometeret.dk · hjernebarometeret.dk</p>
+  </section>
+
+  </div><!-- /report-content -->
+</div><!-- /report -->
+
+<div id="site-footer"></div>
+
+<script src="../shared/nav.js"></script>
+<script src="../shared/footer.js"></script>
+<script src="../shared/auth.js"></script>
+<script src="../shared/payment.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════
+   ADHD-RAPPORT — Hjernebarometeret
+   ═══════════════════════════════════════════════════ */
+
+// ── Domain data ──
+var DOMAINS = {
+  attention: { name:'Opmærksomhed', emoji:'🎯', color:'#2e6b9e',
+    high:'Du har markant svært ved at fastholde fokus på opgaver der ikke fanger din interesse. Du mister tråden i samtaler, glemmer aftaler og skifter mellem opgaver uden at færdiggøre dem. Hyperfokus-episoder kan dog være intense.',
+    mid:'Du oplever moderate opmærksomhedsvanskeligheder. Du kan fastholde fokus i perioder men bliver lettere distraheret end gennemsnittet, særligt ved kedelige eller rutineprægede opgaver.',
+    low:'Du har relativt god evne til at fastholde opmærksomhed. Dine eventuelle vanskeligheder ligger primært på andre domæner.',
+    impact_high:['Glemmer aftaler og deadlines trods påmindelser','Mister tråden midt i samtaler og møder','Starter mange opgaver men færdiggør få','Kan ikke læse længere tekster uden at miste fokus','Hyperfokus: Timer forsvinder i interessante emner'],
+    impact_mid:['Har perioder med god fokus men bliver let afledt','Glemmer detaljer i instruktioner','Skal bruge ekstra energi på at holde fokus']
+  },
+  hyperactivity: { name:'Hyperaktivitet/impulsivitet', emoji:'⚡', color:'#e67e22',
+    high:'Du oplever markant indre uro, rastløshed og impulsivitet. Du handler ofte før du tænker, afbryder andre og har svært ved at vente. Du søger konstant stimulation og keder dig hurtigt.',
+    mid:'Du har moderate tegn på hyperaktivitet eller impulsivitet. Du kan opleve indre uro og tendens til at handle impulsivt i visse situationer.',
+    low:'Hyperaktivitet og impulsivitet er ikke et fremtrædende domæne for dig. Dit mønster peger mere mod opmærksomhedsvanskeligheder.',
+    impact_high:['Konstant indre uro — svært at sidde stille','Taler meget og afbryder andre','Impulsive beslutninger (køb, jobskift, konflikter)','Keder dig hurtigt og søger ny stimulation','Svært at vente i køer eller på svar'],
+    impact_mid:['Periodevis rastløshed og uro','Tendens til at sige ting du fortryder','Utålmodighed i langsomme situationer']
+  },
+  regulation: { name:'Emotionel regulering', emoji:'🌊', color:'#8e44ad',
+    high:'Du oplever markante vanskeligheder med at regulere følelser. Humørsvingninger, overvældelse og frustration fylder i din hverdag. Du investerer meget energi i at virke normal.',
+    mid:'Du har moderate udfordringer med følelsesregulering. Du kan skifte hurtigt mellem følelser og blive let overvældet i pressede situationer.',
+    low:'Emotionel regulering er ikke dit primære udfordringsområde.',
+    impact_high:['Hurtige humørsvingninger fra begejstring til frustration','Let overvældet af sanseindtryk og sociale situationer','Svært at regulere energi og følelsesmæssig investering','Søvnproblemer: tankeræs ved sengetid','Bruger meget energi på at maskere vanskeligheder'],
+    impact_mid:['Periodevis intense følelsesreaktioner','Kan blive overvældet af mange krav på én gang']
+  },
+  childhood: { name:'Barndomssymptomer', emoji:'👶', color:'#27ae60',
+    high:'Du rapporterer markante barndomssymptomer. ADHD er en nevroudviklingsforstyrrelse — symptomer i barndommen styrker indikationen.',
+    mid:'Du rapporterer moderate barndomssymptomer.',
+    low:'Du rapporterer få barndomssymptomer. Dette udelukker ikke ADHD, men er relevant information.',
+    impact_high:['Blev beskrevet som dagdrømmer eller "i din egen verden"','Havde svært ved at organisere skoleopgaver','Præsterede ujævnt — dygtig i noget, dårlig i andet','Følte dig anderledes end andre børn'],
+    impact_mid:['Nogle vanskeligheder i skolen','Periodevis uopmærksomhed eller uro']
+  },
+  functioning: { name:'Funktionsniveau', emoji:'📉', color:'#c0392b',
+    high:'Dine vanskeligheder påvirker dit daglige funktionsniveau markant. Dette er klinisk betydningsfuldt — det er netop funktionspåvirkning der skelner mellem "træk" og en diagnose.',
+    mid:'Dine vanskeligheder påvirker dit funktionsniveau moderat.',
+    low:'Dit funktionsniveau er relativt upåvirket af symptomerne.',
+    impact_high:['Negativt påvirket arbejde eller uddannelse','Problemer i nære relationer pga. glemskhed/impulsivitet','Svært at holde styr på økonomi, post, oprydning','Bruger uforholdsmæssigt meget energi på at holde sammen på hverdagen','Har ført til stress, angst eller udbrændthed'],
+    impact_mid:['Periodevis påvirket arbejde eller relationer','Kræver ekstra indsats for daglige opgaver']
+  }
+};
+
+// Quick mode domain keys
+var QUICK_KEYS = ['childhood','attention','hyperactivity','regulation','functioning'];
+// DIVA mode: we map to different display
+var DIVA_DISPLAY = [
+  { key:'aPct', name:'Opmærksomhed (voksen)', emoji:'🎯', color:'#2e6b9e' },
+  { key:'hiPct', name:'Hyperaktivitet (voksen)', emoji:'⚡', color:'#e67e22' },
+  { key:'aPctChild', name:'Opmærksomhed (barndom)', emoji:'👶', color:'#27ae60' },
+  { key:'hiPctChild', name:'Hyperaktivitet (barndom)', emoji:'🏃', color:'#16a085' },
+  { key:'funcPct', name:'Funktionspåvirkning', emoji:'📉', color:'#c0392b' }
+];
+
+// ── Subtype data ──
+var SUBTYPES = {
+  'overvejende uopmærksom': {
+    label:'Overvejende uopmærksom',
+    short:'ADD / Uopmærksom',
+    desc:'Din profil tyder på primært opmærksomhedsvanskeligheder uden markant hyperaktivitet. Denne type kaldes ofte "ADD" og er den mest underdiagnosticerede — særligt hos kvinder. Du drømmer dig væk, glemmer ting og har svært ved at komme i gang, men virker udadtil rolig.',
+    strengths:['Dyb tænkning og refleksion','Kreativitet og idérigdom','Evne til intens fordybelse (hyperfokus)','Empatisk og observant'],
+    challenges:['Prokrastinering og startvanskeligheder','Glemskhed og uopmærksomhed på detaljer','Tidsblindhed','Organisering af dagligdagen'],
+    coping:[
+      {t:'Ekstern struktur',d:'Brug timers, alarmer og visuelle to-do lister. Din hjerne har brug for ydre påmindelser for at kompensere for intern uopmærksomhed.'},
+      {t:'Body doubling',d:'Arbejd ved siden af nogen. Bare tilstedeværelsen af en anden person kan hjælpe dig med at fastholde fokus.'},
+      {t:'Pomodoro med ADHD-tilpasning',d:'25 min fokus → 5 min pause. Men tillad dig selv at justere: 15/5 eller 40/10 alt efter opgavens karakter.'},
+      {t:'Dopamin-menu',d:'Lav en liste over sunde dopamin-boosts (musik, bevægelse, kaffe, social kontakt) du kan bruge FØR kedelige opgaver.'}
+    ]
+  },
+  'overvejende hyperaktiv/impulsiv': {
+    label:'Overvejende hyperaktiv/impulsiv',
+    short:'Klassisk ADHD',
+    desc:'Din profil tyder på markant hyperaktivitet og impulsivitet. Du er den "klassiske" ADHD-type med synlig rastløshed, impulsive beslutninger og svært ved at bremse. Du har masser af energi, men den kan være svær at kanalisere konstruktivt.',
+    strengths:['Høj energi og initiativrigdom','Hurtig beslutningstagning','Karismatisk og engagerende','Modig og villig til at tage chancer'],
+    challenges:['Impulsive beslutninger med konsekvenser','Svært ved at lytte og vente','Konflikter pga. afbrydelser og utålmodighed','Risikosøgende adfærd'],
+    coping:[
+      {t:'STOP-teknik',d:'Når du mærker en impuls: Stop → Tænk → Observer → Planlæg. Tæl til 10 før vigtige beslutninger.'},
+      {t:'Forsinkelsesstrategier',d:'24-timers reglen: Vent 24 timer med alle ikke-essentielle køb over 200 kr. Skriv impulskøb ned i stedet.'},
+      {t:'Fysisk ventil',d:'Brug din rastløshed konstruktivt: Stående skrivebord, fidget tools, gåmøder, intens motion inden koncentrationsarbejde.'},
+      {t:'Stimulation uden risiko',d:'Find sunde kilder til den stimulation du søger: Sport, kreative projekter, debatter, komplekse spil.'}
+    ]
+  },
+  'kombineret': {
+    label:'Kombineret type',
+    short:'Kombineret ADHD',
+    desc:'Din profil viser både opmærksomhedsvanskeligheder og hyperaktivitet/impulsivitet. Du har den mest omfattende symptompræsentation med udfordringer på begge akser. Det er den hyppigste ADHD-type og betyder at du har et bredt spektrum af symptomer.',
+    strengths:['Kreativ og energisk kombination','Evne til at skifte perspektiv hurtigt','Hyperfokus + handlekraft','Resiliens og tilpasningsevne'],
+    challenges:['Bred symptomprofil der rammer mange livsområder','Både indre og ydre uro','Starter impulsivt men mister fokus hurtigt','Udmattelse fra at håndtere mange symptomer'],
+    coping:[
+      {t:'Morgenrutine med struktur',d:'Fast rutine de første 2 timer: Samme rækkefølge hver dag reducerer beslutningstræthed og hjælper dig i gang.'},
+      {t:'Energi-management',d:'Lær dine energibølger at kende. Planlæg krævende opgaver når din energi er højest (typisk sen formiddag).'},
+      {t:'Mindfulness for ADHD',d:'Ikke klassisk stillesiddende meditation. Prøv gå-meditation, body scan eller 3 minutters åndedrætsøvelse.'},
+      {t:'One-thing reglen',d:'Kun ÉN ting ad gangen. Luk alle andre faner, fjern telefonen, og fokusér de næste 25 minutter på én opgave.'}
+    ]
+  }
+};
+
+// ── Medication data (Lancet Psychiatry 2018, 2024) ──
+// SMD values: Cortese et al. 2018 reports class-level (amphetamines/methylphenidate), not per-drug
+var MEDICATIONS = [
+  { name:'Methylphenidat', brand:'Ritalin, Concerta, Medikinet', type:'Stimulant (førstevalg børn)', dose:'18-72 mg/dag', effect:'SMD 0.49 (klasse)', response:'~70-80%', side:'Nedsat appetit, søvnproblemer, hovedpine, højere puls' },
+  { name:'Lisdexamfetamin', brand:'Elvanse/Vyvanse', type:'Stimulant (førstevalg voksne)', dose:'30-70 mg/dag', effect:'SMD 0.79 (amfetamin-klasse)', response:'~70-80%', side:'Nedsat appetit, mundtørhed, søvnproblemer, angst' },
+  { name:'Dexamfetamin', brand:'Attentin', type:'Stimulant', dose:'5-40 mg/dag', effect:'SMD 0.79 (amfetamin-klasse)', response:'~70%', side:'Som lisdexamfetamin men kortere virkning' },
+  { name:'Atomoxetin', brand:'Strattera', type:'Non-stimulant (SNRI)', dose:'40-100 mg/dag', effect:'SMD 0.45 (klasse)', response:'~50-60%', side:'Kvalme, nedsat appetit, svimmelhed, blodtryksstigning' },
+  { name:'Guanfacin', brand:'Intuniv', type:'Non-stimulant (alfa-2)', dose:'1-4 mg/dag', effect:'Begrænset data', response:'~40-50%', side:'Træthed, lavt blodtryk, svimmelhed' }
+];
+
+var THERAPIES = [
+  { name:'CBT for ADHD', evidence:'Moderat', helps:'Eksekutiv funktion, organisering, selvværd', duration:'12-16 sessioner', note:'Virker bedst som supplement til medicin' },
+  { name:'ADHD-coaching', evidence:'Begrænset', helps:'Daglig struktur, målsætning, accountability', duration:'Løbende', note:'Praktisk og handlingsrettet' },
+  { name:'Mindfulness (MBSR)', evidence:'Moderat', helps:'Opmærksomhed, emotionel regulering, impulsivitet', duration:'8-ugers program', note:'Kræver daglig øvelse' },
+  { name:'Motion (aerob)', evidence:'Moderat', helps:'Dopaminregulering, eksekutiv funktion, humør', duration:'30 min, 3-5x/uge', note:'Mange positive sideeffekter' },
+  { name:'Søvnhygiejne', evidence:'Stærk indirekte', helps:'Søvnkvalitet → bedre symptomkontrol', duration:'Daglig', note:'50-70% med ADHD har søvnproblemer' }
+];
+
+// ── Build report ──
+function buildReport(data) {
+  var isQuick = data.mode === 'quick';
+  var pct = data.totalPct || 0;
+  var level = data.level || 'low';
+  var profileType = data.profileType || 'kombineret';
+  var color = data.color || '#2e6b9e';
+  var label = data.label || 'Ukendt';
+  var sub = SUBTYPES[profileType] || SUBTYPES['kombineret'];
+
+  // Cover
+  document.getElementById('cover-mode').textContent = isQuick ? 'Hurtig screening — 30 spørgsmål' : 'DIVA-5-inspireret DSM-5 udredning — 48 kriterier';
+  document.getElementById('cover-profile').textContent = '« ' + sub.short + ' — ' + label + ' »';
+  document.getElementById('cover-profile').style.color = color;
+  document.getElementById('cover-date').textContent = new Date().toLocaleDateString('da-DK', { year:'numeric', month:'long', day:'numeric' });
+
+  // Red flags
+  var flags = '';
+  if (level === 'high') {
+    flags = '<div class="red-flag"><h4>⚠️ Forhøjet score — professionel vurdering anbefales</h4><p>Din screening viser et markant symptommønster. Vi anbefaler at du drøfter resultatet med din læge og beder om henvisning til psykiatrisk udredning. Brug "Til din læge"-sektionen nedenfor som udgangspunkt for samtalen.</p></div>';
+  }
+  document.getElementById('red-flags').innerHTML = flags;
+
+  // Summary
+  document.getElementById('summary-text').innerHTML = sub.desc;
+
+  // Summary grid
+  var attnPct = isQuick ? (data.attention || 0) : (data.aPct || 0);
+  var hyperPct = isQuick ? (data.hyperactivity || 0) : (data.hiPct || 0);
+  document.getElementById('summary-grid').innerHTML =
+    '<div class="summary-card"><div class="num" style="color:'+color+'">'+pct+'%</div><div class="lbl">Samlet score</div></div>' +
+    '<div class="summary-card"><div class="num" style="color:'+color+'">'+sub.short+'</div><div class="lbl">Subtype</div></div>' +
+    '<div class="summary-card"><div class="num" style="color:'+color+'">'+label+'</div><div class="lbl">Niveau</div></div>';
+
+  // Top findings
+  var findings = [];
+  if (pct >= 58) findings.push('🔴 Din samlede score på <strong>'+pct+'%</strong> ligger i den høje zone og indikerer et markant symptommønster.');
+  if (attnPct >= 60) findings.push('🎯 Markant forhøjet <strong>opmærksomhedsscore</strong> ('+attnPct+'%) — dette domæne kræver særlig opmærksomhed.');
+  if (hyperPct >= 60) findings.push('⚡ Markant forhøjet <strong>hyperaktivitet/impulsivitet</strong> ('+hyperPct+'%) — et fremtrædende symptomdomæne.');
+  if (isQuick && (data.regulation || 0) >= 60) findings.push('🌊 Forhøjet <strong>emotionel dysregulering</strong> — dine følelser svinger mere end gennemsnittet.');
+  if (isQuick && (data.functioning || 0) >= 60) findings.push('📉 Markant <strong>funktionspåvirkning</strong> — symptomerne rammer din daglige funktion.');
+  if (findings.length > 0) {
+    document.getElementById('top-findings').innerHTML = '<h3>🔍 Vigtigste fund</h3>' + findings.slice(0,4).map(function(f){ return '<p style="font-size:14px;color:var(--text-2);margin:8px 0;line-height:1.6">'+f+'</p>'; }).join('');
+  }
+
+  // Differential diagnoses
+  if (level === 'high' || level === 'moderate') {
+    var ddx = [
+      { emoji:'😰', title:'Angst', desc:'Generaliseret angst kan give koncentrationsbesvær, indre uro og rastløshed der ligner ADHD. Hvis din angst-score også er høj, bør begge tilstande vurderes.' },
+      { emoji:'😔', title:'Depression', desc:'Depression giver ofte nedsat koncentration, energitab og svært ved at komme i gang — symptomer der overlapper markant med ADHD\'s uopmærksomhedsdomæne.' },
+      { emoji:'😴', title:'Søvnforstyrrelser', desc:'Kronisk søvnmangel efterligner ADHD-symptomer næsten perfekt: uopmærksomhed, impulsivitet, humørsvingninger. 50-70% med ADHD har også søvnproblemer, men søvnproblemer alene kan give ADHD-lignende scores.' },
+      { emoji:'💥', title:'Traume/PTSD', desc:'Kompleks PTSD kan give hypervigilans (der ligner hyperaktivitet), dissociation (der ligner uopmærksomhed) og emotionel dysregulering.' },
+      { emoji:'🧩', title:'Autismespektrum', desc:'30-50% af autistiske voksne har også ADHD. Hvis du oplever sociale vanskeligheder, sensorisk følsomhed eller stærkt behov for rutine, bør autisme også vurderes.' },
+      { emoji:'🔄', title:'Bipolar lidelse', desc:'Maniske episoder kan ligne ADHD-hyperaktivitet (nedsat søvnbehov, impulsivitet, tankeflugt). Hvis symptomerne er episodiske snarere end livslange, bør bipolar overvejes.' }
+    ];
+    var ddxHTML = '';
+    ddx.forEach(function(d) {
+      ddxHTML += '<div style="padding:16px;border-radius:12px;background:var(--bg-warm);margin-bottom:12px"><h4 style="font-size:14px;font-weight:600;margin-bottom:6px">'+d.emoji+' '+d.title+'</h4><p style="font-size:14px;color:var(--text-2);line-height:1.7;margin:0">'+d.desc+'</p></div>';
+    });
+    document.getElementById('differential-dx').innerHTML = ddxHTML;
+    document.getElementById('differential-section').style.display = '';
+  }
+
+  // Subtypes
+  var subtypeHTML = '';
+  ['overvejende uopmærksom','overvejende hyperaktiv/impulsiv','kombineret'].forEach(function(st){
+    var s = SUBTYPES[st];
+    var active = st === profileType ? ' active' : '';
+    subtypeHTML += '<div class="subtype-card'+active+'"><h4>'+s.short+'</h4><p>'+(st==='overvejende uopmærksom'?'Primært uopmærksomhed, dagdrømmer, glemsom':st==='overvejende hyperaktiv/impulsiv'?'Primært rastløshed, impulsivitet, uro':'Begge akser: uopmærksomhed + hyperaktivitet')+'</p>'+(active?'<div style="margin-top:8px;font-size:11px;color:var(--accent);font-weight:600">← Din profil</div>':'')+'</div>';
+  });
+  document.getElementById('subtypes').innerHTML = subtypeHTML;
+  document.getElementById('subtype-detail').innerHTML = '<p style="font-size:14px;color:var(--text-2);line-height:1.7">'+sub.desc+'</p>';
+
+  // Radar
+  if (isQuick) {
+    buildRadar(QUICK_KEYS.map(function(k){ return { name:DOMAINS[k].name, pct:data[k]||0, color:DOMAINS[k].color }; }));
+  } else {
+    buildRadar(DIVA_DISPLAY.map(function(d){ return { name:d.name, pct:data[d.key]||0, color:d.color }; }));
+  }
+
+  // Domain detail
+  var domainsHTML = '';
+  if (isQuick) {
+    QUICK_KEYS.forEach(function(k){
+      var dom = DOMAINS[k];
+      var dp = data[k] || 0;
+      var lv = dp >= 60 ? 'high' : dp >= 35 ? 'mid' : 'low';
+      var impactKey = dp >= 50 ? 'impact_high' : 'impact_mid';
+      var impacts = dom[impactKey] || [];
+      domainsHTML += buildDomainBlock(dom.emoji, dom.name, dp, dom.color, dom[lv], impacts);
+    });
+  } else {
+    DIVA_DISPLAY.forEach(function(d){
+      var dp = data[d.key] || 0;
+      var DIVA_KEY_MAP = { aPct:'attention', hiPct:'hyperactivity', aPctChild:'attention', hiPctChild:'hyperactivity', funcPct:'functioning' };
+      var baseKey = DIVA_KEY_MAP[d.key] || 'attention';
+      var dom = DOMAINS[baseKey] || DOMAINS.attention;
+      var lv = dp >= 60 ? 'high' : dp >= 35 ? 'mid' : 'low';
+      domainsHTML += buildDomainBlock(d.emoji, d.name, dp, d.color, dom[lv], []);
+    });
+  }
+  document.getElementById('domains-detail').innerHTML = domainsHTML;
+
+  // Everyday impact
+  var impactHTML = '';
+  var impactAreas = [
+    { title:'💼 Arbejde & uddannelse', items:[] },
+    { title:'❤️ Relationer', items:[] },
+    { title:'🏡 Daglig organisering', items:[] },
+    { title:'🧠 Mental sundhed', items:[] }
+  ];
+  if (attnPct >= 50) { impactAreas[0].items.push('Svært ved at fokusere i møder og på opgaver der ikke er interessante'); impactAreas[2].items.push('Glemmer aftaler, nøgler og daglige gøremål'); }
+  if (hyperPct >= 50) { impactAreas[1].items.push('Afbryder andre i samtaler, virker utålmodig'); impactAreas[0].items.push('Svært ved stillesiddende kontorarbejde, søger variation'); }
+  if (isQuick && (data.regulation || 0) >= 50) { impactAreas[1].items.push('Hurtige humørskift der kan overraske partnere og venner'); impactAreas[3].items.push('Overvældelse og emotionel udmattelse i pressede perioder'); }
+  if (isQuick && (data.functioning || 0) >= 50) { impactAreas[2].items.push('Uforholdsmæssigt meget energi på at holde styr på hverdagen'); impactAreas[3].items.push('Risiko for stress, angst eller udbrændthed som sekundær konsekvens'); }
+  // Defaults
+  impactAreas.forEach(function(a){ if(a.items.length===0) a.items.push('Mindre påvirket baseret på dine scores'); });
+  impactHTML = impactAreas.map(function(a){
+    return '<div style="margin-bottom:16px"><h4 style="font-size:15px;font-weight:600;margin-bottom:8px">'+a.title+'</h4><ul style="padding-left:18px;font-size:14px;color:var(--text-2)">'+ a.items.map(function(i){return '<li style="margin-bottom:4px">'+i+'</li>';}).join('')+'</ul></div>';
+  }).join('');
+  document.getElementById('everyday-impact').innerHTML = impactHTML;
+
+  // Strengths & Challenges
+  document.getElementById('strengths-challenges').innerHTML =
+    '<div class="sc-card strengths"><h3 style="color:#3B9979">✦ Styrker</h3>' + sub.strengths.map(function(s){ return '<div class="sc-item"><strong>'+s+'</strong></div>'; }).join('') + '</div>' +
+    '<div class="sc-card challenges"><h3 style="color:#c0392b">✧ Udfordringer</h3>' + sub.challenges.map(function(c){ return '<div class="sc-item"><strong>'+c+'</strong></div>'; }).join('') + '</div>';
+
+  // Coping toolkit
+  document.getElementById('coping-toolkit').innerHTML = sub.coping.map(function(c){
+    return '<div class="coping-card"><h4>'+c.t+'</h4><p>'+c.d+'</p></div>';
+  }).join('');
+
+  // Treatment
+  var treatHTML = '<h3>💊 Medicin</h3><p style="font-size:13px;color:var(--text-3);margin-bottom:12px">Kilde: Lancet Psychiatry (Cortese 2018; Ostinelli 2024) — 113 RCT\'er, 14.800+ deltagere.</p>';
+  treatHTML += '<div style="overflow-x:auto"><table class="med-table"><thead><tr><th>Præparat</th><th>Type</th><th>Dosis</th><th>Effekt (SMD)</th><th>Respons</th></tr></thead><tbody>';
+  MEDICATIONS.forEach(function(m){
+    treatHTML += '<tr><td><strong>'+m.name+'</strong><br><span style="font-size:11px;color:var(--text-3)">'+m.brand+'</span></td><td>'+m.type+'</td><td>'+m.dose+'</td><td>'+m.effect+'</td><td>'+m.response+'</td></tr>';
+  });
+  treatHTML += '</tbody></table></div>';
+
+  treatHTML += '<div style="margin:16px 0;padding:16px;border-radius:10px;background:var(--accent-light);font-size:13px;color:var(--text-2);line-height:1.7"><strong>Nøglefund:</strong> Stimulanter (Elvanse, Ritalin) er de eneste behandlinger med bevist effekt på både selvrapporterede OG klinisk vurderede symptomer hos voksne. Ca. 70-80% responderer på stimulanter. 20-30% responderer ikke tilstrækkeligt og bør skifte præparat.</div>';
+
+  treatHTML += '<h3 style="margin-top:24px">🧠 Terapi & ikke-medicinsk</h3>';
+  treatHTML += '<div style="overflow-x:auto"><table class="med-table"><thead><tr><th>Behandling</th><th>Evidens</th><th>Hjælper med</th><th>Forløb</th></tr></thead><tbody>';
+  THERAPIES.forEach(function(t){
+    treatHTML += '<tr><td><strong>'+t.name+'</strong></td><td>'+t.evidence+'</td><td>'+t.helps+'</td><td>'+t.duration+'</td></tr>';
+  });
+  treatHTML += '</tbody></table></div>';
+
+  // Personalized recommendation
+  treatHTML += '<div style="margin-top:16px;padding:20px;border-radius:12px;background:var(--bg-warm)"><h4 style="font-size:15px;font-weight:600;margin-bottom:8px">🎯 Anbefaling til din profil</h4>';
+  if (level === 'high') {
+    treatHTML += '<p style="font-size:14px;color:var(--text-2);line-height:1.7">Med din markant forhøjede score anbefaler vi <strong>formel udredning hos psykiater</strong>. Hvis diagnosen bekræftes, er kombinationsbehandling (medicin + CBT/coaching) mest effektiv. Spørg din læge om henvisning til psykiatrisk afdeling.</p>';
+  } else if (level === 'moderate') {
+    treatHTML += '<p style="font-size:14px;color:var(--text-2);line-height:1.7">Med din moderat forhøjede score kan du overveje <strong>formel udredning</strong> for at afklare billedet. Start med CBT eller ADHD-coaching, og tal med din læge om behovet for medicinsk vurdering.</p>';
+  } else {
+    treatHTML += '<p style="font-size:14px;color:var(--text-2);line-height:1.7">Din score tyder ikke på klinisk ADHD, men du kan have subkliniske træk. Fokus på <strong>livsstilsoptimering</strong>: struktur, motion, søvn og stresshåndtering. Overvej coaching hvis du ønsker hjælp til organisering.</p>';
+  }
+  treatHTML += '</div>';
+  document.getElementById('treatment').innerHTML = treatHTML;
+
+  // Action plan
+  var actions = [];
+  actions.push({ title:'📅 I morgen (3 hurtige ting)', items:[] });
+  actions.push({ title:'📋 Ugentlig plan', items:[] });
+  actions.push({ title:'🎯 Månedligt mål', items:[] });
+
+  if (profileType === 'overvejende uopmærksom') {
+    actions[0].items.push('Sæt 3 alarmer for dine vigtigste gøremål','Skriv en to-do liste med max 5 punkter','Fjern distraktioner fra dit skrivebord');
+    actions[1].items.push('Prøv Pomodoro-teknikken (25/5) på din vigtigste opgave','Etabler en fast morgenrutine','Brug en kalender-app med påmindelser');
+    actions[2].items.push('Gennemfør ét projekt helt færdigt','Vurder om formel ADHD-udredning er relevant for dig');
+  } else if (profileType === 'overvejende hyperaktiv/impulsiv') {
+    actions[0].items.push('Implementer 24-timers reglen for alle køb over 200 kr','30 minutters intens motion','Øv STOP-teknikken i én social situation');
+    actions[1].items.push('Planlæg daglig fysisk aktivitet','Brug fidget tools under stillesiddende opgaver','Prøv 5 minutters åndedrætsøvelse dagligt');
+    actions[2].items.push('Etabler en stabil motionsrutine (3x/uge)','Vurder om formel ADHD-udredning er relevant');
+  } else {
+    actions[0].items.push('Lav en "bare start i 5 minutter"-aftale med dig selv på én opgave','Sæt telefonen på lydløs under arbejde','Skriv dine 3 vigtigste gøremål for i morgen');
+    actions[1].items.push('Etabler en fast morgen- og aftenrutine','Prøv body doubling (arbejd ved siden af nogen)','30 minutters motion mindst 3 dage');
+    actions[2].items.push('Book tid hos din læge til at drøfte dine resultater','Vurder ADHD-coaching eller CBT');
+  }
+  document.getElementById('action-plan').innerHTML = actions.map(function(a){
+    return '<div class="action-card"><h4>'+a.title+'</h4><ul>'+a.items.map(function(i){return '<li>'+i+'</li>';}).join('')+'</ul></div>';
+  }).join('');
+
+  // Doctor section
+  var docHTML = '<div style="font-size:14px;line-height:1.8;color:var(--text-2)">';
+  docHTML += '<h3 style="margin-bottom:12px">Klinisk opsummering</h3>';
+  docHTML += '<p><strong>Test:</strong> '+(isQuick?'Hurtig ADHD-screening (30 spørgsmål, 5 domæner)':'DIVA-5-inspireret DSM-5 udredning (48 kriterier)')+'</p>';
+  docHTML += '<p><strong>Dato:</strong> '+new Date().toLocaleDateString('da-DK')+'</p>';
+  docHTML += '<p><strong>Samlet score:</strong> '+pct+'% — '+label+'</p>';
+  docHTML += '<p><strong>Subtypeprofil:</strong> '+sub.label+'</p>';
+  if (isQuick) {
+    docHTML += '<p><strong>Domænescores:</strong> Opmærksomhed '+(data.attention||0)+'% · Hyperaktivitet '+(data.hyperactivity||0)+'% · Regulering '+(data.regulation||0)+'% · Barndom '+(data.childhood||0)+'% · Funktionsniveau '+(data.functioning||0)+'%</p>';
+  } else {
+    docHTML += '<p><strong>DSM-5 kriterier:</strong> A-kriterier (voksen) '+(data.aAdult||0)+'/9 · HI-kriterier (voksen) '+(data.hiAdult||0)+'/9 · Funktionspåvirkning '+(data.funcCount||0)+'/5</p>';
+  }
+  docHTML += '<h3 style="margin-top:20px;margin-bottom:12px">Samtaleguide — sætninger du kan bruge</h3>';
+  docHTML += '<ul style="padding-left:18px">';
+  docHTML += '<li>"Jeg har taget en valideret ADHD-screening online og scorer i den '+(level==='high'?'høje':level==='moderate'?'moderate':'lave')+' zone."</li>';
+  docHTML += '<li>"Mine primære symptomer er '+(profileType==='overvejende uopmærksom'?'opmærksomhedsvanskeligheder og koncentrationsbesvær':profileType==='overvejende hyperaktiv/impulsiv'?'rastløshed, impulsivitet og svært ved at sidde stille':'en kombination af uopmærksomhed og hyperaktivitet/impulsivitet')+'."</li>';
+  if (level !== 'low') {
+    docHTML += '<li>"Symptomerne påvirker min daglige funktion negativt, og jeg vil gerne drøfte muligheden for en formel udredning."</li>';
+    docHTML += '<li>"Jeg har medbragt en opsummering af mine resultater og vil gerne bede om en henvisning til psykiatrisk vurdering."</li>';
+  }
+  docHTML += '</ul>';
+  docHTML += '<p style="margin-top:12px;font-size:12px;color:var(--text-3)"><strong>Klinisk cutoff:</strong> Screeningen bruger '+(isQuick?'Likert-4 skala over 5 symptomdomæner':'DSM-5 kriterier (≥5/9 for voksne)')+ '. Kun formel psykiatrisk udredning kan stille en ADHD-diagnose.</p>';
+  docHTML += '</div>';
+  document.getElementById('doctor-section').innerHTML = docHTML;
+
+  // Resources
+  var resHTML = '';
+  resHTML += '<div style="margin-bottom:16px"><h4 style="font-size:14px;font-weight:600;margin-bottom:8px">📖 Bøger</h4><ul style="padding-left:18px;font-size:14px;color:var(--text-2)"><li style="margin-bottom:4px"><em>Driven to Distraction</em> — Edward Hallowell & John Ratey</li><li style="margin-bottom:4px"><em>ADHD 2.0</em> — Edward Hallowell & John Ratey</li><li style="margin-bottom:4px"><em>Taking Charge of Adult ADHD</em> — Russell Barkley</li></ul></div>';
+  resHTML += '<div style="margin-bottom:16px"><h4 style="font-size:14px;font-weight:600;margin-bottom:8px">📱 Apps</h4><ul style="padding-left:18px;font-size:14px;color:var(--text-2)"><li style="margin-bottom:4px">Tiimo (visuel dagstruktur og rutiner)</li><li style="margin-bottom:4px">Forest (fokus-app med gamification)</li><li style="margin-bottom:4px">Todoist (simpel opgavestyring)</li></ul></div>';
+  resHTML += '<div style="margin-bottom:16px"><h4 style="font-size:14px;font-weight:600;margin-bottom:8px">🇩🇰 Danske organisationer</h4><ul style="padding-left:18px;font-size:14px;color:var(--text-2)"><li style="margin-bottom:4px">ADHD-foreningen (adhd.dk) — rådgivning, netværk, vidensbank</li><li style="margin-bottom:4px">Psykiatrifonden (psykiatrifonden.dk)</li><li style="margin-bottom:4px">Din egen læge → henvisning til psykiatrisk afdeling</li></ul></div>';
+  resHTML += '<div><h4 style="font-size:14px;font-weight:600;margin-bottom:8px">🔬 Videnskab</h4><ul style="padding-left:18px;font-size:14px;color:var(--text-2)"><li style="margin-bottom:4px">Cortese et al. (2018) — Comparative efficacy of medications for ADHD, Lancet Psychiatry</li><li style="margin-bottom:4px">Ostinelli et al. (2024) — Pharmacological and non-pharmacological interventions for ADHD, Lancet Psychiatry</li></ul></div>';
+  document.getElementById('resources').innerHTML = resHTML;
+
+  // Expectations
+  var expHTML = '<div style="font-size:14px;color:var(--text-2);line-height:1.7">';
+  expHTML += '<div style="margin-bottom:16px"><strong>💊 Medicin:</strong> Typisk 1-2 uger til initial effekt. Titrering (gradvis dosisøgning) tager 2-6 uger. Bivirkninger er stærkest de første 1-2 uger og aftager typisk. Ca. 70-80% responderer på stimulanter.</div>';
+  expHTML += '<div style="margin-bottom:16px"><strong>🧠 CBT/coaching:</strong> 12-16 sessioner over 3-4 måneder. Effekt ses typisk fra session 4-6. Virker bedst som supplement til medicin, ikke alene.</div>';
+  expHTML += '<div style="margin-bottom:16px"><strong>🏃 Motion:</strong> Effekt på fokus og humør fra første session. Stabil effekt efter 4-6 uger med regelmæssig træning. Min. 30 min, 3-5x/uge.</div>';
+  expHTML += '<div style="margin-bottom:16px"><strong>✅ Hvad behandling KAN:</strong> Reducere kernesymptomer (uopmærksomhed, rastløshed, impulsivitet). Forbedre daglig funktion. Øge livskvalitet. Reducere risiko for sekundære problemer (angst, depression).</div>';
+  expHTML += '<div style="margin-bottom:16px"><strong>❌ Hvad behandling IKKE KAN:</strong> Kurere ADHD (det er neurologisk). Løse alle livsproblemer. Virke uden egne strategier og tilpasninger.</div>';
+  if (level === 'high') {
+    expHTML += '<div style="padding:16px;border-radius:10px;background:rgba(192,57,43,0.06);border:1px solid rgba(192,57,43,0.2)"><strong>🆘 Søg akut hjælp hvis:</strong> Du har selvmordstanker, pludselig forværring, eller føler dig i krise. Ring til Livslinien: 70 201 201 (24/7) eller din læge.</div>';
+  }
+  expHTML += '</div>';
+  document.getElementById('expectations').innerHTML = expHTML;
+}
+
+// ── Helper: domain block ──
+function buildDomainBlock(emoji, name, pct, color, desc, impacts) {
+  var levelLabel = pct < 25 ? 'Lavt' : pct < 45 ? 'Under middel' : pct < 58 ? 'Moderat' : pct < 75 ? 'Forhøjet' : 'Markant';
+  var percentileText = 'Score: ' + pct + '% af maks — niveau: ' + levelLabel;
+  var html = '<div class="domain-block">' +
+    '<div class="domain-header">' +
+      '<span style="font-size:22px">'+emoji+'</span>' +
+      '<span class="domain-name">'+name+'</span>' +
+      '<span class="domain-score" style="color:'+color+'">'+pct+'%</span>' +
+    '</div>' +
+    '<div class="domain-bar"><div class="domain-bar-fill" style="width:'+pct+'%;background:'+color+'"></div></div>' +
+    '<p style="font-size:12px;color:var(--text-3);margin:8px 0">'+percentileText+'</p>' +
+    '<p class="domain-desc">'+desc+'</p>';
+  if (impacts.length > 0) {
+    html += '<div style="margin-top:12px;padding:12px 16px;border-radius:10px;background:var(--bg-warm);font-size:13px"><strong>Typiske hverdagseksempler:</strong><ul style="padding-left:16px;margin-top:6px;color:var(--text-2)">';
+    impacts.forEach(function(i){ html += '<li style="margin-bottom:4px">'+i+'</li>'; });
+    html += '</ul></div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+// ── Radar chart ──
+function buildRadar(dims) {
+  var n = dims.length;
+  var cx = 170, cy = 170, R = 130;
+  var step = (2 * Math.PI) / n;
+  var start = -Math.PI / 2;
+  function p(a, r) { return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; }
+
+  var svg = '<svg viewBox="0 0 340 360" xmlns="http://www.w3.org/2000/svg">';
+
+  // Grid rings
+  for (var ring = 1; ring <= 4; ring++) {
+    var r = R * ring / 4;
+    var pts = [];
+    for (var i = 0; i < n; i++) pts.push(p(start + i * step, r).join(','));
+    svg += '<polygon points="'+pts.join(' ')+'" fill="none" stroke="rgba(0,0,0,0.06)" stroke-width="1"/>';
+    if (ring === 2) svg += '<text x="'+(cx+4)+'" y="'+(cy-r+12)+'" fill="rgba(0,0,0,0.15)" font-size="9" font-family="Figtree">50%</text>';
+  }
+
+  // Axes
+  for (var i = 0; i < n; i++) {
+    var ep = p(start + i * step, R);
+    svg += '<line x1="'+cx+'" y1="'+cy+'" x2="'+ep[0]+'" y2="'+ep[1]+'" stroke="rgba(0,0,0,0.08)" stroke-width="1"/>';
+  }
+
+  // Data polygon
+  var dataPts = [];
+  for (var i = 0; i < n; i++) dataPts.push(p(start + i * step, R * (dims[i].pct / 100)).join(','));
+  svg += '<polygon points="'+dataPts.join(' ')+'" fill="rgba(46,107,158,0.12)" stroke="#2e6b9e" stroke-width="2.5"/>';
+
+  // Dots + labels
+  for (var i = 0; i < n; i++) {
+    var dp = p(start + i * step, R * (dims[i].pct / 100));
+    svg += '<circle cx="'+dp[0]+'" cy="'+dp[1]+'" r="5" fill="'+dims[i].color+'" stroke="#fff" stroke-width="2"/>';
+    var lp = p(start + i * step, R + 28);
+    var anchor = lp[0] < cx - 10 ? 'end' : lp[0] > cx + 10 ? 'start' : 'middle';
+    svg += '<text x="'+lp[0]+'" y="'+(lp[1]+4)+'" text-anchor="'+anchor+'" fill="var(--text-2)" font-size="11" font-weight="500" font-family="Figtree,sans-serif">'+dims[i].name+'</text>';
+    svg += '<text x="'+lp[0]+'" y="'+(lp[1]+19)+'" text-anchor="'+anchor+'" fill="'+dims[i].color+'" font-size="14" font-weight="700" font-family="Source Serif 4,serif">'+dims[i].pct+'%</text>';
+  }
+
+  svg += '</svg>';
+  document.getElementById('radar').innerHTML = svg;
+}
+
+// ── PDF download ──
+function downloadPDF() {
+  var el = document.getElementById('report-content');
+  var opt = {
+    margin: [10, 10, 10, 10],
+    filename: 'Hjernebarometeret-ADHD-Rapport.pdf',
+    image: { type: 'jpeg', quality: 0.95 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+  };
+  html2pdf().set(opt).from(el).save();
+}
+
+// ── Init ──
+(async function init() {
+  // Handle payment return
+  var paymentReturn = false;
+  if (window.HB_PAY) {
+    var ret = HB_PAY.handleReturn();
+    if (ret && ret.success) {
+      paymentReturn = true;
+      if (ret.token) localStorage.setItem('hb_report_token_adhd', ret.token);
+    }
+  }
+
+  // Wait for auth
+  if (window.HB_AUTH) await new Promise(function(r){ HB_AUTH.onReady(r); });
+
+  // Check access
+  var hasAccess = false;
+  if (window.HB_AUTH && HB_AUTH.isAdmin()) {
+    hasAccess = true;
+  } else if (paymentReturn && window.HB_PAY) {
+    document.querySelector('#loading p').textContent = 'Bekræfter betaling...';
+    hasAccess = await HB_PAY.waitForAccess('adhd', 10);
+  } else if (window.HB_PAY) {
+    hasAccess = await HB_PAY.hasAccess('adhd');
+  }
+
+  if (!hasAccess) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('no-access').style.display = 'block';
+    return;
+  }
+
+  // Load results
+  var data = null;
+  if (window.HB_PAY) data = HB_PAY.loadResults('adhd');
+  if (!data && window.HB_PAY) data = await HB_PAY.loadResultsFromDB('adhd');
+
+  if (!data) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('no-access').style.display = 'block';
+    document.querySelector('#no-access h1').textContent = '📊 Ingen resultater fundet';
+    document.querySelector('#no-access p').textContent = 'Du skal gennemføre ADHD-screeningen først, før du kan se din rapport.';
+    document.querySelector('#no-access .buy-btn').textContent = 'Tag ADHD-screeningen';
+    document.querySelector('#no-access .buy-btn').onclick = function(){ window.location.href='/tests/adhd.html'; };
+    return;
+  }
+
+  // Build report
+  buildReport(data);
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('report').style.display = 'block';
+})();
+</script>
+
+</body>
+</html>

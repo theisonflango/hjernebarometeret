@@ -12,8 +12,8 @@
       '<div class="sf-brand"><div class="sn-logo">' + logoSvg + ' Hjernebarometeret</div>' +
       '<p>Danmarks platform for professionelle selvtests inden for kognition, neuropsykologi og personlig udvikling.</p></div>' +
       '<div class="sf-cols">' +
-        '<div><h6>Tests</h6><a href="iq-test.html">IQ-test</a><a href="adhd-screening.html">ADHD-screening</a><a href="autisme-test.html">Autisme-test</a><a href="personlighedstest.html">Personlighedstest</a><a href="stress-udbraendthed-test.html">Stress & udbrændthed</a></div>' +
-        '<div><h6>Information</h6><a href="rapporter.html">Rapporter & priser</a><a href="om-os.html">Om os</a><a href="index.html#faq">FAQ</a><a href="mailto:kontakt@hjernebarometeret.dk">Kontakt</a></div>' +
+        '<div><h6>Tests</h6><a href="/tests/iq.html">IQ-test</a><a href="/tests/adhd.html">ADHD-screening</a><a href="/tests/autisme.html">Autisme-test</a><a href="/tests/personlighed.html">Personlighedstest</a><a href="/tests/stress.html">Stress & udbrændthed</a></div>' +
+        '<div><h6>Information</h6><a href="/rapporter.html">Rapporter & priser</a><a href="/om-os.html">Om os</a><a href="/#faq">FAQ</a><a href="mailto:kontakt@hjernebarometeret.dk">Kontakt</a></div>' +
         '<div><h6>Konto</h6><a href="#" onclick="event.preventDefault();if(window.HB_AUTH)HB_AUTH.showLogin();">Log ind</a><a href="#" onclick="event.preventDefault();if(window.HB_AUTH){HB_AUTH._toggleSignup({preventDefault:function(){}});HB_AUTH.showLogin();}">Opret konto</a></div>' +
       '</div>' +
     '</div>' +

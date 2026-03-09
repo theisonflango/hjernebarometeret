@@ -6,16 +6,20 @@
   var CHECKOUT_URL = 'https://pmbbachqedomvixvvfpj.supabase.co/functions/v1/hjernebarometeret-create-checkout';
 
   var FILE_MAP = {
-    iq: 'iq-test.html',
-    adhd: 'adhd-screening.html',
-    autisme: 'autisme-test.html',
-    personlighed: 'personlighedstest.html',
-    stress: 'stress-udbraendthed-test.html'
+    iq: '/tests/iq.html',
+    adhd: '/tests/adhd.html',
+    autisme: '/tests/autisme.html',
+    personlighed: '/tests/personlighed.html',
+    stress: '/tests/stress.html'
   };
 
   // Report pages (redirected to after successful payment)
   var REPORT_MAP = {
-    personlighed: 'personlighed-rapport.html'
+    personlighed: '/rapporter/personlighed.html',
+    adhd: '/rapporter/adhd.html',
+    stress: '/rapporter/stress.html',
+    iq: '/rapporter/iq.html',
+    autisme: '/rapporter/autisme.html'
   };
 
   // ── Check report access ──

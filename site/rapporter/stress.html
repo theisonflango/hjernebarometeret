@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Din Stressrapport — Hjernebarometeret</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,500&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+:root {
+  --bg:#faf9f7; --bg-card:#fff; --bg-warm:#f5f2ee; --bg-dark:#1c1b1a;
+  --text:#1c1b1a; --text-2:#5a5650; --text-3:#8a857e; --text-4:#b5b0a8;
+  --border:#e8e5e0; --border-2:#d5d0c9;
+  --accent:#c2553a; --accent-light:rgba(194,85,58,0.08);
+  --green:#3B9979; --yellow:#D4920B; --orange:#e67e22; --red:#C0392B;
+  --serif:'Source Serif 4',Georgia,serif; --sans:'Figtree',system-ui,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased;padding-top:64px}
+.report{max-width:760px;margin:0 auto;padding:20px}
+.report section{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:32px;margin-bottom:20px}
+.report h2{font-family:var(--serif);font-size:22px;font-weight:600;letter-spacing:-.03em;margin-bottom:16px}
+.report h3{font-family:var(--serif);font-size:17px;font-weight:600;margin-bottom:10px}
+.cover{background:var(--bg-dark)!important;color:#faf9f7!important;border:none!important;text-align:center;padding:48px 32px!important;border-radius:16px!important}
+.cover .logo{font-family:var(--serif);font-size:14px;letter-spacing:2px;text-transform:uppercase;opacity:.5;margin-bottom:24px}
+.cover h1{font-family:var(--serif);font-size:clamp(28px,5vw,38px);font-weight:600;letter-spacing:-.03em;margin-bottom:8px}
+.cover .profile-label{font-size:20px;font-weight:600;margin:16px 0 8px}
+.cover .date{font-size:13px;opacity:.4;margin-top:16px}
+.cover .disclaimer{font-size:11px;opacity:.35;margin-top:16px;line-height:1.5}
+.summary-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:16px 0}
+@media(max-width:600px){.summary-grid{grid-template-columns:1fr}}
+.summary-card{padding:16px;border-radius:12px;background:var(--bg-warm);text-align:center}
+.summary-card .num{font-family:var(--serif);font-size:28px;font-weight:700}
+.summary-card .lbl{font-size:12px;color:var(--text-3);margin-top:4px}
+.domain-block{margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border)}
+.domain-block:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.domain-header{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.domain-name{font-family:var(--serif);font-size:16px;font-weight:600}
+.domain-score{margin-left:auto;font-family:var(--serif);font-size:20px;font-weight:700}
+.domain-bar{height:8px;border-radius:4px;background:var(--border);overflow:hidden}
+.domain-bar-fill{height:100%;border-radius:4px;transition:width 1s ease}
+.domain-desc{font-size:14px;color:var(--text-2);line-height:1.7;margin-top:8px}
+.radar-container{text-align:center;margin:16px 0}
+.radar-container svg{max-width:380px;width:100%}
+.sc-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:600px){.sc-grid{grid-template-columns:1fr}}
+.sc-card{padding:20px;border-radius:12px}
+.sc-card.strengths{background:rgba(92,184,92,0.06);border:1px solid rgba(92,184,92,0.2)}
+.sc-card.challenges{background:rgba(217,83,79,0.06);border:1px solid rgba(217,83,79,0.2)}
+.sc-item{padding:8px 0;border-bottom:1px solid rgba(0,0,0,.05);font-size:14px;line-height:1.6}
+.sc-item:last-child{border-bottom:none}
+.sc-item strong{display:block;margin-bottom:2px}
+.med-table{width:100%;border-collapse:collapse;font-size:13px;margin:16px 0}
+.med-table th{text-align:left;padding:10px 8px;border-bottom:2px solid var(--border-2);font-weight:600;font-size:12px;color:var(--text-3)}
+.med-table td{padding:10px 8px;border-bottom:1px solid var(--border);vertical-align:top}
+.med-table tr:last-child td{border-bottom:none}
+@media(max-width:600px){.med-table{font-size:11px}.med-table th,.med-table td{padding:8px 4px}}
+.action-grid{display:grid;gap:16px}
+.action-card{padding:20px;border-radius:12px;background:var(--bg-warm)}
+.action-card h4{font-family:var(--serif);font-size:15px;font-weight:600;margin-bottom:8px}
+.action-card ul{padding-left:18px;font-size:14px;color:var(--text-2)}
+.action-card li{margin-bottom:6px}
+.coping-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:600px){.coping-grid{grid-template-columns:1fr}}
+.coping-card{padding:16px;border-radius:12px;background:var(--bg-warm)}
+.coping-card h4{font-size:14px;font-weight:600;margin-bottom:6px}
+.coping-card p{font-size:13px;color:var(--text-2);line-height:1.6}
+.red-flag{padding:20px;border-radius:12px;background:rgba(192,57,43,0.06);border:1px solid rgba(192,57,43,0.2);margin-bottom:16px}
+.red-flag h4{color:var(--red);font-size:15px;margin-bottom:6px}
+.red-flag p{font-size:14px;color:var(--text-2);line-height:1.7}
+.pdf-btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:12px;background:var(--bg-dark);color:#fff;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:var(--sans)}
+.pdf-btn:hover{opacity:.9}
+.no-access{text-align:center;padding:80px 20px;max-width:500px;margin:0 auto}
+.no-access h1{font-family:var(--serif);font-size:28px;margin-bottom:12px}
+.no-access p{color:var(--text-2);margin-bottom:24px}
+.no-access .buy-btn{padding:14px 28px;border-radius:12px;background:var(--bg-dark);color:#fff;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:var(--sans)}
+.loading{text-align:center;padding:100px 20px}
+.loading .spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.doctor-section{background:var(--bg-warm)!important;border:2px solid var(--accent)!important}
+.doctor-section h2{color:var(--accent)}
+@media print{body{padding-top:0}.sn-wrap,.sf-wrap,.pdf-actions,.no-print{display:none!important}.report section{break-inside:avoid;border:none;box-shadow:none}.cover{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style>
+</head>
+<body>
+<div id="site-nav" data-active="rapporter"></div>
+<div id="loading" class="loading"><div class="spinner"></div><p style="color:var(--text-3)">Indlæser din rapport...</p></div>
+<div id="no-access" class="no-access" style="display:none">
+  <h1>🔒 Rapport låst</h1>
+  <p>Køb adgang for at se din fulde stressrapport med burnout-analyse, behandlingsguide og personlig handlingsplan.</p>
+  <button class="buy-btn" onclick="if(window.HB_PAY)HB_PAY.checkout('single','stress')">Køb rapport — 49 kr</button>
+  <p style="margin-top:12px"><button onclick="if(window.HB_PAY)HB_PAY.checkout('unlimited','stress')" style="background:none;border:1.5px solid var(--accent);color:var(--accent);padding:10px 20px;border-radius:10px;font-size:13px;cursor:pointer;font-family:var(--sans)">Eller: Ubegrænset — 89 kr/md</button></p>
+  <p style="margin-top:24px;font-size:13px;color:var(--text-4)"><a href="/tests/stress.html" style="color:var(--text-3)">← Tilbage til testen</a></p>
+</div>
+
+<div id="report" class="report" style="display:none">
+  <div class="pdf-actions no-print" style="text-align:right;margin-bottom:12px"><button class="pdf-btn" onclick="downloadPDF()">📄 Download PDF</button></div>
+  <div id="report-content">
+
+  <section class="cover">
+    <div class="logo">☉ Hjernebarometeret</div>
+    <h1>Din Stressrapport</h1>
+    <p style="opacity:.6;font-size:14px">PSS-10 + Burnout-profil — 30 spørgsmål, 6 dimensioner</p>
+    <div class="profile-label" id="cover-profile" style="color:var(--accent)"></div>
+    <div class="date" id="cover-date"></div>
+    <div class="disclaimer">Denne rapport er ikke en klinisk diagnose. Den er baseret på PSS-10 (Cohen et al. 1983) og MBI-inspirerede burnout-dimensioner.</div>
+  </section>
+
+  <section><h2>📋 Opsummering</h2><div id="red-flags"></div><p id="summary-text" style="font-size:15px;line-height:1.7;color:var(--text-2);margin-bottom:16px"></p><div class="summary-grid" id="summary-grid"></div><div id="top-findings" style="margin-top:16px"></div></section>
+
+  <section id="differential-section" style="display:none">
+    <h2>⚖️ Andre mulige forklaringer</h2>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:16px">Screening-tests kan ikke skelne mellem tilstande med overlappende symptomer. Følgende tilstande kan give lignende scores — dette er vigtigt at drøfte med en fagperson.</p>
+    <div id="differential-dx"></div>
+  </section>
+
+  <section><h2>🔥 Burnout-profil</h2><p style="font-size:13px;color:var(--text-3);margin-bottom:16px">Baseret på Leiter & Maslach (2016) — 6 burnout-profiler der identificerer dit specifikke mønster.</p><div id="burnout-profile"></div></section>
+
+  <section><h2>🕸️ Stresskortlægning</h2><p style="font-size:13px;color:var(--text-3);margin-bottom:8px">Din profil på tværs af 6 dimensioner. Hjælpeløshed vs. self-efficacy identificerer om stress skyldes ydre belastning eller indre mestring.</p><div class="radar-container" id="radar"></div></section>
+
+  <section><h2>📊 Detaljeret dimensionsanalyse</h2><p style="font-size:13px;color:var(--text-3);margin-bottom:20px">Dine scores på hvert stressdomæne med forklaring og hverdagseksempler.</p><div id="dimensions-detail"></div></section>
+
+  <section><h2>⚠️ Fysiologisk risikoprofil</h2><p style="font-size:13px;color:var(--text-3);margin-bottom:16px">Forskningsbaseret vurdering af helbredsrisici ved dit nuværende stressniveau.</p><div id="health-risks"></div></section>
+
+  <section><h2>💎 Styrker & udfordringer</h2><div class="sc-grid" id="strengths-challenges"></div></section>
+
+  <section><h2>🧰 Din personlige værktøjskasse</h2><p style="font-size:13px;color:var(--text-3);margin-bottom:16px">Coping-strategier og øvelser tilpasset din profil.</p><div class="coping-grid" id="coping-toolkit"></div></section>
+
+  <section><h2>💊 Behandlingsmuligheder</h2><p style="font-size:13px;color:var(--text-3);margin-bottom:16px">Evidensbaseret information. Der findes ingen godkendt medicin specifikt mod udbrændthed — medicin bruges kun ved komorbid depression/angst.</p><div id="treatment"></div></section>
+
+  <section><h2>😴 Søvn & restitution</h2><p style="font-size:13px;color:var(--text-3);margin-bottom:16px">Personlig guide til søvnhygiejne baseret på dit udmattelsesniveau.</p><div id="sleep-guide"></div></section>
+
+  <section><h2>🎯 Personlig handlingsplan</h2><div class="action-grid" id="action-plan"></div></section>
+
+  <section class="doctor-section"><h2>🩺 Til din læge</h2><p style="font-size:13px;color:var(--text-2);margin-bottom:16px">Tag denne sektion med til din læge.</p><div id="doctor-section"></div></section>
+
+  <section><h2>📚 Anbefalede ressourcer</h2><div id="resources"></div></section>
+
+  <section><h2>⏳ Hvad kan du forvente?</h2><div id="expectations"></div></section>
+
+  <section style="background:var(--bg-warm)">
+    <p style="font-size:12px;color:var(--text-3);line-height:1.7"><strong>Om denne rapport:</strong> Baseret på PSS-10 (Cohen, Kamarck & Mermelstein, 1983) og Maslach Burnout Inventory-inspirerede dimensioner (Maslach & Jackson, 1981; Leiter & Maslach, 2016). Rapporten er til personlig indsigt — den er <strong>ikke en klinisk diagnose</strong>.</p>
+    <p style="font-size:11px;color:var(--text-4);margin-top:12px">© Hjernebarometeret.dk</p>
+  </section>
+
+  </div>
+</div>
+<div id="site-footer"></div>
+<script src="../shared/nav.js"></script>
+<script src="../shared/footer.js"></script>
+<script src="../shared/auth.js"></script>
+<script src="../shared/payment.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════
+   STRESSRAPPORT — Hjernebarometeret
+   ═══════════════════════════════════════════════════ */
+
+var DIMS = {
+  pss:  { name:'Oplevet stress (PSS)', emoji:'📊', color:'#c2553a' },
+  help: { name:'Hjælpeløshed', emoji:'😰', color:'#8e44ad' },
+  eff:  { name:'Self-efficacy', emoji:'💪', color:'#27ae60' },
+  exh:  { name:'Udmattelse', emoji:'🔥', color:'#e74c3c' },
+  cyn:  { name:'Kynisme/afkobling', emoji:'😶', color:'#7f8c8d' },
+  acc:  { name:'Reduceret præstation', emoji:'📉', color:'#2e6b9e' }
+};
+
+var BURNOUT_PROFILES = {
+  'Engageret': {
+    desc:'Du er engageret og har balance mellem belastning og ressourcer. Dit stressniveau er håndterbart, og du formår at bevare energi, mening og præstation i din hverdag.',
+    strengths:['God stresshåndtering','Sund work-life balance','Bevaret arbejdsglæde og mening'],
+    challenges:['Risiko for overarbejde hvis du ikke sætter grænser','Kan undervurdere tidlige advarselssignaler'],
+    coping:[{t:'Forebyggelse',d:'Fortsæt det du gør. Sørg for regelmæssig motion, søvn og sociale relationer. Disse er dine buffere mod fremtidig stress.'},{t:'Grænser',d:'Øv dig i at sige nej til ekstra opgaver. Selv med lav stress er forebyggelse vigtigere end behandling.'}]
+  },
+  'Overbelastet': {
+    desc:'Du er udmattet men stadig engageret i dit arbejde. Du brænder for det du laver men bærer for meget. Dette er den hyppigste forløber til fuld udbrændthed — handl nu, før kynisme og præstationsfald indsætter sig.',
+    strengths:['Høj motivation og engagement','Stærk arbejdsmoral','Vedvarende indsats trods belastning'],
+    challenges:['Udmattelse uden tilstrækkelig restitution','Risiko for at krop og psyke "slukker" pludseligt','Svært ved at bede om hjælp'],
+    coping:[{t:'Energibudget',d:'Du bruger mere energi end du genoplader. Lav et dagligt energiregnskab: Hvad dræner? Hvad genoplader? Skær i dræners.'},{t:'Mikro-pauser',d:'Hvert 90. minut: 5 minutters pause. Rejs dig, stræk dig, kig ud. Disse små pauser forebygger udmattelse.'},{t:'4-7-8 åndedrættet',d:'Indånd 4 sek, hold 7 sek, udånd 8 sek. 3 gentagelser. Aktiverer parasympatiske nervesystem og sænker kortisol.'}]
+  },
+  'Afkoblet': {
+    desc:'Du har distanceret dig fra dit arbejde eller dine forpligtelser. Du føler dig ikke nødvendigvis udmattet, men oplever manglende mening, kynisme og emotionel afstand. Dette er en beskyttelsesmekanisme, men det forværrer situationen over tid.',
+    strengths:['Ikke fysisk udmattet','Bevaret præstationsevne','Selvbeskyttende distance'],
+    challenges:['Tab af mening og motivation','Kynisme der smitter i relationer','Risiko for depression ved vedvarende afkobling'],
+    coping:[{t:'Værdiafdækning',d:'Hvad er vigtigt for dig? Skriv 5 ting ned der giver dit liv mening. Sammenlign med din nuværende hverdag.'},{t:'Social genopbygning',d:'Kynisme isolerer. Planlæg én meningsfuld social aktivitet om ugen med nogen du holder af.'},{t:'Gratitude practice',d:'3 ting du er taknemmelig for, hver aften. Forskningsbelæg for at modvirke kynisme og genopbygge mening.'}]
+  },
+  'Ineffektiv': {
+    desc:'Du oplever primært reduceret præstation og følelse af utilstrækkelighed, uden nødvendigvis at være udmattet eller kynisk. Du tvivler på dine evner og leverer under dit potentiale.',
+    strengths:['Ikke udmattet — energien er der','Ikke kynisk — motivationen er der','Udfordringen er specifik og håndterbar'],
+    challenges:['Lavt fagligt selvværd','Prokrastinering pga. frygt for fiasko','Sammenligner sig med andre'],
+    coping:[{t:'Mastery-opgaver',d:'Start med små, overkommelige opgaver du VED du kan klare. Byg selvtillid op gradvist med succesoplevelser.'},{t:'Self-efficacy dagbog',d:'Skriv 3 ting du klarede godt i dag — uanset hvor små. Træn hjernen i at registrere succeser.'},{t:'Progressiv udfordring',d:'Øg sværhedsgraden langsomt. Du skal ikke springe fra 0 til 100 — byg en trappe af succeser.'}]
+  },
+  'Udbrændthed': {
+    desc:'Du viser tegn på fuldt burnout-syndrom med høj udmattelse OG høj kynisme. Dit stressniveau er alvorligt og kræver handling. Udbrændthed er ikke en personlig svaghed — det er et symptom på en ubalance mellem krav og ressourcer over tid.',
+    strengths:['At du søger viden er et styrketegn','Din krop sender klare signaler — lyt til dem','Udbrændthed er reversibelt med de rette tiltag'],
+    challenges:['Fysisk og mental udmattelse','Tab af mening og engagement','Risiko for depression og angst','Fysiologiske konsekvenser (kortisol, immunforsvar)'],
+    coping:[{t:'Akut stressreduktion',d:'STOP alt der ikke er strengt nødvendigt. Din krop er i alarmberedskab. Reducer belastningen drastisk i 2-4 uger.'},{t:'Søvnprioritering',d:'8+ timer. Ingen skærme 1 time før sengetid. Fast sengetid. Søvn er den vigtigste enkeltstående interventionsmetode.'},{t:'Professionel hjælp',d:'Book tid hos din læge. Overvej sygemelding. CBT eller MBSR er evidensbaserede behandlinger for udbrændthed.'}]
+  },
+  'Moderat belastet': {
+    desc:'Du befinder dig i en mellemzone med moderate tegn på stress og belastning. Du er ikke i krise, men heller ikke i balance. Nu er det rigtige tidspunkt at handle — mens du stadig har ressourcer.',
+    strengths:['Stadig ressourcer at trække på','Bevidst om belastningen','Mulighed for forebyggelse'],
+    challenges:['Risiko for gradvis forværring','Kan normalisere et forhøjet stressniveau','Svært at prioritere sig selv'],
+    coping:[{t:'Stress-audit',d:'Lav en liste: Hvad stresser dig mest? Hvad kan ændres? Hvad kan du lære at acceptere? Fokusér energi på det du kan ændre.'},{t:'Daglig decompression',d:'20 minutter HVER dag til noget der ikke er arbejde, huslige pligter eller skærmtid. Gåtur, musik, have, hobby.'},{t:'Grounding-øvelse',d:'5-4-3-2-1 teknikken: Nævn 5 ting du kan se, 4 du kan røre, 3 du kan høre, 2 du kan lugte, 1 du kan smage. Bringer dig ud af stressresponsen.'}]
+  }
+};
+
+// Map English keys to Danish (stress test saves English keys for English users)
+var PROFILE_KEY_MAP = {
+  'Engaged':'Engageret', 'Overextended':'Overbelastet', 'Disengaged':'Afkoblet',
+  'Ineffective':'Ineffektiv', 'Burnout':'Udbrændthed', 'Moderately strained':'Moderat belastet'
+};
+var LEVEL_KEY_MAP = {
+  'Low stress level':'Lavt stressniveau', 'Moderate stress level':'Moderat stress',
+  'High-moderate stress level':'Forhøjet stress', 'High stress level':'Højt stressniveau'
+};
+
+function buildReport(data) {
+  var pssTotal = data.pssTotal || 0;
+  var pssPct = data.pssPct || 0;
+  var helpPct = data.helpPct || 0;
+  var effPct = data.effPct || 0;
+  var exhPct = data.exhPct || 0;
+  var cynPct = data.cynPct || 0;
+  var accPct = data.accPct || 0;
+  var rawLevel = data.level || 'Moderat stress';
+  var level = LEVEL_KEY_MAP[rawLevel] || rawLevel;
+  var rawProfile = data.burnoutProfile || 'Moderat belastet';
+  var burnoutProfile = PROFILE_KEY_MAP[rawProfile] || rawProfile;
+  var bp = BURNOUT_PROFILES[burnoutProfile] || BURNOUT_PROFILES['Moderat belastet'];
+
+  var levelColor = pssTotal <= 13 ? '#3B9979' : pssTotal <= 20 ? '#D4920B' : pssTotal <= 26 ? '#e67e22' : '#C0392B';
+
+  // Cover
+  document.getElementById('cover-profile').textContent = '« ' + burnoutProfile + ' »';
+  document.getElementById('cover-profile').style.color = levelColor;
+  document.getElementById('cover-date').textContent = new Date().toLocaleDateString('da-DK', { year:'numeric', month:'long', day:'numeric' });
+
+  // Red flags
+  if (pssTotal > 26) {
+    document.getElementById('red-flags').innerHTML = '<div class="red-flag"><h4>⚠️ Højt stressniveau — professionel hjælp anbefales</h4><p>Din PSS-score på '+pssTotal+'/40 ligger i den høje zone. Vi anbefaler at du kontakter din læge for at drøfte dit stressniveau. Ved langvarig stress er professionel støtte vigtig for at forebygge alvorlige konsekvenser.</p></div>';
+  } else { document.getElementById('red-flags').innerHTML = ''; }
+
+  // Summary
+  document.getElementById('summary-text').innerHTML = bp.desc;
+  document.getElementById('summary-grid').innerHTML =
+    '<div class="summary-card"><div class="num" style="color:'+levelColor+'">'+pssTotal+'/40</div><div class="lbl">PSS-10 score</div></div>' +
+    '<div class="summary-card"><div class="num" style="color:'+levelColor+'">'+burnoutProfile+'</div><div class="lbl">Burnout-profil</div></div>' +
+    '<div class="summary-card"><div class="num" style="color:'+levelColor+'">'+level+'</div><div class="lbl">Stressniveau</div></div>';
+
+  // Top findings
+  var findings = [];
+  if (pssTotal > 26) findings.push('🔴 Dit stressniveau er <strong>højt</strong> ('+pssTotal+'/40). Professionel hjælp anbefales.');
+  if (helpPct >= 60) findings.push('😰 Forhøjet <strong>hjælpeløshed</strong> ('+Math.round(helpPct)+'%) — du oplever manglende kontrol over din situation.');
+  if (effPct >= 60) findings.push('💪 Forhøjet <strong>self-efficacy underskud</strong> ('+Math.round(effPct)+'%) — din tro på egen mestringsevne er udfordret.');
+  if (exhPct >= 60) findings.push('🔥 Markant <strong>udmattelse</strong> ('+Math.round(exhPct)+'%) — dit energiniveau er kritisk lavt.');
+  if (cynPct >= 60) findings.push('😶 Forhøjet <strong>kynisme</strong> ('+Math.round(cynPct)+'%) — du har distanceret dig emotionelt.');
+  if (findings.length > 0) {
+    document.getElementById('top-findings').innerHTML = '<h3>🔍 Vigtigste fund</h3>' + findings.slice(0,4).map(function(f){ return '<p style="font-size:14px;color:var(--text-2);margin:8px 0;line-height:1.6">'+f+'</p>'; }).join('');
+  }
+
+  // Differential diagnoses
+  if (pssTotal > 20) {
+    var ddx = [
+      { emoji:'😔', title:'Klinisk depression', desc:'Høj PSS-score med udmattelse, anhedoni og håbløshed kan indikere klinisk depression snarere end (eller i tillæg til) stress/burnout. Depression kræver specifik behandling.' },
+      { emoji:'😰', title:'Generaliseret angst', desc:'Vedvarende bekymring, muskelspændinger og søvnproblemer kan give høj stress-score uden at det primært er arbejdsrelateret burnout.' },
+      { emoji:'🏥', title:'Somatisk sygdom', desc:'Hypothyreose, anæmi, diabetes, søvnapnø og andre somatiske tilstande kan give udmattelse og kognitive symptomer der ligner stress/burnout. En blodprøve hos lægen kan udelukke dette.' },
+      { emoji:'💥', title:'PTSD/traume', desc:'Posttraumatisk stress kan give kronisk hyperarousal, udmattelse og kynisme der ligner burnout. Hvis du har oplevet traumatiske begivenheder, bør dette vurderes.' },
+      { emoji:'⚡', title:'ADHD', desc:'Ubehandlet ADHD fører ofte til kronisk stress pga. organisationsvanskeligheder, glemskhed og konstant kompensation. Hvis du altid har haft disse problemer (ikke kun i den seneste periode), bør ADHD overvejes.' }
+    ];
+    var ddxHTML = '';
+    ddx.forEach(function(d) {
+      ddxHTML += '<div style="padding:16px;border-radius:12px;background:var(--bg-warm);margin-bottom:12px"><h4 style="font-size:14px;font-weight:600;margin-bottom:6px">'+d.emoji+' '+d.title+'</h4><p style="font-size:14px;color:var(--text-2);line-height:1.7;margin:0">'+d.desc+'</p></div>';
+    });
+    document.getElementById('differential-dx').innerHTML = ddxHTML;
+    document.getElementById('differential-section').style.display = '';
+  }
+
+  // Burnout profile detail
+  var bpHTML = '<div style="padding:20px;border-radius:12px;background:'+levelColor+'10;border:1.5px solid '+levelColor+'30">';
+  bpHTML += '<h3 style="color:'+levelColor+';margin-bottom:8px">'+burnoutProfile+'</h3>';
+  bpHTML += '<p style="font-size:14px;color:var(--text-2);line-height:1.7">'+bp.desc+'</p>';
+  bpHTML += '</div>';
+
+  // All profile types for context
+  bpHTML += '<div style="margin-top:20px"><h3 style="margin-bottom:12px">6 burnout-profiler (Leiter & Maslach)</h3>';
+  var allProfiles = ['Engageret','Overbelastet','Afkoblet','Ineffektiv','Udbrændthed','Moderat belastet'];
+  bpHTML += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">';
+  allProfiles.forEach(function(name){
+    var active = name === burnoutProfile;
+    bpHTML += '<div style="padding:12px;border-radius:10px;border:1.5px solid '+(active?levelColor:'var(--border)')+';background:'+(active?levelColor+'08':'var(--bg-warm)')+';text-align:center;font-size:13px;font-weight:'+(active?'600':'400')+';color:'+(active?levelColor:'var(--text-2)')+'">'+name+(active?' ←':'')+'</div>';
+  });
+  bpHTML += '</div></div>';
+  document.getElementById('burnout-profile').innerHTML = bpHTML;
+
+  // Radar
+  var radarDims = [
+    { name:'Stress (PSS)', pct:pssPct, color:'#c2553a' },
+    { name:'Hjælpeløshed', pct:helpPct, color:'#8e44ad' },
+    { name:'Self-efficacy↓', pct:effPct, color:'#27ae60' },
+    { name:'Udmattelse', pct:exhPct, color:'#e74c3c' },
+    { name:'Kynisme', pct:cynPct, color:'#7f8c8d' },
+    { name:'Præstation↓', pct:accPct, color:'#2e6b9e' }
+  ];
+  buildRadar(radarDims);
+
+  // Dimension detail
+  var dimsData = [
+    { emoji:'📊', name:'Oplevet stress (PSS-10)', pct:pssPct, color:'#c2553a', desc:'Måler din overordnede oplevelse af stress den seneste måned. PSS-10 er det mest brugte stress-mål i forskningen (Cohen et al., 1983). Score '+pssTotal+'/40 placerer dig i kategorien "'+level+'".' },
+    { emoji:'😰', name:'Hjælpeløshed', pct:helpPct, color:'#8e44ad', desc:'Måler graden af oplevet manglende kontrol og overvældelse. Høj hjælpeløshed indikerer at stressen primært skyldes ydre belastning — ting du føler du ikke kan ændre.' },
+    { emoji:'💪', name:'Self-efficacy (omvendt)', pct:effPct, color:'#27ae60', desc:'Måler din tro på egen evne til at håndtere udfordringer. Høj score her (omvendt) indikerer lav self-efficacy — du tvivler på din egen mestringsevne. Bandura (1997) viser at self-efficacy er den stærkeste prædiktor for stresshåndtering.' },
+    { emoji:'🔥', name:'Udmattelse', pct:exhPct, color:'#e74c3c', desc:'Emotionel og fysisk udmattelse er kernen i burnout. Høj udmattelse indikerer at du har brugt dine energireserver og ikke restituerer tilstrækkeligt.' },
+    { emoji:'😶', name:'Kynisme/afkobling', pct:cynPct, color:'#7f8c8d', desc:'Emotionel distance og kynisme er en forsvarsmekanisme mod kronisk stress. Du beskytter dig selv ved at trække dig, men det forværrer isolationen.' },
+    { emoji:'📉', name:'Reduceret præstation', pct:accPct, color:'#2e6b9e', desc:'Følelsen af utilstrækkelighed og nedsat effektivitet. Kronisk stress underminerer din kognitive funktion og selvtillid.' }
+  ];
+  var dimHTML = '';
+  dimsData.forEach(function(d){
+    var levelLabel = d.pct < 35 ? 'Lavt' : d.pct < 55 ? 'Moderat' : d.pct < 75 ? 'Forhøjet' : 'Højt';
+    dimHTML += '<div class="domain-block"><div class="domain-header"><span style="font-size:22px">'+d.emoji+'</span><span class="domain-name">'+d.name+'</span><span class="domain-score" style="color:'+d.color+'">'+Math.round(d.pct)+'%</span></div><div class="domain-bar"><div class="domain-bar-fill" style="width:'+d.pct+'%;background:'+d.color+'"></div></div><p style="font-size:12px;color:var(--text-3);margin:8px 0">Niveau: '+levelLabel+'</p><p class="domain-desc">'+d.desc+'</p></div>';
+  });
+  document.getElementById('dimensions-detail').innerHTML = dimHTML;
+
+  // Health risks
+  var healthHTML = '<div style="font-size:14px;color:var(--text-2);line-height:1.7">';
+  if (pssTotal <= 13) {
+    healthHTML += '<p>Dit stressniveau er lavt og udgør ikke en sundhedsrisiko. Fortsat forebyggelse anbefales.</p>';
+  } else if (pssTotal <= 20) {
+    healthHTML += '<p><strong>Moderat risiko:</strong></p><ul style="padding-left:18px;margin-top:8px"><li>Lettere forhøjet kortisol kan påvirke søvnkvalitet</li><li>Mild immunsuppression ved vedvarende stress</li><li>Øget muskelspænding og hovedpine</li></ul>';
+  } else if (pssTotal <= 26) {
+    healthHTML += '<p><strong>Forhøjet risiko:</strong></p><ul style="padding-left:18px;margin-top:8px"><li>Kronisk forhøjet kortisol kan påvirke hukommelse og koncentration</li><li>Immunforsvaret svækkes — flere infektioner</li><li>Øget kardiovaskulær belastning (blodtryk, puls)</li><li>Fordøjelsesproblemer (IBS-lignende symptomer)</li><li>Søvnforstyrrelser der forværrer stresscyklussen</li></ul>';
+  } else {
+    healthHTML += '<p><strong>Høj risiko — handling påkrævet:</strong></p><ul style="padding-left:18px;margin-top:8px"><li>Kronisk forhøjet kortisol med risiko for HPA-akse dysregulering</li><li>Markant svækket immunforsvar</li><li>Øget risiko for kardiovaskulær sygdom</li><li>Kognitiv påvirkning: Nedsat arbejdshukommelse og beslutningsevne</li><li>Risiko for depression og angst som sekundære tilstande</li><li>Søvnproblemer der forværrer alle andre symptomer</li></ul>';
+  }
+  healthHTML += '<p style="font-size:12px;color:var(--text-3);margin-top:12px">Baseret på forskning i kortisol, stress og helbredskonsekvenser (Cohen & Janicki-Deverts, 2012).</p></div>';
+  document.getElementById('health-risks').innerHTML = healthHTML;
+
+  // Strengths & challenges
+  document.getElementById('strengths-challenges').innerHTML =
+    '<div class="sc-card strengths"><h3 style="color:#3B9979">✦ Styrker</h3>'+bp.strengths.map(function(s){return '<div class="sc-item"><strong>'+s+'</strong></div>';}).join('')+'</div>'+
+    '<div class="sc-card challenges"><h3 style="color:#c0392b">✧ Udfordringer</h3>'+bp.challenges.map(function(c){return '<div class="sc-item"><strong>'+c+'</strong></div>';}).join('')+'</div>';
+
+  // Coping toolkit
+  document.getElementById('coping-toolkit').innerHTML = bp.coping.map(function(c){
+    return '<div class="coping-card"><h4>'+c.t+'</h4><p>'+c.d+'</p></div>';
+  }).join('');
+
+  // Treatment
+  var treatHTML = '<h3>🧠 Terapi</h3>';
+  treatHTML += '<div style="overflow-x:auto"><table class="med-table"><thead><tr><th>Behandling</th><th>Evidens</th><th>Effekt</th><th>Forløb</th></tr></thead><tbody>';
+  var therapies = [
+    { name:'CBT (stress-fokuseret)', ev:'Stærk', eff:'g: 0.51-0.81', dur:'12-16 sessioner' },
+    { name:'MBSR (Mindfulness)', ev:'Stærk', eff:'= SSRI effekt', dur:'8-ugers program' },
+    { name:'Motion (aerob)', ev:'Stærk', eff:'Moderat', dur:'30 min, 3x/uge' },
+    { name:'Søvnterapi (CBT-I)', ev:'Stærk', eff:'Stor', dur:'4-8 sessioner' },
+    { name:'Arbejdsplads-intervention', ev:'Moderat', eff:'Varierende', dur:'Løbende' }
+  ];
+  therapies.forEach(function(t){ treatHTML += '<tr><td><strong>'+t.name+'</strong></td><td>'+t.ev+'</td><td>'+t.eff+'</td><td>'+t.dur+'</td></tr>'; });
+  treatHTML += '</tbody></table></div>';
+
+  treatHTML += '<h3 style="margin-top:24px">💊 Medicin (kun ved komorbid depression/angst)</h3>';
+  treatHTML += '<div style="margin-bottom:12px;padding:12px 16px;border-radius:10px;background:var(--accent-light);font-size:13px;color:var(--text-2);line-height:1.7"><strong>Vigtigt:</strong> Der findes ingen godkendt medicin mod udbrændthed. Medicin bruges kun når stress har udviklet sig til klinisk depression eller angst.</div>';
+  treatHTML += '<div style="overflow-x:auto"><table class="med-table"><thead><tr><th>Type</th><th>Hvornår</th><th>Fordele</th><th>Ulemper</th></tr></thead><tbody>';
+  var meds = [
+    { type:'SSRI (Sertralin, Escitalopram)', when:'Komorbid depression/angst', pro:'Effektiv på depressed mood; langtidsbeskyttelse', con:'Bivirkninger; 2-4 uger til effekt' },
+    { type:'Melatonin', when:'Søvnproblemer', pro:'Ikke vanedannende; hjælper indsovning', con:'Begrænset effekt på gennemsovning' },
+    { type:'Benzodiazepiner (Oxazepam)', when:'Akut angst/krise', pro:'Hurtig effekt', con:'Vanedannende; kun kortvarigt' }
+  ];
+  meds.forEach(function(m){ treatHTML += '<tr><td><strong>'+m.type+'</strong></td><td>'+m.when+'</td><td>'+m.pro+'</td><td>'+m.con+'</td></tr>'; });
+  treatHTML += '</tbody></table></div>';
+
+  // Personalized recommendation
+  treatHTML += '<div style="margin-top:16px;padding:20px;border-radius:12px;background:var(--bg-warm)"><h4 style="font-size:15px;font-weight:600;margin-bottom:8px">🎯 Anbefaling til din profil ('+burnoutProfile+')</h4><p style="font-size:14px;color:var(--text-2);line-height:1.7">';
+  if (burnoutProfile === 'Engageret') treatHTML += 'Fokus på forebyggelse: Vedligehold dine gode vaner og sæt klare grænser for overarbejde.';
+  else if (burnoutProfile === 'Overbelastet') treatHTML += '<strong>Arbejdsintervention + MBSR</strong> anbefales. Du skal reducere belastningen og øge din restitution. Tal med din leder om opgavemængde.';
+  else if (burnoutProfile === 'Afkoblet') treatHTML += 'Fokus på <strong>meningsgenopbygning</strong>. Overvej om du er i det rigtige job/situation. Terapi kan hjælpe med at genoprette engagement.';
+  else if (burnoutProfile === 'Ineffektiv') treatHTML += '<strong>Coaching eller CBT</strong> med fokus på self-efficacy. Du har energien — du mangler troen på dig selv. Start med små succeser.';
+  else if (burnoutProfile === 'Udbrændthed') treatHTML += '<strong>CBT + mulig medicinsk vurdering</strong>. Overvej sygemelding. Dit stressniveau kræver professionel intervention. Book tid hos din læge.';
+  else treatHTML += 'Start med <strong>stressreducerende øvelser</strong> dagligt og overvej terapi hvis niveauet ikke falder inden 4 uger.';
+  treatHTML += '</p></div>';
+  document.getElementById('treatment').innerHTML = treatHTML;
+
+  // Sleep guide
+  var sleepHTML = '<div style="font-size:14px;color:var(--text-2);line-height:1.7">';
+  if (exhPct >= 60) {
+    sleepHTML += '<div style="padding:16px;border-radius:10px;background:rgba(231,76,60,0.06);border:1px solid rgba(231,76,60,0.15);margin-bottom:16px"><strong>🚨 Din udmattelse er forhøjet — søvn er din vigtigste intervention.</strong></div>';
+  }
+  sleepHTML += '<h4 style="margin-bottom:8px">Søvnhygiejne-protokol</h4><ul style="padding-left:18px">';
+  sleepHTML += '<li><strong>Fast sengetid:</strong> Gå i seng og stå op på samme tidspunkt — også i weekenden (±30 min)</li>';
+  sleepHTML += '<li><strong>Skærmfri zone:</strong> Ingen skærme 60 min før sengetid. Brug bøger, musik eller bløde samtaler</li>';
+  sleepHTML += '<li><strong>Koffeinstop:</strong> Ingen koffein efter kl. 14</li>';
+  sleepHTML += '<li><strong>Soveværelse = søvn:</strong> Fjern TV, computer og arbejde fra soveværelset</li>';
+  sleepHTML += '<li><strong>Køligt og mørkt:</strong> 16-18°C, mørklægningsgardiner, minimal støj</li>';
+  if (exhPct >= 50) sleepHTML += '<li><strong>8+ timers søvn:</strong> Med dit udmattelsesniveau har du brug for ekstra restitution</li>';
+  sleepHTML += '</ul>';
+  if (pssTotal > 20) {
+    sleepHTML += '<h4 style="margin-top:16px;margin-bottom:8px">Tankeræs ved sengetid</h4><p>Mange med stress oplever tankeræs. Prøv:</p><ul style="padding-left:18px;margin-top:8px"><li>"Bekymringstid": Sæt 15 min af kl. 19 til at skrive bekymringer ned. Derefter er det lukket.</li><li>Body scan: Start ved fødderne, spænd og slap af i hver muskelgruppe</li><li>4-7-8 åndedrættet (se værktøjskasse)</li></ul>';
+  }
+  sleepHTML += '</div>';
+  document.getElementById('sleep-guide').innerHTML = sleepHTML;
+
+  // Action plan
+  var actions = [{title:'📅 I morgen',items:[]},{title:'📋 Ugentlig plan',items:[]},{title:'🎯 Månedligt mål',items:[]}];
+  if (exhPct >= 60) { actions[0].items.push('Sov 30 minutter mere i nat','Sig nej til én ting der ikke er essentiel'); actions[1].items.push('Daglig 4-7-8 åndedrætsøvelse morgen og aften'); actions[2].items.push('Etabler en bæredygtig søvnrutine'); }
+  if (cynPct >= 50) { actions[0].items.push('Ring til én person du holder af'); actions[1].items.push('Planlæg én meningsfuld social aktivitet'); actions[2].items.push('Vurder om din nuværende situation matcher dine værdier'); }
+  if (helpPct >= 50) { actions[0].items.push('Skriv 3 ting du HAR kontrol over lige nu'); actions[1].items.push('Kontrolcirkel-øvelse: Del problemer i "kan ændre" / "kan ikke ændre"'); }
+  if (pssTotal > 20) { actions[0].items.push('20 minutters gåtur uden telefon'); actions[1].items.push('30 min motion mindst 3 dage'); actions[2].items.push('Book tid hos læge til at drøfte dit stressniveau'); }
+  if (actions[0].items.length < 2) { actions[0].items.push('Skriv 3 ting du er taknemmelig for','20 minutters pause fra skærmtid'); }
+  if (actions[1].items.length < 2) { actions[1].items.push('Prøv mindfulness 10 min/dag i en uge','Blokér tid til én aktivitet der giver dig energi'); }
+  if (actions[2].items.length < 1) { actions[2].items.push('Evaluer om dit stressniveau er faldet — tag testen igen'); }
+  document.getElementById('action-plan').innerHTML = actions.map(function(a){ return '<div class="action-card"><h4>'+a.title+'</h4><ul>'+a.items.map(function(i){return '<li>'+i+'</li>';}).join('')+'</ul></div>'; }).join('');
+
+  // Doctor section
+  var docHTML = '<div style="font-size:14px;line-height:1.8;color:var(--text-2)">';
+  docHTML += '<h3 style="margin-bottom:12px">Klinisk opsummering</h3>';
+  docHTML += '<p><strong>Test:</strong> PSS-10 (Perceived Stress Scale) + MBI-inspirerede burnout-dimensioner</p>';
+  docHTML += '<p><strong>Dato:</strong> '+new Date().toLocaleDateString('da-DK')+'</p>';
+  docHTML += '<p><strong>PSS-10 score:</strong> '+pssTotal+'/40 — '+level+'</p>';
+  docHTML += '<p><strong>Burnout-profil:</strong> '+burnoutProfile+' (Leiter & Maslach)</p>';
+  docHTML += '<p><strong>Dimensioner:</strong> Stress '+Math.round(pssPct)+'% · Hjælpeløshed '+Math.round(helpPct)+'% · Self-efficacy↓ '+Math.round(effPct)+'% · Udmattelse '+Math.round(exhPct)+'% · Kynisme '+Math.round(cynPct)+'% · Præstation↓ '+Math.round(accPct)+'%</p>';
+  docHTML += '<h3 style="margin-top:20px;margin-bottom:12px">Samtaleguide</h3><ul style="padding-left:18px">';
+  docHTML += '<li>"Jeg har taget en valideret stresstest og scorer '+pssTotal+'/40 på PSS-10, hvilket er i den '+(pssTotal<=13?'lave':pssTotal<=20?'moderate':pssTotal<=26?'forhøjede':'høje')+' zone."</li>';
+  docHTML += '<li>"Min burnout-profil er \''+burnoutProfile+'\', med primære symptomer i '+(exhPct>=cynPct?'udmattelse':'kynisme/afkobling')+'."</li>';
+  if (pssTotal > 20) docHTML += '<li>"Jeg vil gerne drøfte muligheden for professionel støtte — enten terapi eller en stressklinik."</li>';
+  docHTML += '</ul>';
+  docHTML += '<p style="margin-top:12px;font-size:12px;color:var(--text-3)"><strong>Kliniske cutoffs:</strong> PSS-10 ≤13 = lav stress, 14-20 = moderat, 21-26 = forhøjet, ≥27 = høj stress. Burnout-profiler baseret på Leiter & Maslach (2016).</p></div>';
+  document.getElementById('doctor-section').innerHTML = docHTML;
+
+  // Resources
+  var resHTML = '';
+  resHTML += '<div style="margin-bottom:16px"><h4 style="font-size:14px;font-weight:600;margin-bottom:8px">📖 Bøger</h4><ul style="padding-left:18px;font-size:14px;color:var(--text-2)"><li style="margin-bottom:4px"><em>Burnout: The Secret to Unlocking the Stress Cycle</em> — Emily & Amelia Nagoski</li><li style="margin-bottom:4px"><em>Full Catastrophe Living</em> — Jon Kabat-Zinn</li><li style="margin-bottom:4px"><em>Why We Sleep</em> — Matthew Walker</li></ul></div>';
+  resHTML += '<div style="margin-bottom:16px"><h4 style="font-size:14px;font-weight:600;margin-bottom:8px">📱 Apps</h4><ul style="padding-left:18px;font-size:14px;color:var(--text-2)"><li style="margin-bottom:4px">Headspace / Calm (daglig meditation og stressreduktion)</li><li style="margin-bottom:4px">Daylio (humør- og stresstracking)</li><li style="margin-bottom:4px">MindHelper.dk (gratis danske CBT-øvelser)</li></ul></div>';
+  resHTML += '<div style="margin-bottom:16px"><h4 style="font-size:14px;font-weight:600;margin-bottom:8px">🇩🇰 Danske organisationer</h4><ul style="padding-left:18px;font-size:14px;color:var(--text-2)"><li style="margin-bottom:4px">Psykiatrifonden (psykiatrifonden.dk) — rådgivning og viden om stress</li><li style="margin-bottom:4px">Stressforeningen (telefonrådgivning)</li><li style="margin-bottom:4px">Din læge → henvisning til psykolog (evt. med tilskud)</li></ul></div>';
+  resHTML += '<div><h4 style="font-size:14px;font-weight:600;margin-bottom:8px">🔬 Videnskab</h4><ul style="padding-left:18px;font-size:14px;color:var(--text-2)"><li style="margin-bottom:4px">Cohen et al. (1983) — PSS: Perceived Stress Scale</li><li style="margin-bottom:4px">Maslach & Jackson (1981) — Maslach Burnout Inventory</li><li style="margin-bottom:4px">Leiter & Maslach (2016) — Latent Burnout Profiles</li></ul></div>';
+  document.getElementById('resources').innerHTML = resHTML;
+
+  // Expectations
+  var expHTML = '<div style="font-size:14px;color:var(--text-2);line-height:1.7">';
+  expHTML += '<div style="margin-bottom:16px"><strong>🧠 CBT:</strong> 12-16 sessioner over 3-4 måneder. Effekt ses fra session 4-6. Kun CBT har tilstrækkeligt antal studier for burnout specifikt.</div>';
+  expHTML += '<div style="margin-bottom:16px"><strong>🧘 MBSR:</strong> 8-ugers program med daglig øvelse. Lige så effektiv som escitalopram (SSRI) på angst og arbejdsførlighed (Hoge et al., 2023).</div>';
+  expHTML += '<div style="margin-bottom:16px"><strong>🏃 Motion:</strong> Effekt fra første session. 30 min aerob motion 3x/uge reducerer kortisol og forbedrer søvn.</div>';
+  expHTML += '<div style="margin-bottom:16px"><strong>💊 SSRI (hvis relevant):</strong> 2-4 uger til initial effekt. Bivirkninger stærkest de første 1-2 uger. Kun relevant ved komorbid depression/angst.</div>';
+  if (pssTotal > 26) expHTML += '<div style="padding:16px;border-radius:10px;background:rgba(192,57,43,0.06);border:1px solid rgba(192,57,43,0.2)"><strong>🆘 Søg akut hjælp hvis:</strong> Du har selvmordstanker eller føler dig i krise. Ring Livslinien: 70 201 201 (24/7).</div>';
+  expHTML += '</div>';
+  document.getElementById('expectations').innerHTML = expHTML;
+}
+
+function buildRadar(dims) {
+  var n = dims.length, cx = 170, cy = 170, R = 130;
+  var step = (2 * Math.PI) / n, start = -Math.PI / 2;
+  function p(a, r) { return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; }
+  var svg = '<svg viewBox="0 0 340 360" xmlns="http://www.w3.org/2000/svg">';
+  for (var ring = 1; ring <= 4; ring++) {
+    var r = R * ring / 4, pts = [];
+    for (var i = 0; i < n; i++) pts.push(p(start + i * step, r).join(','));
+    svg += '<polygon points="'+pts.join(' ')+'" fill="none" stroke="rgba(0,0,0,0.06)" stroke-width="1"/>';
+    if (ring === 2) svg += '<text x="'+(cx+4)+'" y="'+(cy-r+12)+'" fill="rgba(0,0,0,0.15)" font-size="9" font-family="Figtree">50%</text>';
+  }
+  for (var i = 0; i < n; i++) { var ep = p(start + i * step, R); svg += '<line x1="'+cx+'" y1="'+cy+'" x2="'+ep[0]+'" y2="'+ep[1]+'" stroke="rgba(0,0,0,0.08)" stroke-width="1"/>'; }
+  var dataPts = [];
+  for (var i = 0; i < n; i++) dataPts.push(p(start + i * step, R * (dims[i].pct / 100)).join(','));
+  svg += '<polygon points="'+dataPts.join(' ')+'" fill="rgba(194,85,58,0.12)" stroke="#c2553a" stroke-width="2.5"/>';
+  for (var i = 0; i < n; i++) {
+    var dp = p(start + i * step, R * (dims[i].pct / 100));
+    svg += '<circle cx="'+dp[0]+'" cy="'+dp[1]+'" r="5" fill="'+dims[i].color+'" stroke="#fff" stroke-width="2"/>';
+    var lp = p(start + i * step, R + 28);
+    var anchor = lp[0] < cx - 10 ? 'end' : lp[0] > cx + 10 ? 'start' : 'middle';
+    svg += '<text x="'+lp[0]+'" y="'+(lp[1]+4)+'" text-anchor="'+anchor+'" fill="var(--text-2)" font-size="11" font-weight="500" font-family="Figtree,sans-serif">'+dims[i].name+'</text>';
+    svg += '<text x="'+lp[0]+'" y="'+(lp[1]+19)+'" text-anchor="'+anchor+'" fill="'+dims[i].color+'" font-size="14" font-weight="700" font-family="Source Serif 4,serif">'+Math.round(dims[i].pct)+'%</text>';
+  }
+  svg += '</svg>';
+  document.getElementById('radar').innerHTML = svg;
+}
+
+function downloadPDF() {
+  html2pdf().set({ margin:[10,10,10,10], filename:'Hjernebarometeret-Stressrapport.pdf', image:{type:'jpeg',quality:0.95}, html2canvas:{scale:2,useCORS:true}, jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}, pagebreak:{mode:['avoid-all','css','legacy']} }).from(document.getElementById('report-content')).save();
+}
+
+(async function init() {
+  var paymentReturn = false;
+  if (window.HB_PAY) { var ret = HB_PAY.handleReturn(); if (ret && ret.success) { paymentReturn = true; if (ret.token) localStorage.setItem('hb_report_token_stress', ret.token); } }
+  if (window.HB_AUTH) await new Promise(function(r){ HB_AUTH.onReady(r); });
+  var hasAccess = false;
+  if (window.HB_AUTH && HB_AUTH.isAdmin()) hasAccess = true;
+  else if (paymentReturn && window.HB_PAY) { document.querySelector('#loading p').textContent = 'Bekræfter betaling...'; hasAccess = await HB_PAY.waitForAccess('stress', 10); }
+  else if (window.HB_PAY) hasAccess = await HB_PAY.hasAccess('stress');
+  if (!hasAccess) { document.getElementById('loading').style.display = 'none'; document.getElementById('no-access').style.display = 'block'; return; }
+  var data = null;
+  if (window.HB_PAY) data = HB_PAY.loadResults('stress');
+  if (!data && window.HB_PAY) data = await HB_PAY.loadResultsFromDB('stress');
+  if (!data) { document.getElementById('loading').style.display='none'; document.getElementById('no-access').style.display='block'; document.querySelector('#no-access h1').textContent='📊 Ingen resultater fundet'; document.querySelector('#no-access p').textContent='Du skal gennemføre stresstesten først.'; document.querySelector('#no-access .buy-btn').textContent='Tag stresstesten'; document.querySelector('#no-access .buy-btn').onclick=function(){window.location.href='/tests/stress.html';}; return; }
+  buildReport(data);
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('report').style.display = 'block';
+})();
+</script>
+</body>
+</html>

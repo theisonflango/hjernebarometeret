@@ -23,8 +23,8 @@
   // Simplified test mode nav
   if(testMode){
     el.innerHTML = '<nav id="nav" class="sn">' +
-      '<a href="index.html" class="sn-logo">' + logoSvg + ' Hjernebarometeret</a>' +
-      '<a href="index.html#tests" class="sn-exit">Afslut test</a>' +
+      '<a href="/" class="sn-logo">' + logoSvg + ' Hjernebarometeret</a>' +
+      '<a href="/#tests" class="sn-exit">Afslut test</a>' +
     '</nav>';
     // Scroll effect
     var nav = document.getElementById('nav');
@@ -34,15 +34,15 @@
 
   // Full nav
   el.innerHTML = '<nav id="nav" class="sn">' +
-    '<a href="index.html" class="sn-logo">' + logoSvg + ' Hjernebarometeret</a>' +
+    '<a href="/" class="sn-logo">' + logoSvg + ' Hjernebarometeret</a>' +
     '<button class="sn-hamburger" id="sn-hamburger" aria-label="Menu">' + hamburgerSvg + '</button>' +
     '<div class="sn-right" id="sn-right">' +
       '<button class="sn-close" id="sn-close" aria-label="Luk menu">' + closeSvg + '</button>' +
-      '<a href="index.html#tests" class="sn-link sn-hm' + act('tests') + '">Tests</a>' +
-      '<a href="rapporter.html" class="sn-link sn-hm' + act('rapporter') + '">Rapporter</a>' +
-      '<a href="om-os.html" class="sn-link sn-hm' + act('om-os') + '">Om os</a>' +
-      '<a href="index.html#faq" class="sn-link sn-hm' + act('faq') + '">FAQ</a>' +
-      '<a href="index.html#tests" class="sn-cta sn-hm">Tag en test</a>' +
+      '<a href="/#tests" class="sn-link sn-hm' + act('tests') + '">Tests</a>' +
+      '<a href="/rapporter.html" class="sn-link sn-hm' + act('rapporter') + '">Rapporter</a>' +
+      '<a href="/om-os.html" class="sn-link sn-hm' + act('om-os') + '">Om os</a>' +
+      '<a href="/#faq" class="sn-link sn-hm' + act('faq') + '">FAQ</a>' +
+      '<a href="/#tests" class="sn-cta sn-hm">Tag en test</a>' +
       '<a href="#" class="sn-login" onclick="event.preventDefault();if(window.HB_AUTH)HB_AUTH.showLogin();">' + userSvg + ' Log ind</a>' +
     '</div>' +
   '</nav>';

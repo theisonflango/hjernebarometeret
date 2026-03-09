@@ -7,7 +7,7 @@
 <title>Din Personlighedsrapport — Hjernebarometeret</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,500&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared/styles.css">
+<link rel="stylesheet" href="../shared/styles.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
@@ -133,7 +133,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:
   <p>Du har ikke adgang til denne rapport endnu. Køb adgang for at se din fulde personlighedsanalyse med 30 facetter, styrker, karrierematch og handlingsplan.</p>
   <button class="buy-btn" onclick="if(window.HB_PAY)HB_PAY.checkout('single','personlighed')">Køb rapport — 49 kr</button>
   <p style="margin-top:12px"><button onclick="if(window.HB_PAY)HB_PAY.checkout('unlimited','personlighed')" style="background:none;border:1.5px solid var(--accent);color:var(--accent);padding:10px 20px;border-radius:10px;font-size:13px;cursor:pointer;font-family:var(--sans)">Eller: Ubegrænset — 89 kr/md</button></p>
-  <p style="margin-top:24px;font-size:13px;color:var(--text-4)"><a href="personlighedstest.html" style="color:var(--text-3)">← Tilbage til testen</a></p>
+  <p style="margin-top:24px;font-size:13px;color:var(--text-4)"><a href="/tests/personlighed.html" style="color:var(--text-3)">← Tilbage til testen</a></p>
 </div>
 
 <!-- Report content (hidden until access verified) -->
@@ -160,6 +160,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:
   <section>
     <h2>📋 Opsummering</h2>
     <p id="summary-text" style="font-size:15px;line-height:1.7;color:var(--text-2);margin-bottom:16px"></p>
+    <div id="archetype-disclaimer" style="padding:12px 16px;border-radius:10px;background:var(--bg-warm);margin-top:12px;margin-bottom:16px;font-size:12px;color:var(--text-3);line-height:1.6">Din profiltype er Hjernebarometerets fortolkning af din Big Five-kombination. Arketyperne er ikke videnskabeligt validerede kategorier — de er vores måde at gøre din profil mere relatable. Det der er videnskabeligt er de fem traits og 30 facetter nedenfor.</div>
     <div class="summary-grid" id="summary-grid"></div>
     <div id="top-findings" style="margin-top:16px"></div>
   </section>
@@ -174,7 +175,10 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:
   <!-- 4. DETALJERET TRAIT-ANALYSE -->
   <section>
     <h2>📊 Detaljeret trait-analyse</h2>
-    <p style="font-size:13px;color:var(--text-3);margin-bottom:20px">Dine fem grundlæggende personlighedstræk med percentil-rangering og dybdebeskrivelse.</p>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:20px">Dine fem grundlæggende personlighedstræk med procentscores og dybdebeskrivelse.</p>
+    <div style="padding:20px;border-radius:12px;background:var(--accent-light);border:1.5px solid rgba(184,134,11,0.25);margin-bottom:20px">
+      <p style="font-size:14px;color:var(--text-2);line-height:1.7"><strong>📊 Sådan læser du dine scores</strong> — Dine scores viser hvor meget af hvert træk du har (0-100% af maksimal score). De er IKKE percentiler — en score på 70% betyder ikke "højere end 70% af befolkningen", men at du har scoret 70% af den maksimale score på dette træk. Scores er baseret på din selvrapportering og kan variere mellem testninger.</p>
+    </div>
     <div id="traits-detail"></div>
   </section>
 
@@ -230,7 +234,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:
   <!-- 12. DISCLAIMER -->
   <section style="background:var(--bg-warm)">
     <p style="font-size:12px;color:var(--text-3);line-height:1.7">
-      <strong>Om denne rapport:</strong> Denne rapport er genereret af Hjernebarometeret.dk baseret på IPIP Big Five (International Personality Item Pool). Resultater er normaliseret som percentiler (0-100%) baseret på en lineær skala. Rapporten er til personlig indsigt og udvikling — den er ikke en klinisk vurdering og bør ikke bruges som grundlag for professionelle beslutninger. Personlighed er fleksibel og kan ændre sig over tid.
+      <strong>Om denne rapport:</strong> Denne rapport er genereret af Hjernebarometeret.dk baseret på IPIP Big Five (International Personality Item Pool, 60 items). Resultater vises som procentscores (0-100%) på en lineær skala — de er <strong>ikke</strong> normerede percentiler baseret på populationsdata. Rapporten er til personlig indsigt og udvikling — den er ikke en klinisk vurdering og bør ikke bruges som grundlag for professionelle beslutninger. Personlighed er fleksibel og kan ændre sig over tid.
     </p>
     <p style="font-size:11px;color:var(--text-4);margin-top:12px">© Hjernebarometeret.dk · hjernebarometeret.dk</p>
   </section>
@@ -240,10 +244,10 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:
 
 <div id="site-footer"></div>
 
-<script src="shared/nav.js"></script>
-<script src="shared/footer.js"></script>
-<script src="shared/auth.js"></script>
-<script src="shared/payment.js"></script>
+<script src="../shared/nav.js"></script>
+<script src="../shared/footer.js"></script>
+<script src="../shared/auth.js"></script>
+<script src="../shared/payment.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════
    PERSONLIGHEDSRAPPORT — Hjernebarometeret
@@ -275,7 +279,7 @@ const T = {
     mid:'Du balancerer empati med selvhævdelse. Du er imødekommende men kan også stå fast når det er nødvendigt. Du navigerer diplomati og ærlighed efter situationen.',
     low:'Du er direkte, selvstændig og fokuseret på dine egne mål. Du prioriterer ærlighed og resultater over at behage andre. Du er komfortabel med at udfordre og debattere.'
   },
-  N: { name:'Neuroticisme', en:'Neuroticism', emoji:'🌊', color:'#6a9fdf',
+  N: { name:'Emotionel følsomhed', en:'Neuroticism / Emotional Sensitivity', emoji:'🌊', color:'#6a9fdf',
     facets:{ N1:'Angst', N2:'Fjendtlighed', N3:'Depression', N4:'Selvbevidsthed', N5:'Impulsivitet', N6:'Sårbarhed' },
     high:'Du oplever følelser intenst og kan være sårbar over for stress. Du er meget opmærksom på potentielle trusler og risici. Din følsomhed giver dig også dybere empati og kunstnerisk sensibilitet.',
     mid:'Du har en moderat følelsesmæssig reaktivitet. Du kan håndtere de fleste stressorer men mærker det i pressede perioder. Du har et sundt register af emotionelle reaktioner.',
@@ -413,22 +417,22 @@ const INTERACTIONS = [
   { test:s=>s.E>=60&&s.A<40, title:'Høj Ekstraversion + Lav Venlighed',
     text:'Du er social og udadvendt, men på dine egne præmisser. Du er den naturlige debattør der nyder diskussioner og ikke er bange for konfrontation. Din direkte stil er effektiv i forretning men kan skabe friktion i nære relationer.'
   },
-  { test:s=>s.N>=60&&s.C>=60, title:'Høj Neuroticisme + Høj Samvittighedsfuldhed',
+  { test:s=>s.N>=60&&s.C>=60, title:'Høj Emotionel følsomhed + Høj Samvittighedsfuldhed',
     text:'Du er perfektionistisk med høje standarder — men din bekymring kan forstærke presset. Du leverer konsistent kvalitet, men prisen er ofte stress og selvkritik. Tip: Øv dig i "good enough" og sæt realistiske deadlines.'
   },
   { test:s=>s.O>=60&&s.A>=60, title:'Høj Åbenhed + Høj Venlighed',
     text:'Du er empatisk, kreativ og idealistisk. Du ser det bedste i mennesker og idéer. Din kombination gør dig til en naturlig rådgiver og inspirator, men pas på ikke at brænde ud på andres problemer.'
   },
-  { test:s=>s.E<40&&s.N>=60, title:'Lav Ekstraversion + Høj Neuroticisme',
+  { test:s=>s.E<40&&s.N>=60, title:'Lav Ekstraversion + Høj Emotionel følsomhed',
     text:'Du er introvert og følelsesmæssigt sensitiv. Social interaktion kan både dræne og bekymre dig. Din styrke er dybde og eftertanke, men isolation kan forstærke negative tanker. Prioriter få, trygge relationer.'
   },
   { test:s=>s.C>=60&&s.E>=60, title:'Høj Samvittighedsfuldhed + Høj Ekstraversion',
     text:'Du er både ambitiøs og karismatisk — en naturlig leder. Du har energien til at drive projekter og disciplinen til at gennemføre dem. Du inspirerer andre med din kombination af handling og vision.'
   },
-  { test:s=>s.O<40&&s.N<40, title:'Lav Åbenhed + Lav Neuroticisme',
+  { test:s=>s.O<40&&s.N<40, title:'Lav Åbenhed + Lav Emotionel følsomhed',
     text:'Du er praktisk, stabil og forudsigelig på den bedste måde. Du er en klippe i hverdagen og trives med rutiner og gennemprøvede metoder. Andre søger dig for din pålidelige, jordnære tilgang.'
   },
-  { test:s=>s.A>=60&&s.N>=60, title:'Høj Venlighed + Høj Neuroticisme',
+  { test:s=>s.A>=60&&s.N>=60, title:'Høj Venlighed + Høj Emotionel følsomhed',
     text:'Du er dybt empatisk men kan absorbere andres følelser. Din omsorg for andre kombineret med følelsesmæssig sensitivitet gør dig til en fantastisk ven, men du skal passe på dine grænser.'
   }
 ];
@@ -437,7 +441,7 @@ const INTERACTIONS = [
 function buildReport(data) {
   const tp = data.traitPct || {};
   const fp = data.facetPct || {};
-  const s = { O:tp.O||50, C:tp.C||50, E:tp.E||50, A:tp.A||50, N:tp.N||50 };
+  const s = { O:tp.O!=null?tp.O:50, C:tp.C!=null?tp.C:50, E:tp.E!=null?tp.E:50, A:tp.A!=null?tp.A:50, N:tp.N!=null?tp.N:50 };
 
   // Find profile
   const profile = PROFILES.find(p => p.test(s));
@@ -465,8 +469,8 @@ function buildReport(data) {
   if (s.E <= 30) findings.push('⚡ Du scorer lavt på <strong>Ekstraversion</strong> — du er dybt introvert og selvstændig.');
   if (s.A >= 70) findings.push('💗 Du scorer markant højt på <strong>Venlighed</strong> — du er exceptionelt empatisk.');
   if (s.A <= 30) findings.push('💗 Du scorer lavt på <strong>Venlighed</strong> — du er exceptionelt selvstændig og direkte.');
-  if (s.N >= 70) findings.push('🌊 Du scorer markant højt på <strong>Neuroticisme</strong> — du oplever følelser meget intenst.');
-  if (s.N <= 30) findings.push('🌊 Du scorer lavt på <strong>Neuroticisme</strong> — du er exceptionelt emotionelt stabil.');
+  if (s.N >= 70) findings.push('🌊 Du scorer markant højt på <strong>Emotionel følsomhed</strong> — du oplever følelser meget intenst.');
+  if (s.N <= 30) findings.push('🌊 Du scorer lavt på <strong>Emotionel følsomhed</strong> — du er exceptionelt emotionelt stabil.');
   if (findings.length > 0) {
     document.getElementById('top-findings').innerHTML = '<h3>🔍 Vigtigste fund</h3>' + findings.slice(0,3).map(f => '<p style="font-size:14px;color:var(--text-2);margin:8px 0;line-height:1.6">'+f+'</p>').join('');
   }
@@ -479,7 +483,8 @@ function buildReport(data) {
   ['O','C','E','A','N'].forEach(k => {
     var pct = s[k];
     var level = pct >= 65 ? 'high' : pct >= 35 ? 'mid' : 'low';
-    var percentileText = 'Du scorer højere end ca. ' + pct + '% af befolkningen på dette område.';
+    var levelLabel = pct >= 65 ? 'Høj' : pct >= 35 ? 'Middel' : 'Lav';
+    var percentileText = 'Score: ' + pct + '% — niveau: ' + levelLabel + ' (lineær skala, ikke populationsnormeret)';
     traitsHTML += '<div class="trait-block">' +
       '<div class="trait-header">' +
         '<span class="trait-emoji">'+T[k].emoji+'</span>' +
@@ -519,7 +524,7 @@ function buildReport(data) {
   if (s.C >= 60) strengths.push({ t:'Selvdisciplin & pålidelighed', d:'Din samvittighedsfuldhed betyder at du leverer hvad du lover. Andre kan regne med dig.' });
   if (s.E >= 60) strengths.push({ t:'Social energi & karisma', d:'Din ekstraversion giver dig naturlig karisma og evne til at motivere og engagere andre.' });
   if (s.A >= 60) strengths.push({ t:'Empati & samarbejdsevne', d:'Din venlighed gør dig til en naturlig teambuilder og konfliktløser.' });
-  if (s.N <= 40) strengths.push({ t:'Emotionel robusthed', d:'Din lave neuroticisme giver dig ro under pres og evne til at træffe klare beslutninger i stressede situationer.' });
+  if (s.N <= 40) strengths.push({ t:'Emotionel robusthed', d:'Din lave emotionel følsomhed giver dig ro under pres og evne til at træffe klare beslutninger i stressede situationer.' });
   if (s.O < 40) strengths.push({ t:'Praktisk handlekraft', d:'Din jordnære tilgang betyder at du fokuserer på hvad der virker i stedet for at spilde tid på urealistiske idéer.' });
   if (s.E < 40) strengths.push({ t:'Eftertænksomhed & dybde', d:'Din introversion giver dig evnen til at tænke dybt og finde indsigter andre overser.' });
 
@@ -555,13 +560,13 @@ function buildReport(data) {
   document.getElementById('career').innerHTML =
     '<p style="font-size:14px;color:var(--text-2);margin-bottom:12px">Baseret på din <strong>'+profile.label+'</strong>-profil matcher du typisk disse erhverv:</p>' +
     '<div class="career-list">' + profile.careers.map(c => '<span class="career-tag">'+c+'</span>').join('') + '</div>' +
-    '<p style="font-size:12px;color:var(--text-3);margin-top:16px">Bemærk: Karrierematch er baseret på forskning i personlighed og erhverv (Holland-koder, O*NET). Det er vejledende — passion og kompetence er vigtigere end personlighedsmatch.</p>';
+    '<p style="font-size:12px;color:var(--text-3);margin-top:16px">Karrierematch er baseret på generelle mønstre i forskningen (Holland-koder, O*NET), men den specifikke kobling til din profil er Hjernebarometerets fortolkning. Passion, kompetence og værdier er langt vigtigere end personlighedsmatch for karrieretilfredshed.</p>';
 
   // ── Compatibility ──
   document.getElementById('compatibility').innerHTML =
     '<div class="compat-item"><strong style="color:#3B9979">💚 Du trives med:</strong><br>' + profile.thrives + '</div>' +
     '<div class="compat-item"><strong style="color:#e8873c">🔶 Mulige gnidninger:</strong><br>' + profile.friction + '</div>' +
-    '<p style="font-size:12px;color:var(--text-3);margin-top:12px">Kompatibilitet handler ikke om at finde en kopi af dig selv, men om at forstå hvor dine naturlige interaktionsmønstre skaber harmoni eller udfordring.</p>';
+    '<p style="font-size:12px;color:var(--text-3);margin-top:12px">Kompatibilitetsforskning inden for personlighedspsykologi er begrænset og resultater er inkonklusive. Denne sektion er vejledende og bør ikke bruges til at vurdere specifikke relationer. Sund kommunikation og fælles værdier er vigtigere end personlighedsmatch.</p>';
 
   // ── Action plan ──
   var actions = [];
@@ -711,7 +716,7 @@ function downloadPDF() {
     document.querySelector('#no-access h1').textContent = '📊 Ingen resultater fundet';
     document.querySelector('#no-access p').textContent = 'Du skal gennemføre personlighedstesten først, før du kan se din rapport.';
     document.querySelector('#no-access .buy-btn').textContent = 'Tag personlighedstesten';
-    document.querySelector('#no-access .buy-btn').onclick = function(){ window.location.href='personlighedstest.html'; };
+    document.querySelector('#no-access .buy-btn').onclick = function(){ window.location.href='/tests/personlighed.html'; };
     return;
   }
 
