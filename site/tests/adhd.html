@@ -37,6 +37,8 @@
 <script src="../shared/footer.js"></script>
 <script src="../shared/auth.js"></script>
 <script src="../shared/payment.js"></script>
+<script src="../shared/normdata.js"></script>
+<script src="../shared/profilecard.js"></script>
 <script type="text/babel">
 const{useState,useRef,useCallback,useEffect}=React;
 
@@ -780,6 +782,11 @@ function Results({profile,answers,demo,mode}){
       <div style={{display:"flex",gap:12,flexWrap:"wrap",marginTop:8}}>
         <Btn primary onClick={doExport} style={{flex:1,minWidth:180}}>{copied?"\u2713 Kopieret!":"Kopier resum\u00e9"}</Btn>
         <Btn onClick={doDownload} style={{flex:1,minWidth:180}}>{"\u2193"} Download som fil</Btn>
+      </div>
+
+      {/* Share button */}
+      <div style={{textAlign:"center",margin:"20px 0"}}>
+        <button style={{background:"#1c1b1a",color:"#fff",border:"none",padding:"12px 24px",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"'Figtree',sans-serif"}} onClick={()=>{if(window.HB_CARD&&profile)HB_CARD.share('adhd',profile)}}>📸 Del dit resultat</button>
       </div>
 
       {/* Paywall */}

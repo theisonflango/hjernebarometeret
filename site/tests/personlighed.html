@@ -639,6 +639,8 @@ body {
 <script src="../shared/footer.js"></script>
 <script src="../shared/auth.js"></script>
 <script src="../shared/payment.js"></script>
+<script src="../shared/normdata.js"></script>
+<script src="../shared/profilecard.js"></script>
 
 <script>
 // ═══════════════════════════════════════════
@@ -1147,10 +1149,18 @@ function buildResultsPage(traitPct, facetPct, hasAccess) {
         <div class="trait-bar-bg">
           <div class="trait-bar-fill" style="background:${t.color}" data-pct="${pct}"></div>
         </div>
+        ${window.HB_NORM ? (() => { var nr = HB_NORM.getPercentile('personlighed', { traitKey: key, pctNormalized: pct }); return nr.percentile ? '<div class="trait-percentile" style="font-size:12px;color:var(--text-3);margin-top:6px;margin-bottom:4px">' + nr.description + ' <span style="opacity:.6;font-size:11px">(' + nr.label + ')</span></div>' : ''; })() : ''}
         <div class="trait-desc">${desc}</div>
       </div>
     `;
   });
+
+  // Share button
+  html += `
+    <div style="text-align:center;margin:24px 0" class="fade-up">
+      <button onclick="if(window.HB_CARD)HB_CARD.share('personlighed',HB_PAY.loadResults('personlighed'))" style="background:var(--bg-dark);color:#fff;border:none;padding:12px 24px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--sans)">📸 ${lang === 'da' ? 'Del dit resultat' : 'Share your result'}</button>
+    </div>
+  `;
 
   // Paywall or "Se rapport" link
   if (hasAccess) {

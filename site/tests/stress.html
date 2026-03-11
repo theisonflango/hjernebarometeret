@@ -782,6 +782,8 @@ body {
 <script src="../shared/footer.js"></script>
 <script src="../shared/auth.js"></script>
 <script src="../shared/payment.js"></script>
+<script src="../shared/normdata.js"></script>
+<script src="../shared/profilecard.js"></script>
 
 <script>
 // ═══════════════════════════════════════════
@@ -1116,6 +1118,7 @@ function calculateAndShowResults() {
         '<div class="score-max">/ 40 PSS</div>' +
       '</div>' +
     '</div>' +
+    (window.HB_NORM ? (function() { var nr = HB_NORM.getPercentile('stress', pssTotal); return nr.percentile ? '<div class="norm-badge fade-up" style="text-align:center;font-size:13px;color:var(--text-2);margin:12px 0;padding:10px 16px;background:rgba(194,85,58,0.05);border-radius:10px;border:1px solid rgba(194,85,58,0.1)">' + nr.description + ' <span style="opacity:.6;font-size:12px">(' + nr.source + ')</span></div>' : ''; })() : '') +
     '<div class="score-interpretation fade-up">' + interpText + '</div>' +
     '<div class="radar-section fade-up">' +
       '<h3>' + t('Din stressprofil','Your Stress Profile') + '</h3>' +
@@ -1137,6 +1140,11 @@ function calculateAndShowResults() {
   });
 
   html += '</div>';
+
+  // Share button
+  html += '<div style="text-align:center;margin:24px 0" class="fade-up">' +
+    '<button onclick="if(window.HB_CARD)HB_CARD.share(\'stress\',HB_PAY.loadResults(\'stress\'))" style="background:var(--bg-dark);color:#fff;border:none;padding:12px 24px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--sans)">📸 ' + t('Del dit resultat','Share your result') + '</button>' +
+  '</div>';
 
   // Paywall
   html += '<div class="paywall-card fade-up">' +

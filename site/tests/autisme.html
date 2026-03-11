@@ -45,6 +45,8 @@ button{font-family:inherit;cursor:pointer}
 <script src="../shared/footer.js"></script>
 <script src="../shared/auth.js"></script>
 <script src="../shared/payment.js"></script>
+<script src="../shared/normdata.js"></script>
+<script src="../shared/profilecard.js"></script>
 <script type="text/babel">
 const {useState, useEffect, useRef} = React;
 
@@ -237,6 +239,7 @@ function AutismeTest() {
                 <div style={{ fontFamily: "var(--serif)", fontSize: 72, fontWeight: 700, color: cs.color, lineHeight: 1 }}>{total}</div>
                 <div style={{ fontSize: 14, color: "var(--text-3)", marginTop: 4 }}>af 50</div>
                 <div style={{ marginTop: 12, display: "inline-block", padding: "6px 16px", borderRadius: 20, background: cs.bg, border: "1px solid " + cs.border, color: cs.color, fontSize: 13, fontWeight: 600 }}>{catLabel}</div>
+                {window.HB_NORM && (() => { const nr = HB_NORM.getPercentile('autisme', total); return nr.percentile ? <div style={{ marginTop: 10, fontSize: 12, color: "var(--text-3)" }}>{nr.description}</div> : null; })()}
               </div>
               <div style={{ flex: 1, minWidth: 280 }}>
                 <div style={{ fontFamily: "var(--serif)", fontSize: 18, fontWeight: 600, color: "var(--text)", marginBottom: 4 }}>{pr.title}</div>
@@ -293,6 +296,11 @@ function AutismeTest() {
 
           <div className="aq-result-disclaimer" style={{ background: "#fef9e7", border: "1px solid #f0d78c", borderTop: "none", padding: "24px 40px", borderRadius: "0 0 14px 14px" }}>
             <p style={{ fontSize: 13, lineHeight: 1.7, color: "#7d6608", margin: 0 }}><strong>Ansvarsfraskrivelse:</strong> Screeningsredskab — ikke klinisk diagnose. Individuel variation er betydelig. I Danmark kan din læge henvise til specialiseret autismeudredning.</p>
+          </div>
+
+          {/* Share button */}
+          <div style={{ textAlign: "center", margin: "24px 0" }}>
+            <button onClick={() => { if (window.HB_CARD) HB_CARD.share('autisme', { t: total, d: ds, category: cat, categoryLabel: catLabel }); }} style={{ background: "var(--bg-dark)", color: "#fff", border: "none", padding: "12px 24px", borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "var(--sans)" }}>📸 Del dit resultat</button>
           </div>
 
           {/* Paywall */}
