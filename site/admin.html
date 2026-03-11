@@ -556,8 +556,8 @@
                     </div>
                     <div className="stat-card stat-card-accent">
                         <div className="stat-card-label">Oms&aelig;tning (DKK)</div>
-                        <div className="stat-card-value">{fmtNumber(s.total_revenue_dkk)} kr</div>
-                        <div className="stat-card-sub">{fmtNumber(s.revenue_last_30_days)} kr sidste 30 dage</div>
+                        <div className="stat-card-value">{fmtNumber(Math.round(s.total_revenue_dkk / 100))} kr</div>
+                        <div className="stat-card-sub">{fmtNumber(Math.round(s.revenue_last_30_days / 100))} kr sidste 30 dage</div>
                     </div>
                     <div className="stat-card">
                         <div className="stat-card-label">Rapporter tilg&aring;et</div>
@@ -912,7 +912,7 @@
                                                 {data.orders.map(o => (
                                                     <tr key={o.id}>
                                                         <td>{o.product_type}{o.test_type ? ` (${TEST_LABELS[o.test_type]||o.test_type})` : ''}</td>
-                                                        <td style={{ fontWeight: 600 }}>{o.amount_dkk} kr</td>
+                                                        <td style={{ fontWeight: 600 }}>{Math.round(o.amount_dkk / 100)} kr</td>
                                                         <td><span className={`badge ${o.status === 'completed' ? 'badge-single' : 'badge-free'}`}>{o.status}</span></td>
                                                         <td>{fmtDate(o.created_at)}</td>
                                                     </tr>
