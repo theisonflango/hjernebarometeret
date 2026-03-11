@@ -60,10 +60,15 @@
   }
 
   // ── Wait for access with retry (webhook race condition) ──
-  async function waitForAccess(testType, maxRetries) {
+  async function waitForAccess(testType, maxRetries, onProgress) {
     var retries = maxRetries || 8;
     for (var i = 0; i < retries; i++) {
-      if (await hasAccess(testType)) return true;
+      try {
+        if (await hasAccess(testType)) return true;
+      } catch(e) {
+        console.warn('waitForAccess check failed:', e);
+      }
+      if (onProgress) onProgress(i + 1, retries);
       await new Promise(function(r){ setTimeout(r, 2000); });
     }
     return false;
@@ -195,7 +200,7 @@
     var body = {
       product_type: productType,
       test_type: testType || null,
-      success_url: window.location.origin + '/' + (testType ? (REPORT_MAP[testType] || FILE_MAP[testType]) : 'rapporter.html'),
+      success_url: window.location.origin + (testType ? (REPORT_MAP[testType] || FILE_MAP[testType]) : '/rapporter.html'),
       cancel_url: window.location.href
     };
 

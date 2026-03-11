@@ -14,7 +14,7 @@
       '<div class="sf-cols">' +
         '<div><h6>Tests</h6><a href="/tests/iq.html">IQ-test</a><a href="/tests/adhd.html">ADHD-screening</a><a href="/tests/autisme.html">Autisme-test</a><a href="/tests/personlighed.html">Personlighedstest</a><a href="/tests/stress.html">Stress & udbrændthed</a></div>' +
         '<div><h6>Information</h6><a href="/rapporter.html">Rapporter & priser</a><a href="/om-os.html">Om os</a><a href="/#faq">FAQ</a><a href="mailto:kontakt@hjernebarometeret.dk">Kontakt</a></div>' +
-        '<div><h6>Konto</h6><a href="#" onclick="event.preventDefault();if(window.HB_AUTH)HB_AUTH.showLogin();">Log ind</a><a href="#" onclick="event.preventDefault();if(window.HB_AUTH){HB_AUTH._toggleSignup({preventDefault:function(){}});HB_AUTH.showLogin();}">Opret konto</a></div>' +
+        '<div><h6>Konto</h6><a href="/profil.html">Min profil</a><a href="#" onclick="event.preventDefault();if(window.HB_AUTH)HB_AUTH.showLogin();">Log ind</a><a href="#" onclick="event.preventDefault();if(window.HB_AUTH){HB_AUTH._toggleSignup({preventDefault:function(){}});HB_AUTH.showLogin();}">Opret konto</a></div>' +
       '</div>' +
     '</div>' +
     '<div class="sf-bot">' +

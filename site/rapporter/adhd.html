@@ -152,7 +152,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:
 <div id="report" class="report" style="display:none">
 
   <!-- PDF download bar -->
-  <div class="pdf-actions no-print" style="text-align:right;margin-bottom:12px">
+  <div class="pdf-actions no-print" style="text-align:right;margin-bottom:12px;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap">
+    <button class="pdf-btn" onclick="if(window.HB_CARD)HB_CARD.share('adhd',HB_PAY.loadResults('adhd'))">📸 Del profilkort</button>
     <button class="pdf-btn" onclick="downloadPDF()">📄 Download PDF</button>
   </div>
 
@@ -281,6 +282,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:
 <script src="../shared/footer.js"></script>
 <script src="../shared/auth.js"></script>
 <script src="../shared/payment.js"></script>
+<script src="../shared/normdata.js"></script>
+<script src="../shared/profilecard.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════
    ADHD-RAPPORT — Hjernebarometeret
@@ -756,9 +759,19 @@ function downloadPDF() {
   }
 
   // Build report
-  buildReport(data);
-  document.getElementById('loading').style.display = 'none';
-  document.getElementById('report').style.display = 'block';
+  try {
+    buildReport(data);
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('report').style.display = 'block';
+  } catch(err) {
+    console.error('buildReport fejl:', err);
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('no-access').style.display = 'block';
+    document.querySelector('#no-access h1').textContent = '⚠️ Noget gik galt';
+    document.querySelector('#no-access p').textContent = 'Der opstod en fejl ved visning af rapporten. Prøv at tage testen igen.';
+    document.querySelector('#no-access .buy-btn').textContent = 'Tag ADHD-screeningen igen';
+    document.querySelector('#no-access .buy-btn').onclick = function(){ window.location.href='/tests/adhd.html'; };
+  }
 })();
 </script>
 

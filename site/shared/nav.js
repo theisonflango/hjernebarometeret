@@ -43,6 +43,7 @@
       '<a href="/om-os.html" class="sn-link sn-hm' + act('om-os') + '">Om os</a>' +
       '<a href="/#faq" class="sn-link sn-hm' + act('faq') + '">FAQ</a>' +
       '<a href="/#tests" class="sn-cta sn-hm">Tag en test</a>' +
+      '<a href="/profil.html" class="sn-link sn-hm' + act('profil') + '">Min profil</a>' +
       '<a href="#" class="sn-login" onclick="event.preventDefault();if(window.HB_AUTH)HB_AUTH.showLogin();">' + userSvg + ' Log ind</a>' +
     '</div>' +
   '</nav>';

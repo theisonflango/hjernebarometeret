@@ -83,7 +83,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:
 </div>
 
 <div id="report" class="report" style="display:none">
-  <div class="pdf-actions no-print" style="text-align:right;margin-bottom:12px"><button class="pdf-btn" onclick="downloadPDF()">📄 Download PDF</button></div>
+  <div class="pdf-actions no-print" style="text-align:right;margin-bottom:12px;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap"><button class="pdf-btn" onclick="if(window.HB_CARD)HB_CARD.share('iq',HB_PAY.loadResults('iq'))">📸 Del profilkort</button><button class="pdf-btn" onclick="downloadPDF()">📄 Download PDF</button></div>
   <div id="report-content">
 
   <section class="cover">
@@ -123,6 +123,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:
 <script src="../shared/footer.js"></script>
 <script src="../shared/auth.js"></script>
 <script src="../shared/payment.js"></script>
+<script src="../shared/normdata.js"></script>
+<script src="../shared/profilecard.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════
    IQ-RAPPORT — Hjernebarometeret
@@ -370,9 +372,19 @@ function downloadPDF() {
   if (window.HB_PAY) data = HB_PAY.loadResults('iq');
   if (!data && window.HB_PAY) data = await HB_PAY.loadResultsFromDB('iq');
   if (!data) { document.getElementById('loading').style.display='none'; document.getElementById('no-access').style.display='block'; document.querySelector('#no-access h1').textContent='📊 Ingen resultater fundet'; document.querySelector('#no-access p').textContent='Du skal gennemføre IQ-testen først.'; document.querySelector('#no-access .buy-btn').textContent='Tag IQ-testen'; document.querySelector('#no-access .buy-btn').onclick=function(){window.location.href='/tests/iq.html';}; return; }
-  buildReport(data);
-  document.getElementById('loading').style.display='none';
-  document.getElementById('report').style.display='block';
+  try {
+    buildReport(data);
+    document.getElementById('loading').style.display='none';
+    document.getElementById('report').style.display='block';
+  } catch(err) {
+    console.error('buildReport fejl:', err);
+    document.getElementById('loading').style.display='none';
+    document.getElementById('no-access').style.display='block';
+    document.querySelector('#no-access h1').textContent='⚠️ Noget gik galt';
+    document.querySelector('#no-access p').textContent='Der opstod en fejl ved visning af rapporten. Prøv at tage testen igen.';
+    document.querySelector('#no-access .buy-btn').textContent='Tag IQ-testen igen';
+    document.querySelector('#no-access .buy-btn').onclick=function(){window.location.href='/tests/iq.html';};
+  }
 })();
 </script>
 </body>

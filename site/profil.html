@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Min profil — Hjernebarometeret</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,500&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --bg:#faf9f7; --bg-card:#fff; --bg-warm:#f5f2ee; --bg-dark:#1c1b1a;
+  --text:#1c1b1a; --text-2:#5a5650; --text-3:#8a857e; --text-4:#b5b0a8;
+  --border:#e8e5e0; --border-2:#d5d0c9;
+  --accent:#2c5f4b; --accent-light:#e8f0ec;
+  --iq:#6b4c9a; --adhd:#2e6b9e; --autism:#3a7d5e; --personality:#b8860b; --stress:#c2553a;
+  --serif:'Source Serif 4',Georgia,serif; --sans:'Figtree',system-ui,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased;padding-top:64px;font-size:15px}
+
+/* ── Page layout ── */
+.page{max-width:760px;margin:0 auto;padding:32px 20px 80px}
+.page-header{text-align:center;margin-bottom:40px;padding-top:32px}
+.page-header h1{font-family:var(--serif);font-size:clamp(28px,5vw,38px);font-weight:600;letter-spacing:-.03em;margin-bottom:8px}
+.page-header p{color:var(--text-2);font-size:15px}
+
+/* ── Cards ── */
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:20px}
+.card h2{font-family:var(--serif);font-size:20px;font-weight:600;letter-spacing:-.02em;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.card h2 svg{flex-shrink:0;color:var(--text-3)}
+
+/* ── Profile card ── */
+.profile-info{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.profile-avatar{width:64px;height:64px;border-radius:50%;background:var(--accent-light);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:var(--accent);font-family:var(--serif);flex-shrink:0}
+.profile-details{flex:1;min-width:200px}
+.profile-name{font-family:var(--serif);font-size:20px;font-weight:600;margin-bottom:2px}
+.profile-email{font-size:13px;color:var(--text-3)}
+.profile-meta{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+
+/* ── Badges ── */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.badge-admin{background:#e8f0ec;color:#2c5f4b}
+.badge-unlimited{background:#e8f0ec;color:#2c5f4b}
+.badge-pack4{background:#eaf1f7;color:#2e6b9e}
+.badge-single{background:#faf5eb;color:#b8860b}
+.badge-free{background:var(--bg-warm);color:var(--text-3)}
+
+/* ── Stats grid ── */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px}
+@media(max-width:500px){.stats{grid-template-columns:1fr}}
+.stat{padding:16px;border-radius:12px;background:var(--bg-warm);text-align:center}
+.stat-num{font-family:var(--serif);font-size:28px;font-weight:700;color:var(--text)}
+.stat-label{font-size:12px;color:var(--text-3);margin-top:2px}
+
+/* ── Test results list ── */
+.result-item{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--border)}
+.result-item:last-child{border-bottom:none}
+.result-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.result-icon.iq{background:#f0ebf5}.result-icon.adhd{background:#eaf1f7}
+.result-icon.autisme{background:#eaf5ef}.result-icon.personlighed{background:#faf5eb}
+.result-icon.stress{background:#faf0ed}
+.result-info{flex:1;min-width:0}
+.result-test{font-weight:600;font-size:14px}
+.result-score{font-size:13px;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.result-date{font-size:12px;color:var(--text-4);flex-shrink:0}
+.result-actions{flex-shrink:0}
+.result-btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;border:1px solid var(--border);background:none;color:var(--text-2);cursor:pointer;transition:all .2s}
+.result-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ── Orders list ── */
+.order-item{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--border)}
+.order-item:last-child{border-bottom:none}
+.order-status{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.order-status.completed{background:#5cb85c}
+.order-status.pending{background:#f0ad4e}
+.order-status.refunded{background:#d9534f}
+.order-info{flex:1}
+.order-product{font-weight:600;font-size:14px}
+.order-detail{font-size:12px;color:var(--text-3)}
+.order-amount{font-family:var(--serif);font-weight:700;font-size:16px;flex-shrink:0}
+
+/* ── Reports access ── */
+.access-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.access-item:last-child{border-bottom:none}
+.access-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0}
+.access-info{flex:1}
+.access-test{font-weight:600;font-size:14px}
+.access-date{font-size:12px;color:var(--text-3)}
+.access-link{flex-shrink:0}
+.access-link a{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;background:var(--accent);color:#fff;text-decoration:none;transition:opacity .2s}
+.access-link a:hover{opacity:.85}
+
+/* ── Empty states ── */
+.empty{text-align:center;padding:32px 16px;color:var(--text-3)}
+.empty svg{margin-bottom:12px;opacity:.4}
+.empty p{font-size:14px;margin-bottom:12px}
+.empty a{color:var(--accent);font-weight:600;text-decoration:none}
+.empty a:hover{text-decoration:underline}
+
+/* ── Actions ── */
+.card-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.btn-outline{padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;border:1.5px solid var(--border-2);background:none;color:var(--text);cursor:pointer;transition:all .2s}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+.btn-primary{padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;border:none;background:var(--accent);color:#fff;cursor:pointer;transition:all .2s}
+.btn-primary:hover{opacity:.9}
+.btn-danger{padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;border:1.5px solid #d9534f;background:none;color:#d9534f;cursor:pointer;transition:all .2s}
+.btn-danger:hover{background:#d9534f;color:#fff}
+
+/* ── Upgrade banner ── */
+.upgrade-banner{background:linear-gradient(135deg,var(--accent),#3a8066);color:#fff;border-radius:16px;padding:28px;margin-bottom:20px;text-align:center}
+.upgrade-banner h3{font-family:var(--serif);font-size:20px;font-weight:600;margin-bottom:8px}
+.upgrade-banner p{font-size:14px;opacity:.85;margin-bottom:16px}
+.upgrade-banner .btn-upgrade{display:inline-block;padding:12px 28px;border-radius:10px;background:#fff;color:var(--accent);font-weight:700;font-size:14px;border:none;cursor:pointer;transition:all .2s}
+.upgrade-banner .btn-upgrade:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.15)}
+
+/* ── Login prompt ── */
+.login-prompt{text-align:center;padding:80px 20px}
+.login-prompt h1{font-family:var(--serif);font-size:clamp(24px,4vw,32px);font-weight:600;margin-bottom:12px}
+.login-prompt p{color:var(--text-2);margin-bottom:24px;font-size:15px}
+.login-prompt .btn-primary{font-size:15px;padding:14px 32px}
+
+/* ── Loading ── */
+.loading{text-align:center;padding:80px 20px}
+.loading .spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Responsive ── */
+@media(max-width:600px){
+  .profile-info{flex-direction:column;text-align:center}
+  .profile-meta{justify-content:center}
+  .result-date{display:none}
+}
+</style>
+</head>
+<body>
+
+<div id="site-nav" data-active="profil"></div>
+
+<!-- Loading state -->
+<div id="loading" class="loading">
+  <div class="spinner"></div>
+  <p>Indlæser profil...</p>
+</div>
+
+<!-- Login prompt (shown when not logged in) -->
+<div id="login-prompt" class="page login-prompt" style="display:none">
+  <svg width="64" height="64" viewBox="0 0 100 100" fill="none" style="margin-bottom:20px;opacity:.6">
+    <path d="M50 5 A45 45 0 0 1 95 50" stroke="#d45454" stroke-width="8" fill="none" stroke-linecap="round"/>
+    <path d="M50 5 A45 45 0 0 0 5 50" stroke="#4a8ec2" stroke-width="8" fill="none" stroke-linecap="round"/>
+    <circle cx="50" cy="50" r="6" fill="#1c1b1a"/>
+    <line x1="50" y1="50" x2="50" y2="18" stroke="#1c1b1a" stroke-width="3" stroke-linecap="round" transform="rotate(-30,50,50)"/>
+  </svg>
+  <h1>Log ind for at se din profil</h1>
+  <p>Opret en gratis konto eller log ind for at gemme dine testresultater, se dine rapporter og administrere din konto.</p>
+  <button class="btn-primary" onclick="if(window.HB_AUTH)HB_AUTH.showLogin()">Log ind / Opret konto</button>
+</div>
+
+<!-- Profile content (shown when logged in) -->
+<div id="profile" class="page" style="display:none">
+  <div class="page-header">
+    <h1>Min profil</h1>
+    <p>Administrer din konto, se testresultater og rapporter</p>
+  </div>
+
+  <!-- Profile info -->
+  <div class="card" id="profile-card">
+    <div class="profile-info">
+      <div class="profile-avatar" id="avatar">?</div>
+      <div class="profile-details">
+        <div class="profile-name" id="profile-name">—</div>
+        <div class="profile-email" id="profile-email">—</div>
+        <div class="profile-meta">
+          <span class="badge badge-free" id="plan-badge">Gratis</span>
+        </div>
+      </div>
+    </div>
+    <div class="stats" id="stats">
+      <div class="stat"><div class="stat-num" id="stat-tests">0</div><div class="stat-label">Tests taget</div></div>
+      <div class="stat"><div class="stat-num" id="stat-reports">0</div><div class="stat-label">Rapporter</div></div>
+      <div class="stat"><div class="stat-num" id="stat-credits">0</div><div class="stat-label">Credits</div></div>
+    </div>
+  </div>
+
+  <!-- Upgrade banner (shown for free users) -->
+  <div class="upgrade-banner" id="upgrade-banner" style="display:none">
+    <h3>Opgrader til ubegrænset adgang</h3>
+    <p>Fri adgang til alle rapporter for kun 89 kr/md. Afmeld nemt med et klik.</p>
+    <button class="btn-upgrade" onclick="if(window.HB_PAY)HB_PAY.checkout('unlimited')">Opgrader nu</button>
+  </div>
+
+  <!-- Test results -->
+  <div class="card">
+    <h2>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      Mine testresultater
+    </h2>
+    <div id="results-list">
+      <div class="empty">
+        <p>Du har ikke taget nogen tests endnu.</p>
+        <a href="/#tests">Tag din første test</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report access -->
+  <div class="card">
+    <h2>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+      Mine rapporter
+    </h2>
+    <div id="reports-list">
+      <div class="empty">
+        <p>Du har ikke adgang til nogen rapporter endnu.</p>
+        <a href="/rapporter.html">Se rapport-muligheder</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Order history -->
+  <div class="card">
+    <h2>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      Betalingshistorik
+    </h2>
+    <div id="orders-list">
+      <div class="empty">
+        <p>Ingen betalinger endnu.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Account settings -->
+  <div class="card">
+    <h2>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      Kontoindstillinger
+    </h2>
+    <div class="card-actions">
+      <button class="btn-outline" onclick="changePassword()">Skift adgangskode</button>
+      <button class="btn-danger" onclick="if(window.HB_AUTH)HB_AUTH.logout();window.location.href='/'">Log ud</button>
+    </div>
+  </div>
+</div>
+
+<div id="site-footer"></div>
+
+<script src="shared/nav.js"></script>
+<script src="shared/footer.js"></script>
+<script src="shared/auth.js"></script>
+<script src="shared/payment.js"></script>
+<script>
+// ── Test labels & icons ──
+var TEST_INFO = {
+  iq: { name: 'IQ-test', icon: '🧠', color: '#6b4c9a', report: '/rapporter/iq.html', test: '/tests/iq.html' },
+  adhd: { name: 'ADHD-screening', icon: '⚡', color: '#2e6b9e', report: '/rapporter/adhd.html', test: '/tests/adhd.html' },
+  autisme: { name: 'Autisme-test (AQ-50)', icon: '🧩', color: '#3a7d5e', report: '/rapporter/autisme.html', test: '/tests/autisme.html' },
+  personlighed: { name: 'Personlighedstest', icon: '🎭', color: '#b8860b', report: '/rapporter/personlighed.html', test: '/tests/personlighed.html' },
+  stress: { name: 'Stress & udbrændthed', icon: '🔥', color: '#c2553a', report: '/rapporter/stress.html', test: '/tests/stress.html' }
+};
+
+var PLAN_LABELS = {
+  free: { label: 'Gratis', cls: 'badge-free' },
+  single: { label: 'Enkelt rapport', cls: 'badge-single' },
+  pack4: { label: '4-pak', cls: 'badge-pack4' },
+  unlimited: { label: 'Ubegrænset', cls: 'badge-unlimited' },
+  admin: { label: 'Admin', cls: 'badge-admin' }
+};
+
+var PRODUCT_LABELS = {
+  single: 'Enkelt rapport',
+  pack4: '4-pak (4 rapporter)',
+  unlimited: 'Ubegrænset abonnement'
+};
+
+// ── Format date ──
+function fmtDate(iso) {
+  if (!iso) return '—';
+  var d = new Date(iso);
+  return d.toLocaleDateString('da-DK', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+// ── Change password ──
+async function changePassword() {
+  var newPw = prompt('Indtast ny adgangskode (min. 6 tegn):');
+  if (!newPw || newPw.length < 6) {
+    if (newPw !== null) alert('Adgangskoden skal være mindst 6 tegn.');
+    return;
+  }
+  try {
+    var { error } = await HB_AUTH.supabase.auth.updateUser({ password: newPw });
+    if (error) throw error;
+    alert('Adgangskode opdateret!');
+  } catch (e) {
+    alert('Kunne ikke opdatere adgangskode: ' + (e.message || 'Ukendt fejl'));
+  }
+}
+
+// ── Render profile ──
+function renderProfile(user, plan, credits) {
+  var name = user.user_metadata?.display_name || user.email.split('@')[0];
+  document.getElementById('avatar').textContent = name.charAt(0).toUpperCase();
+  document.getElementById('profile-name').textContent = name;
+  document.getElementById('profile-email').textContent = user.email;
+
+  var planInfo = PLAN_LABELS[plan] || PLAN_LABELS.free;
+  var badge = document.getElementById('plan-badge');
+  badge.textContent = planInfo.label;
+  badge.className = 'badge ' + planInfo.cls;
+
+  document.getElementById('stat-credits').textContent = credits || 0;
+
+  // Show upgrade banner for free users
+  if (plan === 'free' || plan === 'single') {
+    document.getElementById('upgrade-banner').style.display = 'block';
+  }
+}
+
+// ── Render test results ──
+function renderResults(results) {
+  var container = document.getElementById('results-list');
+  document.getElementById('stat-tests').textContent = results.length;
+
+  if (!results.length) return;
+
+  var html = '';
+  results.forEach(function(r) {
+    var info = TEST_INFO[r.test_type] || { name: r.test_type, icon: '📋', color: '#888' };
+    html += '<div class="result-item">' +
+      '<div class="result-icon ' + r.test_type + '">' + info.icon + '</div>' +
+      '<div class="result-info">' +
+        '<div class="result-test">' + info.name + '</div>' +
+        '<div class="result-score">' + (r.score_summary || 'Gennemført') + '</div>' +
+      '</div>' +
+      '<div class="result-date">' + fmtDate(r.completed_at) + '</div>' +
+      '<div class="result-actions">' +
+        '<button class="result-btn" onclick="window.location.href=\'' + info.test + '\'">Tag igen</button>' +
+      '</div>' +
+    '</div>';
+  });
+  container.innerHTML = html;
+}
+
+// ── Render report access ──
+function renderReports(reports) {
+  var container = document.getElementById('reports-list');
+  document.getElementById('stat-reports').textContent = reports.length;
+
+  if (!reports.length) return;
+
+  var html = '';
+  reports.forEach(function(r) {
+    var info = TEST_INFO[r.test_type] || { name: r.test_type, icon: '📋' };
+    html += '<div class="access-item">' +
+      '<div class="access-dot" style="background:' + (info.color || 'var(--accent)') + '"></div>' +
+      '<div class="access-info">' +
+        '<div class="access-test">' + info.name + '</div>' +
+        '<div class="access-date">Adgang siden ' + fmtDate(r.granted_at) + '</div>' +
+      '</div>' +
+      '<div class="access-link">' +
+        '<a href="' + (info.report || '#') + '">Se rapport</a>' +
+      '</div>' +
+    '</div>';
+  });
+  container.innerHTML = html;
+}
+
+// ── Render order history ──
+function renderOrders(orders) {
+  var container = document.getElementById('orders-list');
+
+  if (!orders.length) return;
+
+  var html = '';
+  orders.forEach(function(o) {
+    var statusCls = o.status || 'pending';
+    var statusLabel = { completed: 'Gennemført', pending: 'Afventer', refunded: 'Refunderet', cancelled: 'Annulleret' }[statusCls] || statusCls;
+    var productLabel = PRODUCT_LABELS[o.product_type] || o.product_type;
+    if (o.test_type && o.product_type === 'single') {
+      var tInfo = TEST_INFO[o.test_type];
+      if (tInfo) productLabel = tInfo.name + ' — Rapport';
+    }
+    var amount = o.amount_dkk ? (o.amount_dkk / 100).toFixed(0) + ' kr' : '—';
+
+    html += '<div class="order-item">' +
+      '<div class="order-status ' + statusCls + '" title="' + statusLabel + '"></div>' +
+      '<div class="order-info">' +
+        '<div class="order-product">' + productLabel + '</div>' +
+        '<div class="order-detail">' + fmtDate(o.created_at) + ' · ' + statusLabel + '</div>' +
+      '</div>' +
+      '<div class="order-amount">' + amount + '</div>' +
+    '</div>';
+  });
+  container.innerHTML = html;
+}
+
+// ── Init ──
+(async function init() {
+  // Wait for auth
+  if (window.HB_AUTH) {
+    await new Promise(function(r) { HB_AUTH.onReady(r); });
+  }
+
+  document.getElementById('loading').style.display = 'none';
+
+  // Not logged in — show login prompt
+  if (!window.HB_AUTH || !HB_AUTH.user) {
+    document.getElementById('login-prompt').style.display = 'block';
+
+    // Listen for login
+    window.addEventListener('hb-auth-change', function(e) {
+      if (e.detail && e.detail.user) {
+        window.location.reload();
+      }
+    });
+    return;
+  }
+
+  // Logged in — show profile
+  document.getElementById('profile').style.display = 'block';
+  renderProfile(HB_AUTH.user, HB_AUTH.plan, HB_AUTH.credits);
+
+  // Fetch data in parallel
+  var sb = HB_AUTH.supabase;
+  var userId = HB_AUTH.user.id;
+
+  try {
+    var [resultsRes, reportsRes, ordersRes] = await Promise.all([
+      sb.from('test_results')
+        .select('test_type, score_summary, completed_at')
+        .eq('user_id', userId)
+        .order('completed_at', { ascending: false })
+        .limit(50),
+      sb.from('report_access')
+        .select('test_type, granted_at, expires_at')
+        .eq('user_id', userId)
+        .order('granted_at', { ascending: false }),
+      sb.from('orders')
+        .select('product_type, test_type, amount_dkk, status, created_at')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(20)
+    ]);
+
+    renderResults(resultsRes.data || []);
+    renderReports(reportsRes.data || []);
+    renderOrders(ordersRes.data || []);
+
+    // For unlimited/admin users, show all reports as accessible
+    if (HB_AUTH.plan === 'unlimited' || HB_AUTH.plan === 'admin') {
+      var allReports = (reportsRes.data || []);
+      // If they have unlimited but no specific report_access rows, show all tests as available
+      if (allReports.length === 0) {
+        var allTests = ['iq', 'adhd', 'autisme', 'personlighed', 'stress'];
+        var syntheticReports = allTests.map(function(t) {
+          return { test_type: t, granted_at: null };
+        });
+        renderReports(syntheticReports);
+        document.getElementById('stat-reports').textContent = '∞';
+      } else {
+        document.getElementById('stat-reports').textContent = '∞';
+      }
+    }
+
+  } catch (e) {
+    console.error('Profil data fejl:', e);
+  }
+})();
+</script>
+</body>
+</html>

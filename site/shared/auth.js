@@ -191,6 +191,7 @@
       '<div class="hb-um-email">' + (_user ? _user.email : '') + '</div>' +
       (_plan === 'admin' ? '<div class="hb-um-badge">Admin</div>' : '') +
       (_plan === 'unlimited' ? '<div class="hb-um-badge">Ubegrænset</div>' : '') +
+      '<a href="/profil.html" class="hb-um-item">Min profil</a>' +
       '<a href="#" class="hb-um-item" onclick="HB_AUTH.logout();return false">Log ud</a>';
 
     document.body.appendChild(menu);
@@ -253,7 +254,19 @@
     isAdmin: function() { return _plan === 'admin' || _plan === 'unlimited'; },
     hasPlan: function() { return _plan !== 'free'; },
     isReady: function() { return _ready; },
-    onReady: function(cb) { if (_ready) cb(); else _callbacks.push(cb); },
+    onReady: function(cb) {
+      if (_ready) { cb(); return; }
+      _callbacks.push(cb);
+      // Safety timeout — resolve after 8s even if getSession() hangs
+      setTimeout(function() {
+        if (!_ready) {
+          console.warn('HB_AUTH: onReady timeout — forcing ready state');
+          _ready = true;
+          _callbacks.forEach(function(fn) { try { fn(); } catch(e) {} });
+          _callbacks = [];
+        }
+      }, 8000);
+    },
     showLogin: showLogin,
     hideLogin: hideLogin,
     logout: logout,
