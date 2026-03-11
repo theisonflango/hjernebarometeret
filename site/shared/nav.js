@@ -32,21 +32,35 @@
     return;
   }
 
-  // Full nav
+  // Full nav — menu links inside nav for desktop, but mobile overlay appended to body
   el.innerHTML = '<nav id="nav" class="sn">' +
     '<a href="/" class="sn-logo">' + logoSvg + ' Hjernebarometeret</a>' +
     '<button class="sn-hamburger" id="sn-hamburger" aria-label="Menu">' + hamburgerSvg + '</button>' +
-    '<div class="sn-right" id="sn-right">' +
-      '<button class="sn-close" id="sn-close" aria-label="Luk menu">' + closeSvg + '</button>' +
-      '<a href="/#tests" class="sn-link sn-hm' + act('tests') + '">Tests</a>' +
-      '<a href="/rapporter.html" class="sn-link sn-hm' + act('rapporter') + '">Rapporter</a>' +
-      '<a href="/om-os.html" class="sn-link sn-hm' + act('om-os') + '">Om os</a>' +
-      '<a href="/#faq" class="sn-link sn-hm' + act('faq') + '">FAQ</a>' +
-      '<a href="/#tests" class="sn-cta sn-hm">Tag en test</a>' +
-      '<a href="/profil.html" class="sn-link sn-hm' + act('profil') + '">Min profil</a>' +
+    '<div class="sn-right sn-desktop" id="sn-right-desktop">' +
+      '<a href="/#tests" class="sn-link' + act('tests') + '">Tests</a>' +
+      '<a href="/rapporter.html" class="sn-link' + act('rapporter') + '">Rapporter</a>' +
+      '<a href="/om-os.html" class="sn-link' + act('om-os') + '">Om os</a>' +
+      '<a href="/#faq" class="sn-link' + act('faq') + '">FAQ</a>' +
+      '<a href="/#tests" class="sn-cta">Tag en test</a>' +
+      '<a href="/profil.html" class="sn-link' + act('profil') + '">Min profil</a>' +
       '<a href="#" class="sn-login" onclick="event.preventDefault();if(window.HB_AUTH)HB_AUTH.showLogin();">' + userSvg + ' Log ind</a>' +
     '</div>' +
   '</nav>';
+
+  // Mobile overlay — appended to body to escape backdrop-filter containing block
+  var mobileOverlay = document.createElement('div');
+  mobileOverlay.id = 'sn-mobile-menu';
+  mobileOverlay.className = 'sn-mobile-overlay';
+  mobileOverlay.innerHTML =
+    '<button class="sn-close" id="sn-close" aria-label="Luk menu">' + closeSvg + '</button>' +
+    '<a href="/#tests" class="sn-link' + act('tests') + '">Tests</a>' +
+    '<a href="/rapporter.html" class="sn-link' + act('rapporter') + '">Rapporter</a>' +
+    '<a href="/om-os.html" class="sn-link' + act('om-os') + '">Om os</a>' +
+    '<a href="/#faq" class="sn-link' + act('faq') + '">FAQ</a>' +
+    '<a href="/#tests" class="sn-cta">Tag en test</a>' +
+    '<a href="/profil.html" class="sn-link' + act('profil') + '">Min profil</a>' +
+    '<a href="#" class="sn-login" onclick="event.preventDefault();if(window.HB_AUTH)HB_AUTH.showLogin();">' + userSvg + ' Log ind</a>';
+  document.body.appendChild(mobileOverlay);
 
   // Scroll border effect
   var nav = document.getElementById('nav');
@@ -54,17 +68,17 @@
 
   // Mobile hamburger toggle
   var hamburger = document.getElementById('sn-hamburger');
-  var right = document.getElementById('sn-right');
+  var overlay = document.getElementById('sn-mobile-menu');
   var closeBtn = document.getElementById('sn-close');
 
-  function openMenu(){ right.classList.add('sn-open'); document.body.style.overflow = 'hidden'; }
-  function closeMenu(){ right.classList.remove('sn-open'); document.body.style.overflow = ''; }
+  function openMenu(){ overlay.classList.add('sn-open'); document.body.style.overflow = 'hidden'; }
+  function closeMenu(){ overlay.classList.remove('sn-open'); document.body.style.overflow = ''; }
 
   hamburger.addEventListener('click', openMenu);
   closeBtn.addEventListener('click', closeMenu);
 
   // Close on link click (mobile)
-  right.querySelectorAll('a').forEach(function(a){
+  overlay.querySelectorAll('a').forEach(function(a){
     a.addEventListener('click', closeMenu);
   });
 
