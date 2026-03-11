@@ -188,7 +188,7 @@ function App(){
   const goTest=()=>{setCQ(0);setAns({});setRes(null);setShowI(true);setAnim(false);go("test");};
   const begin=()=>{setShowI(false);setSTime(Date.now());setElapsed(0);};
   const pick=i=>setAns({...ans,[cQ]:i});
-  const done=()=>{clearInterval(tRef.current);const r=calcIQ(ans,qs,Math.floor((Date.now()-sTime)/1000));setRes(r);if(window.HB_PAY)HB_PAY.saveResults('iq',r);setAnim(true);go("results");setTimeout(()=>setAnim(false),2800);};
+  const done=()=>{clearInterval(tRef.current);const r=calcIQ(ans,qs,Math.floor((Date.now()-sTime)/1000));r.answers=qs.map((q,i)=>({q:i,text:q.q,chosen:ans[i]!=null?q.o[ans[i]]:null,chosenIdx:ans[i],correct:q.o[q.c],correctIdx:q.c,category:q.cat}));setRes(r);if(window.HB_PAY)HB_PAY.saveResults('iq',r);setAnim(true);go("results");setTimeout(()=>setAnim(false),2800);};
   const buyReport=(productType)=>{
     if(window.HB_AUTH&&HB_AUTH.isAdmin()){go("paid");return;}
     HB_PAY.saveResults('iq',res);

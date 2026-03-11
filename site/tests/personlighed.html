@@ -1083,7 +1083,8 @@ async function showResults() {
   showScreen('calcScreen');
   const { traitPct, facetPct } = computeScores();
   // Save results for payment flow
-  if (window.HB_PAY) HB_PAY.saveResults('personlighed', { traitPct, facetPct });
+  var answersArr = ITEMS.map(function(item, idx) { return { q: idx, text: item[lang === 'en' ? 'en' : 'da'], trait: item.trait, facet: item.facet, reversed: !!item.R, chosen: answers[idx] || null }; });
+  if (window.HB_PAY) HB_PAY.saveResults('personlighed', { traitPct, facetPct, answers: answersArr });
 
   // Check access while "calculating" animation plays
   var userHasAccess = false;

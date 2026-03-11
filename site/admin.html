@@ -409,6 +409,7 @@
         anonymous: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z"/><path d="M6 20v-2c0-2.21 3.58-4 6-4"/><path d="M15 15l2 2 4-4"/></svg>,
         coupons: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h14v4"/><path d="M20 12v4H6a2 2 0 0 0 0 4h14v-4"/><circle cx="16" cy="12" r="1"/></svg>,
         close: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>,
+        download: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{width:14,height:14,display:'inline',verticalAlign:'middle',marginRight:4}}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
     };
 
     // ══════════════════════════════════════════════════════
@@ -528,6 +529,60 @@
         const s = stats;
         const testsByType = s.tests_by_type || {};
 
+        async function exportCSV() {
+            try {
+                const sb = getSB();
+                const { data, error } = await sb.rpc('admin_export_results');
+                if (error) throw error;
+                if (!data || data.length === 0) { alert('Ingen testresultater at eksportere'); return; }
+
+                // Flatten result_data into columns
+                const rows = data.map(r => {
+                    const rd = r.result_data || {};
+                    const base = {
+                        email: r.email,
+                        test_type: r.test_type,
+                        score_summary: r.score_summary || '',
+                        completed_at: r.completed_at || '',
+                        created_at: r.created_at || ''
+                    };
+                    // Add flattened scores (exclude answers array to keep CSV manageable)
+                    const { answers, ...scores } = rd;
+                    Object.entries(scores).forEach(([k, v]) => {
+                        if (typeof v === 'object' && v !== null) {
+                            Object.entries(v).forEach(([sk, sv]) => { base[k + '_' + sk] = sv; });
+                        } else {
+                            base[k] = v;
+                        }
+                    });
+                    base.has_answers = answers ? 'ja' : 'nej';
+                    base.answer_count = answers ? answers.length : 0;
+                    return base;
+                });
+
+                // Build CSV
+                const allKeys = [...new Set(rows.flatMap(r => Object.keys(r)))];
+                const csvLines = [allKeys.join(';')];
+                rows.forEach(r => {
+                    csvLines.push(allKeys.map(k => {
+                        const v = r[k];
+                        if (v == null) return '';
+                        const s = String(v).replace(/"/g, '""');
+                        return s.includes(';') || s.includes('"') || s.includes('\n') ? `"${s}"` : s;
+                    }).join(';'));
+                });
+                const csv = '\uFEFF' + csvLines.join('\n'); // BOM for Excel DK
+
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `hjernebarometeret-resultater-${new Date().toISOString().slice(0,10)}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+            } catch (err) { alert('Eksport fejlede: ' + err.message); }
+        }
+
         return (
             <div>
                 <div className="admin-page-header">
@@ -535,6 +590,9 @@
                         <h1 className="admin-page-title">Dashboard</h1>
                         <p className="admin-page-subtitle">Overblik over Hjernebarometeret</p>
                     </div>
+                    <button className="btn-sm btn-sm-primary" onClick={exportCSV} style={{ alignSelf: 'center' }}>
+                        {Icons.download || '\u2B07'} Download CSV
+                    </button>
                 </div>
 
                 {/* KPI cards */}
@@ -730,7 +788,7 @@
                                             <td><TestPills tests={u.tests_taken} /></td>
                                             <td>
                                                 {u.orders_count > 0 && (
-                                                    <span style={{ fontWeight: 500 }}>{u.orders_count} ({u.total_spent_dkk} kr)</span>
+                                                    <span style={{ fontWeight: 500 }}>{u.orders_count} ({Math.round(u.total_spent_dkk / 100)} kr)</span>
                                                 )}
                                                 {!u.orders_count && <span style={{ color: 'var(--text-4)' }}>{'\u2014'}</span>}
                                             </td>
@@ -755,6 +813,90 @@
                         </>
                     )}
                 </div>
+            </div>
+        );
+    }
+
+    // ══════════════════════════════════════════════════════
+    // TEST RESULT CARD (with Se rapport + Se svar)
+    // ══════════════════════════════════════════════════════
+    function TestResultCard({ test: t }) {
+        const [showAnswers, setShowAnswers] = useState(false);
+        const rd = t.result_data || {};
+        const answers = rd.answers;
+
+        function openReport() {
+            localStorage.setItem('hb_results_' + t.test_type, JSON.stringify(rd));
+            window.open('/rapporter/' + t.test_type + '.html', '_blank');
+        }
+
+        function formatAnswer(a, testType) {
+            if (testType === 'iq') {
+                const isCorrect = a.chosenIdx === a.correctIdx;
+                return { text: a.text, answer: a.chosen || 'Ikke besvaret', extra: `Korrekt: ${a.correct}`, correct: isCorrect, category: a.category };
+            }
+            if (testType === 'autisme') {
+                const labels = { da: 'Helt enig', sa: 'Delvist enig', sd: 'Delvist uenig', dd: 'Helt uenig' };
+                return { text: a.text, answer: labels[a.chosen] || a.chosen || 'Ikke besvaret', extra: `Domæne: ${a.domain}`, scored: a.scored };
+            }
+            if (testType === 'adhd') {
+                const likert = { 0: 'Aldrig/sjældent', 1: 'Af og til', 2: 'Ofte', 3: 'Meget ofte', yes: 'Ja', no: 'Nej' };
+                return { text: a.text, answer: likert[a.chosen] || String(a.chosen) || 'Ikke besvaret', extra: `Domæne: ${a.domain}` };
+            }
+            if (testType === 'personlighed') {
+                const likert = { 1: 'Meget uenig', 2: 'Uenig', 3: 'Neutral', 4: 'Enig', 5: 'Meget enig' };
+                return { text: a.text, answer: likert[a.chosen] || 'Ikke besvaret', extra: `${a.trait}/${a.facet}${a.reversed ? ' (R)' : ''}` };
+            }
+            if (testType === 'stress') {
+                const likert = { 1: 'Aldrig', 2: 'Sjældent', 3: 'Sommetider', 4: 'Ofte', 5: 'Meget ofte' };
+                return { text: a.text, answer: likert[a.chosen] || 'Ikke besvaret', extra: `${a.domain}${a.reverse ? ' (R)' : ''}` };
+            }
+            return { text: JSON.stringify(a), answer: '', extra: '' };
+        }
+
+        return (
+            <div style={{ border: '1px solid var(--border)', borderRadius: 10, marginBottom: '.75rem', overflow: 'hidden' }}>
+                <div style={{ padding: '.75rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '.5rem', flexWrap: 'wrap', background: 'var(--bg)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem', minWidth: 0 }}>
+                        <span className={`test-pill ${TEST_COLORS[t.test_type]||''}`}>{TEST_LABELS[t.test_type]||t.test_type}</span>
+                        <span style={{ fontSize: '.8rem', color: 'var(--text-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.score_summary || '\u2014'}</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '.35rem', flexShrink: 0 }}>
+                        <span style={{ fontSize: '.75rem', color: 'var(--text-3)', alignSelf: 'center', marginRight: '.25rem' }}>{fmtDateTime(t.completed_at || t.created_at)}</span>
+                        <button className="btn-sm btn-sm-primary" onClick={openReport} title="Åbn rapport i ny fane">Se rapport</button>
+                        {answers && <button className="btn-sm btn-sm-ghost" onClick={() => setShowAnswers(!showAnswers)}>
+                            {showAnswers ? 'Skjul svar' : `Se svar (${answers.length})`}
+                        </button>}
+                    </div>
+                </div>
+                {showAnswers && answers && (
+                    <div style={{ maxHeight: 400, overflowY: 'auto', borderTop: '1px solid var(--border)' }}>
+                        <table className="admin-table" style={{ fontSize: '.78rem' }}>
+                            <thead>
+                                <tr><th style={{width:30}}>#</th><th>Spørgsmål</th><th>Svar</th><th>Info</th></tr>
+                            </thead>
+                            <tbody>
+                                {answers.map((a, i) => {
+                                    const f = formatAnswer(a, t.test_type);
+                                    return (
+                                        <tr key={i} style={f.correct === false ? { background: '#fef2f2' } : f.correct === true ? { background: '#f0fdf4' } : {}}>
+                                            <td style={{ color: 'var(--text-4)' }}>{(a.q != null ? a.q : a.id != null ? a.id : i) + (a.q != null ? 1 : 0)}</td>
+                                            <td style={{ maxWidth: 280, whiteSpace: 'normal', lineHeight: 1.4 }}>{f.text}</td>
+                                            <td style={{ fontWeight: 600 }}>{f.answer}</td>
+                                            <td style={{ color: 'var(--text-3)', fontSize: '.72rem' }}>{f.extra}</td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+                {!answers && (
+                    <div style={{ padding: '.5rem 1rem', borderTop: '1px solid var(--border)', background: 'var(--bg)' }}>
+                        <button className="btn-sm btn-sm-primary" onClick={openReport} style={{ marginRight: '.5rem' }}>Se rapport</button>
+                        <span style={{ fontSize: '.75rem', color: 'var(--text-4)' }}>Detaljerede svar ikke tilgængelige (test taget f&oslash;r opdatering)</span>
+                    </div>
+                )}
             </div>
         );
     }
@@ -881,22 +1023,11 @@
                                     {data.tests.length === 0 ? (
                                         <p style={{ color: 'var(--text-4)', fontSize: '.85rem' }}>Ingen tests gennemf&oslash;rt</p>
                                     ) : (
-                                        <table className="admin-table" style={{ fontSize: '.8rem' }}>
-                                            <thead>
-                                                <tr><th>Test</th><th>Score</th><th>Dato</th></tr>
-                                            </thead>
-                                            <tbody>
-                                                {data.tests.map(t => (
-                                                    <tr key={t.id}>
-                                                        <td><span className={`test-pill ${TEST_COLORS[t.test_type]||''}`}>{TEST_LABELS[t.test_type]||t.test_type}</span></td>
-                                                        <td style={{ maxWidth: 250, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                                            {t.score_summary || '\u2014'}
-                                                        </td>
-                                                        <td>{fmtDateTime(t.completed_at || t.created_at)}</td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
+                                        <div>
+                                            {data.tests.map(t => (
+                                                <TestResultCard key={t.id} test={t} />
+                                            ))}
+                                        </div>
                                     )}
                                 </div>
 

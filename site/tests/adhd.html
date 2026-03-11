@@ -629,9 +629,13 @@ function Results({profile,answers,demo,mode}){
   const ti=getTreatmentInfo(profile);
   const isDiva=mode==="diva";
 
-  // Gem resultater ved visning
+  // Gem resultater ved visning — inkl. svar-array
   useEffect(()=>{
-    if(window.HB_PAY) HB_PAY.saveResults('adhd', profile);
+    if(window.HB_PAY){
+      const allQ=isDiva?[...DIVA_A_CRITERIA.map(c=>({id:c.id,text:c.text,domain:'attention'})),...DIVA_HI_CRITERIA.map(c=>({id:c.id,text:c.text,domain:'hyperactivity'})),...DIVA_FUNCTION_DOMAINS.map(c=>({id:c.id,text:c.text,domain:'function'}))]:[...Q_CHILDHOOD.map(q=>({...q,domain:'childhood'})),...Q_ATTENTION.map(q=>({...q,domain:'attention'})),...Q_HYPER.map(q=>({...q,domain:'hyperactivity'})),...Q_REG.map(q=>({...q,domain:'regulation'})),...Q_FUNC.map(q=>({...q,domain:'functioning'}))];
+      const answersArr=allQ.map(q=>({id:q.id,text:q.text,domain:q.domain,chosen:answers[q.id]!=null?answers[q.id]:null}));
+      HB_PAY.saveResults('adhd',{...profile,answers:answersArr});
+    }
   },[]);
 
   const doExport=()=>{

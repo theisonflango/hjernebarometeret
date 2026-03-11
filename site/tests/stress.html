@@ -1053,7 +1053,8 @@ function calculateAndShowResults() {
   }
 
   // Save results for payment flow
-  if (window.HB_PAY) HB_PAY.saveResults('stress', { pssTotal, pssPct, helpPct, effPct, exhPct, cynPct, accPct, level, burnoutProfile });
+  var answersArr = items.map(function(item) { return { id: item.id, text: item[lang === 'en' ? 'en' : 'da'], domain: item.domain, scale: item.scale, reverse: item.reverse, chosen: answers[item.id] || null }; });
+  if (window.HB_PAY) HB_PAY.saveResults('stress', { pssTotal, pssPct, helpPct, effPct, exhPct, cynPct, accPct, level, burnoutProfile, answers: answersArr });
 
   // Subscale data
   var subscales = [

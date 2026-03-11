@@ -222,7 +222,8 @@ function AutismeTest() {
     // Gem resultater i database (kører én gang ved første render af results)
     if (!window._aqSaved) {
       window._aqSaved = true;
-      if (window.HB_PAY) HB_PAY.saveResults('autisme', { t: total, d: ds, category: cat, categoryLabel: catLabel });
+      const answersArr = questions.map(q => ({ id: q.id, text: q.text, domain: q.domain, reverse: q.reverse, chosen: answers[q.id] || null, scored: scoreQ(q, answers[q.id]) }));
+      if (window.HB_PAY) HB_PAY.saveResults('autisme', { t: total, d: ds, category: cat, categoryLabel: catLabel, answers: answersArr });
     }
 
     return (
