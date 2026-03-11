@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel — Hjernebarometeret</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        :root {
+            --bg: #faf9f7; --bg-card: #fff; --bg-warm: #f5f2ee; --bg-dark: #1c1b1a;
+            --text: #1c1b1a; --text-2: #5a5650; --text-3: #8a857e; --text-4: #b5b0a8;
+            --border: #e8e5e0; --border-2: #d5d0c9;
+            --accent: #2c5f4b; --accent-light: #e8f0ec;
+            --serif: 'Source Serif 4', Georgia, serif;
+            --sans: 'Figtree', system-ui, sans-serif;
+            --admin: #1a1a2e; --admin-accent: #e8b931; --admin-accent-light: #fdf6e3;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--sans); background: var(--bg); color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* ── Auth gate ─────────────────────────── */
+        .admin-gate {
+            display: flex; align-items: center; justify-content: center;
+            min-height: 100vh; padding: 2rem;
+        }
+        .admin-gate-card {
+            background: var(--bg-card); border-radius: 16px; padding: 2.5rem;
+            box-shadow: 0 4px 24px rgba(0,0,0,.06); max-width: 400px; width: 100%;
+            text-align: center;
+        }
+        .admin-gate-card h1 {
+            font-family: var(--serif); font-size: 1.5rem; font-weight: 600;
+            letter-spacing: -.03em; margin-bottom: .5rem;
+        }
+        .admin-gate-card p { color: var(--text-2); font-size: .9rem; margin-bottom: 1.5rem; }
+        .admin-input {
+            width: 100%; padding: .75rem 1rem; border: 1.5px solid var(--border);
+            border-radius: 10px; font-family: var(--sans); font-size: .95rem;
+            background: var(--bg); outline: none; margin-bottom: .75rem;
+            transition: border-color .2s;
+        }
+        .admin-input:focus { border-color: var(--accent); }
+        .admin-btn {
+            width: 100%; padding: .8rem; border: none; border-radius: 10px;
+            background: var(--admin); color: #fff; font-family: var(--sans);
+            font-size: .95rem; font-weight: 600; cursor: pointer;
+            transition: background .2s, transform .1s;
+        }
+        .admin-btn:hover { background: #2a2a4e; }
+        .admin-btn:active { transform: scale(.98); }
+        .admin-btn:disabled { opacity: .5; cursor: not-allowed; }
+        .admin-error { color: #c2553a; font-size: .85rem; margin-top: .5rem; }
+
+        /* ── Shell ─────────────────────────────── */
+        .admin-shell { display: flex; min-height: 100vh; }
+
+        /* Sidebar */
+        .admin-sidebar {
+            width: 240px; background: var(--admin); color: #fff;
+            padding: 1.5rem 0; display: flex; flex-direction: column;
+            position: fixed; top: 0; left: 0; bottom: 0; z-index: 100;
+        }
+        .admin-sidebar-brand {
+            padding: 0 1.25rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,.08);
+            margin-bottom: .75rem;
+        }
+        .admin-sidebar-brand h2 {
+            font-family: var(--serif); font-size: 1.1rem; font-weight: 600;
+            letter-spacing: -.02em;
+        }
+        .admin-sidebar-brand span {
+            font-size: .7rem; font-weight: 600; letter-spacing: .06em;
+            text-transform: uppercase; color: var(--admin-accent);
+            display: block; margin-top: .25rem;
+        }
+        .admin-nav { flex: 1; padding: .25rem 0; }
+        .admin-nav-item {
+            display: flex; align-items: center; gap: .65rem;
+            padding: .65rem 1.25rem; font-size: .875rem; font-weight: 500;
+            color: rgba(255,255,255,.55); cursor: pointer;
+            transition: all .15s; border: none; background: none; width: 100%;
+            text-align: left; font-family: var(--sans);
+        }
+        .admin-nav-item:hover { color: rgba(255,255,255,.85); background: rgba(255,255,255,.05); }
+        .admin-nav-item.active {
+            color: #fff; background: rgba(255,255,255,.08);
+            border-right: 2px solid var(--admin-accent);
+        }
+        .admin-nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+        .admin-sidebar-footer {
+            padding: .75rem 1.25rem; border-top: 1px solid rgba(255,255,255,.08);
+        }
+        .admin-sidebar-footer button {
+            font-size: .8rem; color: rgba(255,255,255,.4); background: none;
+            border: none; cursor: pointer; font-family: var(--sans);
+            transition: color .15s;
+        }
+        .admin-sidebar-footer button:hover { color: rgba(255,255,255,.7); }
+
+        /* Main content */
+        .admin-main { flex: 1; margin-left: 240px; padding: 2rem 2.5rem; }
+
+        /* Page header */
+        .admin-page-header {
+            margin-bottom: 2rem; display: flex; align-items: baseline;
+            justify-content: space-between; flex-wrap: wrap; gap: 1rem;
+        }
+        .admin-page-title {
+            font-family: var(--serif); font-size: 1.75rem; font-weight: 600;
+            letter-spacing: -.03em;
+        }
+        .admin-page-subtitle { color: var(--text-2); font-size: .9rem; margin-top: .25rem; }
+
+        /* ── Cards & Grid ──────────────────────── */
+        .stat-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem; margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: var(--bg-card); border-radius: 14px; padding: 1.25rem 1.5rem;
+            border: 1px solid var(--border);
+            transition: transform .15s, box-shadow .15s;
+        }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.05); }
+        .stat-card-label {
+            font-size: .75rem; font-weight: 600; text-transform: uppercase;
+            letter-spacing: .06em; color: var(--text-3); margin-bottom: .35rem;
+        }
+        .stat-card-value {
+            font-family: var(--serif); font-size: 2rem; font-weight: 700;
+            letter-spacing: -.03em; line-height: 1.1;
+        }
+        .stat-card-sub { font-size: .8rem; color: var(--text-3); margin-top: .25rem; }
+        .stat-card-accent { border-left: 3px solid var(--admin-accent); }
+
+        /* Panel / Section */
+        .admin-panel {
+            background: var(--bg-card); border-radius: 14px;
+            border: 1px solid var(--border); margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+        .admin-panel-header {
+            padding: 1rem 1.5rem; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 1rem; flex-wrap: wrap;
+        }
+        .admin-panel-title {
+            font-family: var(--serif); font-size: 1.1rem; font-weight: 600;
+            letter-spacing: -.02em;
+        }
+
+        /* ── Table ─────────────────────────────── */
+        .admin-table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+        .admin-table th {
+            text-align: left; padding: .7rem 1rem; font-weight: 600;
+            color: var(--text-3); font-size: .75rem; text-transform: uppercase;
+            letter-spacing: .05em; border-bottom: 1px solid var(--border);
+            background: var(--bg);
+        }
+        .admin-table td {
+            padding: .7rem 1rem; border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+        .admin-table tr:last-child td { border-bottom: none; }
+        .admin-table tr:hover td { background: var(--bg-warm); }
+
+        /* ── Badges & Pills ────────────────────── */
+        .badge {
+            display: inline-flex; align-items: center; gap: .3rem;
+            padding: .2rem .55rem; border-radius: 6px;
+            font-size: .75rem; font-weight: 600; white-space: nowrap;
+        }
+        .badge-admin { background: #1a1a2e; color: var(--admin-accent); }
+        .badge-free { background: var(--bg); color: var(--text-3); border: 1px solid var(--border); }
+        .badge-single { background: #e8f0ec; color: #2c5f4b; }
+        .badge-pack4 { background: #eaf1f7; color: #2e6b9e; }
+        .badge-unlimited { background: var(--admin-accent-light); color: #8b6b00; }
+
+        .test-pill {
+            display: inline-flex; padding: .15rem .5rem; border-radius: 5px;
+            font-size: .7rem; font-weight: 600; margin: .1rem;
+        }
+        .test-iq { background: #f0ebf5; color: #6b4c9a; }
+        .test-adhd { background: #eaf1f7; color: #2e6b9e; }
+        .test-autisme { background: #eaf5ef; color: #3a7d5e; }
+        .test-personlighed { background: #faf5eb; color: #8b6b00; }
+        .test-stress { background: #fbe9e7; color: #c2553a; }
+
+        /* ── Search / Filters ──────────────────── */
+        .admin-search {
+            display: flex; gap: .5rem; align-items: center;
+        }
+        .admin-search input {
+            padding: .5rem .85rem; border: 1.5px solid var(--border); border-radius: 8px;
+            font-family: var(--sans); font-size: .85rem; background: var(--bg);
+            outline: none; min-width: 220px; transition: border-color .2s;
+        }
+        .admin-search input:focus { border-color: var(--accent); }
+        .admin-search select {
+            padding: .5rem .75rem; border: 1.5px solid var(--border); border-radius: 8px;
+            font-family: var(--sans); font-size: .85rem; background: var(--bg);
+            outline: none; cursor: pointer;
+        }
+
+        /* ── Modal ─────────────────────────────── */
+        .admin-modal-overlay {
+            position: fixed; inset: 0; background: rgba(28,27,26,.5);
+            backdrop-filter: blur(4px); z-index: 1000;
+            display: flex; align-items: flex-start; justify-content: center;
+            padding: 4rem 1rem; overflow-y: auto;
+        }
+        .admin-modal {
+            background: var(--bg-card); border-radius: 16px; width: 100%;
+            max-width: 700px; box-shadow: 0 24px 64px rgba(0,0,0,.15);
+        }
+        .admin-modal-header {
+            padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .admin-modal-header h3 {
+            font-family: var(--serif); font-size: 1.2rem; font-weight: 600;
+        }
+        .admin-modal-body { padding: 1.5rem; max-height: 70vh; overflow-y: auto; }
+        .admin-modal-close {
+            background: none; border: none; cursor: pointer; color: var(--text-3);
+            padding: 4px; transition: color .15s;
+        }
+        .admin-modal-close:hover { color: var(--text); }
+
+        /* ── Bar chart (CSS) ───────────────────── */
+        .bar-chart { display: flex; align-items: flex-end; gap: .5rem; height: 120px; padding-top: .5rem; }
+        .bar-col { display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 0; }
+        .bar-fill {
+            width: 100%; max-width: 40px; border-radius: 6px 6px 0 0;
+            background: var(--accent); transition: height .4s ease;
+            min-height: 2px;
+        }
+        .bar-label { font-size: .65rem; color: var(--text-3); margin-top: .35rem; text-align: center; }
+        .bar-value { font-size: .7rem; font-weight: 600; color: var(--text-2); margin-bottom: .2rem; }
+
+        /* ── Loading ───────────────────────────── */
+        .admin-loading {
+            display: flex; align-items: center; justify-content: center;
+            padding: 4rem; color: var(--text-3);
+        }
+        @keyframes admin-spin { to { transform: rotate(360deg); } }
+        .admin-spinner {
+            width: 28px; height: 28px; border: 3px solid var(--border);
+            border-top-color: var(--accent); border-radius: 50%;
+            animation: admin-spin .7s linear infinite; margin-right: .75rem;
+        }
+
+        /* ── Responsive ────────────────────────── */
+        @media (max-width: 768px) {
+            .admin-sidebar {
+                width: 100%; position: fixed; top: auto; bottom: 0; left: 0; right: 0;
+                height: auto; flex-direction: row; padding: 0;
+                border-top: 1px solid rgba(255,255,255,.1);
+            }
+            .admin-sidebar-brand, .admin-sidebar-footer { display: none; }
+            .admin-nav {
+                display: flex; overflow-x: auto; padding: 0;
+                justify-content: space-around; width: 100%;
+            }
+            .admin-nav-item {
+                flex-direction: column; gap: .15rem; padding: .5rem .75rem;
+                font-size: .65rem; text-align: center; border-right: none;
+            }
+            .admin-nav-item.active { border-right: none; border-top: 2px solid var(--admin-accent); }
+            .admin-main {
+                margin-left: 0; padding: 1.25rem 1rem 5rem;
+            }
+            .stat-grid { grid-template-columns: repeat(2, 1fr); }
+            .admin-table { font-size: .8rem; }
+            .admin-table th, .admin-table td { padding: .5rem .65rem; }
+        }
+
+        /* ── Fade in animation ─────────────────── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-up { animation: fadeUp .35s ease both; }
+        .fade-up-1 { animation-delay: .05s; }
+        .fade-up-2 { animation-delay: .1s; }
+        .fade-up-3 { animation-delay: .15s; }
+        .fade-up-4 { animation-delay: .2s; }
+
+        /* ── Detail sections ───────────────────── */
+        .detail-section { margin-bottom: 1.5rem; }
+        .detail-section-title {
+            font-weight: 600; font-size: .85rem; color: var(--text-2);
+            text-transform: uppercase; letter-spacing: .04em;
+            margin-bottom: .75rem; padding-bottom: .4rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .detail-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: .75rem;
+        }
+        .detail-item label {
+            display: block; font-size: .7rem; color: var(--text-3);
+            text-transform: uppercase; letter-spacing: .04em; margin-bottom: .15rem;
+        }
+        .detail-item span { font-size: .9rem; font-weight: 500; }
+
+        /* Edit inline */
+        .inline-edit {
+            display: inline-flex; align-items: center; gap: .35rem;
+        }
+        .inline-edit input, .inline-edit select {
+            padding: .3rem .5rem; border: 1.5px solid var(--border); border-radius: 6px;
+            font-family: var(--sans); font-size: .85rem; outline: none;
+        }
+        .inline-edit input:focus, .inline-edit select:focus {
+            border-color: var(--accent);
+        }
+        .btn-sm {
+            padding: .3rem .65rem; border: none; border-radius: 6px;
+            font-family: var(--sans); font-size: .75rem; font-weight: 600;
+            cursor: pointer; transition: all .15s;
+        }
+        .btn-sm-primary { background: var(--accent); color: #fff; }
+        .btn-sm-primary:hover { background: #245040; }
+        .btn-sm-ghost {
+            background: none; color: var(--text-3); border: 1px solid var(--border);
+        }
+        .btn-sm-ghost:hover { background: var(--bg); color: var(--text); }
+
+        /* ── Clickable row ─────────────────────── */
+        .clickable-row { cursor: pointer; }
+        .clickable-row:hover td { background: var(--accent-light) !important; }
+
+        /* ── Pagination ────────────────────────── */
+        .pagination {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: .75rem 1.25rem; border-top: 1px solid var(--border);
+            font-size: .8rem; color: var(--text-3);
+        }
+        .pagination button {
+            padding: .4rem .85rem; border: 1px solid var(--border); border-radius: 6px;
+            background: var(--bg-card); font-family: var(--sans); font-size: .8rem;
+            cursor: pointer; transition: all .15s;
+        }
+        .pagination button:hover:not(:disabled) { background: var(--bg); border-color: var(--text-3); }
+        .pagination button:disabled { opacity: .4; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+    <div id="admin-root"></div>
+
+    <!-- Auth module (needed for session management + supabase client) -->
+    <script src="shared/auth.js"></script>
+
+    <script type="text/babel">
+    const { useState, useEffect, useCallback, useRef } = React;
+
+    // ── Supabase client ─────────────────────────────────
+    function getSB() {
+        if (window.HB_AUTH?.supabase) return window.HB_AUTH.supabase;
+        return window.supabase.createClient(
+            'https://pmbbachqedomvixvvfpj.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtYmJhY2hxZWRvbXZpeHZ2ZnBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3MDQ4MDksImV4cCI6MjA4NzI4MDgwOX0.dQ9GDUxyAqttisIPGI5hR20-9JpBKlFG4UvANivu4kM',
+            { db: { schema: 'hjernebarometeret' } }
+        );
+    }
+
+    // ── Helpers ──────────────────────────────────────────
+    function fmtDate(d) {
+        if (!d) return '\u2014';
+        return new Date(d).toLocaleDateString('da-DK', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+    function fmtDateTime(d) {
+        if (!d) return '\u2014';
+        return new Date(d).toLocaleString('da-DK', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    }
+    function fmtNumber(n) {
+        return (n || 0).toLocaleString('da-DK');
+    }
+
+    const TEST_LABELS = { iq: 'IQ', adhd: 'ADHD', autisme: 'Autisme', personlighed: 'Big Five', stress: 'Stress' };
+    const TEST_COLORS = { iq: 'test-iq', adhd: 'test-adhd', autisme: 'test-autisme', personlighed: 'test-personlighed', stress: 'test-stress' };
+    const PLAN_BADGES = { admin: 'badge-admin', free: 'badge-free', single: 'badge-single', pack4: 'badge-pack4', unlimited: 'badge-unlimited' };
+
+    function TestPills({ tests }) {
+        if (!tests || !tests.length) return <span style={{ color: 'var(--text-4)', fontSize: '.8rem' }}>Ingen</span>;
+        return tests.map(t => (
+            <span key={t} className={`test-pill ${TEST_COLORS[t] || ''}`}>{TEST_LABELS[t] || t}</span>
+        ));
+    }
+
+    function PlanBadge({ plan }) {
+        return <span className={`badge ${PLAN_BADGES[plan] || 'badge-free'}`}>{plan || 'free'}</span>;
+    }
+
+    // ── Icons (inline SVG) ──────────────────────────────
+    const Icons = {
+        dashboard: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>,
+        users: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+        anonymous: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z"/><path d="M6 20v-2c0-2.21 3.58-4 6-4"/><path d="M15 15l2 2 4-4"/></svg>,
+        coupons: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h14v4"/><path d="M20 12v4H6a2 2 0 0 0 0 4h14v-4"/><circle cx="16" cy="12" r="1"/></svg>,
+        close: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>,
+    };
+
+    // ══════════════════════════════════════════════════════
+    // AUTH GATE
+    // ══════════════════════════════════════════════════════
+    function AuthGate({ onAuth }) {
+        const [email, setEmail] = useState('');
+        const [password, setPassword] = useState('');
+        const [error, setError] = useState('');
+        const [loading, setLoading] = useState(true);
+
+        useEffect(() => {
+            const check = () => {
+                if (window.HB_AUTH?.isReady()) {
+                    // Strict admin check — only plan === 'admin'
+                    if (window.HB_AUTH.plan === 'admin') {
+                        onAuth(window.HB_AUTH.user);
+                    }
+                    setLoading(false);
+                } else {
+                    setTimeout(check, 100);
+                }
+            };
+            check();
+        }, []);
+
+        // Listen for auth changes
+        useEffect(() => {
+            const handler = (e) => {
+                if (e.detail?.plan === 'admin') {
+                    onAuth(e.detail.user);
+                }
+            };
+            window.addEventListener('hb-auth-change', handler);
+            return () => window.removeEventListener('hb-auth-change', handler);
+        }, []);
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            setError('');
+            setLoading(true);
+            try {
+                const sb = getSB();
+                const { data, error: authErr } = await sb.auth.signInWithPassword({ email, password });
+                if (authErr) throw authErr;
+
+                // Strict admin check
+                const { data: profile } = await sb.from('user_profiles').select('plan').eq('id', data.user.id).single();
+                if (profile?.plan !== 'admin') {
+                    setError('Kun administratorer har adgang til dette panel.');
+                    await sb.auth.signOut();
+                    setLoading(false);
+                    return;
+                }
+                onAuth(data.user);
+            } catch (err) {
+                setError(err.message || 'Login fejlede');
+                setLoading(false);
+            }
+        }
+
+        if (loading) {
+            return (
+                <div className="admin-gate">
+                    <div className="admin-loading"><div className="admin-spinner"></div>Tjekker session...</div>
+                </div>
+            );
+        }
+
+        return (
+            <div className="admin-gate">
+                <form className="admin-gate-card" onSubmit={handleLogin}>
+                    <h1>Admin Panel</h1>
+                    <p>Log ind med din admin-konto</p>
+                    <input className="admin-input" type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required autoFocus />
+                    <input className="admin-input" type="password" placeholder="Adgangskode" value={password} onChange={e => setPassword(e.target.value)} required />
+                    <button className="admin-btn" type="submit">Log ind</button>
+                    {error && <div className="admin-error">{error}</div>}
+                </form>
+            </div>
+        );
+    }
+
+    // ══════════════════════════════════════════════════════
+    // MINI BAR CHART
+    // ══════════════════════════════════════════════════════
+    function BarChart({ data, labelKey = 'date', valueKey = 'count', color = 'var(--accent)', height = 100 }) {
+        if (!data || !data.length) return <div style={{ padding: '1rem', color: 'var(--text-4)', fontSize: '.85rem' }}>Ingen data endnu</div>;
+
+        const maxVal = Math.max(...data.map(d => d[valueKey] || 0), 1);
+        const last14 = data.slice(-14);
+
+        return (
+            <div className="bar-chart" style={{ height }}>
+                {last14.map((d, i) => {
+                    const val = d[valueKey] || 0;
+                    const pct = (val / maxVal) * 100;
+                    const label = d[labelKey] ? new Date(d[labelKey]).toLocaleDateString('da-DK', { day: 'numeric', month: 'short' }) : i;
+                    return (
+                        <div key={i} className="bar-col">
+                            <div className="bar-value">{val}</div>
+                            <div className="bar-fill" style={{ height: `${Math.max(pct, 3)}%`, background: color }}></div>
+                            <div className="bar-label">{label}</div>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    }
+
+    // ══════════════════════════════════════════════════════
+    // DASHBOARD PAGE
+    // ══════════════════════════════════════════════════════
+    function DashboardPage({ stats }) {
+        if (!stats) return <div className="admin-loading"><div className="admin-spinner"></div>Henter dashboard...</div>;
+
+        const s = stats;
+        const testsByType = s.tests_by_type || {};
+
+        return (
+            <div>
+                <div className="admin-page-header">
+                    <div>
+                        <h1 className="admin-page-title">Dashboard</h1>
+                        <p className="admin-page-subtitle">Overblik over Hjernebarometeret</p>
+                    </div>
+                </div>
+
+                {/* KPI cards */}
+                <div className="stat-grid fade-up">
+                    <div className="stat-card stat-card-accent">
+                        <div className="stat-card-label">Brugere i alt</div>
+                        <div className="stat-card-value">{fmtNumber(s.total_users)}</div>
+                        <div className="stat-card-sub">+{fmtNumber(s.users_last_7_days)} denne uge</div>
+                    </div>
+                    <div className="stat-card">
+                        <div className="stat-card-label">Tests gennemf&oslash;rt</div>
+                        <div className="stat-card-value">{fmtNumber(s.total_tests_completed)}</div>
+                        <div className="stat-card-sub">+{fmtNumber(s.tests_last_7_days)} denne uge</div>
+                    </div>
+                    <div className="stat-card">
+                        <div className="stat-card-label">Ordrer</div>
+                        <div className="stat-card-value">{fmtNumber(s.total_orders)}</div>
+                        <div className="stat-card-sub">+{fmtNumber(s.orders_last_7_days)} denne uge</div>
+                    </div>
+                    <div className="stat-card stat-card-accent">
+                        <div className="stat-card-label">Oms&aelig;tning (DKK)</div>
+                        <div className="stat-card-value">{fmtNumber(s.total_revenue_dkk)} kr</div>
+                        <div className="stat-card-sub">{fmtNumber(s.revenue_last_30_days)} kr sidste 30 dage</div>
+                    </div>
+                    <div className="stat-card">
+                        <div className="stat-card-label">Rapporter tilg&aring;et</div>
+                        <div className="stat-card-value">{fmtNumber(s.total_reports_accessed)}</div>
+                    </div>
+                    <div className="stat-card">
+                        <div className="stat-card-label">Kuponer indl&oslash;st</div>
+                        <div className="stat-card-value">{fmtNumber(s.coupons_redeemed)}</div>
+                        <div className="stat-card-sub">{fmtNumber(s.total_credits_granted)} credits givet</div>
+                    </div>
+                </div>
+
+                {/* Charts row */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                    <div className="admin-panel fade-up fade-up-1">
+                        <div className="admin-panel-header">
+                            <span className="admin-panel-title">Tests pr. dag (30 dage)</span>
+                        </div>
+                        <div style={{ padding: '1rem 1.25rem' }}>
+                            <BarChart data={s.tests_daily} />
+                        </div>
+                    </div>
+                    <div className="admin-panel fade-up fade-up-2">
+                        <div className="admin-panel-header">
+                            <span className="admin-panel-title">Nye brugere pr. dag (30 dage)</span>
+                        </div>
+                        <div style={{ padding: '1rem 1.25rem' }}>
+                            <BarChart data={s.users_daily} color="var(--admin-accent)" />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Breakdown tables */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+                    <div className="admin-panel fade-up fade-up-3">
+                        <div className="admin-panel-header"><span className="admin-panel-title">Tests pr. type</span></div>
+                        <table className="admin-table">
+                            <tbody>
+                                {Object.entries(testsByType).sort((a,b) => b[1]-a[1]).map(([type, count]) => (
+                                    <tr key={type}>
+                                        <td><span className={`test-pill ${TEST_COLORS[type]||''}`}>{TEST_LABELS[type]||type}</span></td>
+                                        <td style={{ textAlign: 'right', fontWeight: 600 }}>{count}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div className="admin-panel fade-up fade-up-3">
+                        <div className="admin-panel-header"><span className="admin-panel-title">Brugere pr. plan</span></div>
+                        <table className="admin-table">
+                            <tbody>
+                                {Object.entries(s.users_by_plan || {}).sort((a,b) => b[1]-a[1]).map(([plan, count]) => (
+                                    <tr key={plan}>
+                                        <td><PlanBadge plan={plan} /></td>
+                                        <td style={{ textAlign: 'right', fontWeight: 600 }}>{count}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div className="admin-panel fade-up fade-up-4">
+                        <div className="admin-panel-header"><span className="admin-panel-title">Logget ind vs. anonym</span></div>
+                        <table className="admin-table">
+                            <tbody>
+                                <tr><td>Logget ind</td><td style={{ textAlign: 'right', fontWeight: 600 }}>{fmtNumber(s.tests_by_logged_in?.logged_in)}</td></tr>
+                                <tr><td>Anonym</td><td style={{ textAlign: 'right', fontWeight: 600 }}>{fmtNumber(s.tests_by_logged_in?.anonymous)}</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // ══════════════════════════════════════════════════════
+    // USERS PAGE
+    // ══════════════════════════════════════════════════════
+    function UsersPage({ onSelectUser }) {
+        const [data, setData] = useState(null);
+        const [search, setSearch] = useState('');
+        const [planFilter, setPlanFilter] = useState('');
+        const [page, setPage] = useState(0);
+        const [loading, setLoading] = useState(true);
+        const PAGE_SIZE = 25;
+        const searchTimeout = useRef(null);
+
+        const loadUsers = useCallback(async () => {
+            setLoading(true);
+            try {
+                const sb = getSB();
+                const { data: result, error } = await sb.rpc('admin_list_users', {
+                    p_limit: PAGE_SIZE, p_offset: page * PAGE_SIZE,
+                    p_search: search || null,
+                    p_plan_filter: planFilter || null,
+                    p_sort_by: 'created_at', p_sort_dir: 'desc'
+                });
+                if (error) throw error;
+                setData(result);
+            } catch (err) { console.error('Load users error:', err); }
+            setLoading(false);
+        }, [search, planFilter, page]);
+
+        useEffect(() => { loadUsers(); }, [loadUsers]);
+
+        const users = data?.users || [];
+        const total = data?.total || 0;
+        const totalPages = Math.ceil(total / PAGE_SIZE);
+
+        function handleSearchChange(e) {
+            const val = e.target.value;
+            clearTimeout(searchTimeout.current);
+            searchTimeout.current = setTimeout(() => {
+                setSearch(val);
+                setPage(0);
+            }, 400);
+        }
+
+        return (
+            <div>
+                <div className="admin-page-header">
+                    <div>
+                        <h1 className="admin-page-title">Brugere</h1>
+                        <p className="admin-page-subtitle">{fmtNumber(total)} brugere i alt</p>
+                    </div>
+                </div>
+
+                <div className="admin-panel">
+                    <div className="admin-panel-header">
+                        <div className="admin-search">
+                            <input
+                                type="text" placeholder="S&oslash;g email eller navn..."
+                                defaultValue={search} onChange={handleSearchChange}
+                            />
+                            <select value={planFilter} onChange={e => { setPlanFilter(e.target.value); setPage(0); }}>
+                                <option value="">Alle planer</option>
+                                <option value="free">Free</option>
+                                <option value="single">Single</option>
+                                <option value="pack4">Pack 4</option>
+                                <option value="unlimited">Unlimited</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {loading ? (
+                        <div className="admin-loading"><div className="admin-spinner"></div>Henter brugere...</div>
+                    ) : (
+                        <>
+                            <table className="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Email</th>
+                                        <th>Plan</th>
+                                        <th>Credits</th>
+                                        <th>Tests</th>
+                                        <th>Ordrer</th>
+                                        <th>Oprettet</th>
+                                        <th>Seneste test</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {users.map(u => (
+                                        <tr key={u.id} className="clickable-row" onClick={() => onSelectUser(u.id)}>
+                                            <td>
+                                                <div style={{ fontWeight: 500 }}>{u.email}</div>
+                                                {u.display_name && <div style={{ fontSize: '.75rem', color: 'var(--text-3)' }}>{u.display_name}</div>}
+                                            </td>
+                                            <td><PlanBadge plan={u.plan} /></td>
+                                            <td style={{ fontWeight: 600 }}>{u.report_credits || 0}</td>
+                                            <td><TestPills tests={u.tests_taken} /></td>
+                                            <td>
+                                                {u.orders_count > 0 && (
+                                                    <span style={{ fontWeight: 500 }}>{u.orders_count} ({u.total_spent_dkk} kr)</span>
+                                                )}
+                                                {!u.orders_count && <span style={{ color: 'var(--text-4)' }}>{'\u2014'}</span>}
+                                            </td>
+                                            <td style={{ fontSize: '.8rem', color: 'var(--text-2)' }}>{fmtDate(u.created_at)}</td>
+                                            <td style={{ fontSize: '.8rem', color: 'var(--text-2)' }}>{fmtDateTime(u.last_test_at)}</td>
+                                        </tr>
+                                    ))}
+                                    {users.length === 0 && (
+                                        <tr><td colSpan="7" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-3)' }}>Ingen brugere fundet</td></tr>
+                                    )}
+                                </tbody>
+                            </table>
+                            {totalPages > 1 && (
+                                <div className="pagination">
+                                    <span>Side {page + 1} af {totalPages}</span>
+                                    <div style={{ display: 'flex', gap: '.5rem' }}>
+                                        <button disabled={page === 0} onClick={() => setPage(p => p - 1)}>{'\u2190'} Forrige</button>
+                                        <button disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}>N&aelig;ste {'\u2192'}</button>
+                                    </div>
+                                </div>
+                            )}
+                        </>
+                    )}
+                </div>
+            </div>
+        );
+    }
+
+    // ══════════════════════════════════════════════════════
+    // USER DETAIL MODAL
+    // ══════════════════════════════════════════════════════
+    function UserDetailModal({ userId, onClose }) {
+        const [data, setData] = useState(null);
+        const [loading, setLoading] = useState(true);
+        const [editPlan, setEditPlan] = useState(null);
+        const [editCredits, setEditCredits] = useState(null);
+        const [saving, setSaving] = useState(false);
+
+        useEffect(() => {
+            if (!userId) return;
+            (async () => {
+                setLoading(true);
+                try {
+                    const sb = getSB();
+                    const { data: result, error } = await sb.rpc('admin_user_detail', { p_user_id: userId });
+                    if (error) throw error;
+                    setData(result);
+                    setEditPlan(result.profile.plan);
+                    setEditCredits(result.profile.report_credits || 0);
+                } catch (err) { console.error(err); }
+                setLoading(false);
+            })();
+        }, [userId]);
+
+        async function saveChanges() {
+            setSaving(true);
+            try {
+                const sb = getSB();
+                await sb.rpc('admin_update_user', {
+                    p_target_user_id: userId,
+                    p_plan: editPlan,
+                    p_report_credits: parseInt(editCredits) || 0
+                });
+                // Reload
+                const { data: result } = await sb.rpc('admin_user_detail', { p_user_id: userId });
+                setData(result);
+                setEditPlan(result.profile.plan);
+                setEditCredits(result.profile.report_credits || 0);
+            } catch (err) { console.error(err); }
+            setSaving(false);
+        }
+
+        // Close on Escape
+        useEffect(() => {
+            const handler = (e) => { if (e.key === 'Escape') onClose(); };
+            document.addEventListener('keydown', handler);
+            return () => document.removeEventListener('keydown', handler);
+        }, [onClose]);
+
+        if (!userId) return null;
+
+        return (
+            <div className="admin-modal-overlay" onClick={onClose}>
+                <div className="admin-modal" onClick={e => e.stopPropagation()}>
+                    <div className="admin-modal-header">
+                        <h3>{data?.profile?.email || 'Bruger'}</h3>
+                        <button className="admin-modal-close" onClick={onClose}>{Icons.close}</button>
+                    </div>
+                    <div className="admin-modal-body">
+                        {loading ? (
+                            <div className="admin-loading"><div className="admin-spinner"></div></div>
+                        ) : data ? (
+                            <>
+                                {/* Profil */}
+                                <div className="detail-section">
+                                    <div className="detail-section-title">Profil</div>
+                                    <div className="detail-grid">
+                                        <div className="detail-item">
+                                            <label>Email</label>
+                                            <span>{data.profile.email}</span>
+                                        </div>
+                                        <div className="detail-item">
+                                            <label>Navn</label>
+                                            <span>{data.profile.display_name || '\u2014'}</span>
+                                        </div>
+                                        <div className="detail-item">
+                                            <label>Plan</label>
+                                            <div className="inline-edit">
+                                                <select value={editPlan} onChange={e => setEditPlan(e.target.value)}>
+                                                    <option value="free">free</option>
+                                                    <option value="single">single</option>
+                                                    <option value="pack4">pack4</option>
+                                                    <option value="unlimited">unlimited</option>
+                                                    <option value="admin">admin</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div className="detail-item">
+                                            <label>Credits</label>
+                                            <div className="inline-edit">
+                                                <input type="number" min="0" value={editCredits} onChange={e => setEditCredits(e.target.value)} style={{ width: 70 }} />
+                                            </div>
+                                        </div>
+                                        <div className="detail-item">
+                                            <label>Oprettet</label>
+                                            <span>{fmtDate(data.profile.created_at)}</span>
+                                        </div>
+                                        <div className="detail-item">
+                                            <label>Stripe</label>
+                                            <span style={{ fontSize: '.8rem', wordBreak: 'break-all' }}>{data.profile.stripe_customer_id || '\u2014'}</span>
+                                        </div>
+                                    </div>
+                                    {(editPlan !== data.profile.plan || parseInt(editCredits) !== (data.profile.report_credits || 0)) && (
+                                        <div style={{ marginTop: '.75rem', display: 'flex', gap: '.5rem' }}>
+                                            <button className="btn-sm btn-sm-primary" onClick={saveChanges} disabled={saving}>
+                                                {saving ? 'Gemmer...' : 'Gem \u00e6ndringer'}
+                                            </button>
+                                            <button className="btn-sm btn-sm-ghost" onClick={() => { setEditPlan(data.profile.plan); setEditCredits(data.profile.report_credits || 0); }}>
+                                                Annuller
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Tests */}
+                                <div className="detail-section">
+                                    <div className="detail-section-title">Test-resultater ({data.tests.length})</div>
+                                    {data.tests.length === 0 ? (
+                                        <p style={{ color: 'var(--text-4)', fontSize: '.85rem' }}>Ingen tests gennemf&oslash;rt</p>
+                                    ) : (
+                                        <table className="admin-table" style={{ fontSize: '.8rem' }}>
+                                            <thead>
+                                                <tr><th>Test</th><th>Score</th><th>Dato</th></tr>
+                                            </thead>
+                                            <tbody>
+                                                {data.tests.map(t => (
+                                                    <tr key={t.id}>
+                                                        <td><span className={`test-pill ${TEST_COLORS[t.test_type]||''}`}>{TEST_LABELS[t.test_type]||t.test_type}</span></td>
+                                                        <td style={{ maxWidth: 250, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                            {t.score_summary || '\u2014'}
+                                                        </td>
+                                                        <td>{fmtDateTime(t.completed_at || t.created_at)}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    )}
+                                </div>
+
+                                {/* Ordrer */}
+                                <div className="detail-section">
+                                    <div className="detail-section-title">Ordrer ({data.orders.length})</div>
+                                    {data.orders.length === 0 ? (
+                                        <p style={{ color: 'var(--text-4)', fontSize: '.85rem' }}>Ingen ordrer</p>
+                                    ) : (
+                                        <table className="admin-table" style={{ fontSize: '.8rem' }}>
+                                            <thead><tr><th>Produkt</th><th>Bel&oslash;b</th><th>Status</th><th>Dato</th></tr></thead>
+                                            <tbody>
+                                                {data.orders.map(o => (
+                                                    <tr key={o.id}>
+                                                        <td>{o.product_type}{o.test_type ? ` (${TEST_LABELS[o.test_type]||o.test_type})` : ''}</td>
+                                                        <td style={{ fontWeight: 600 }}>{o.amount_dkk} kr</td>
+                                                        <td><span className={`badge ${o.status === 'completed' ? 'badge-single' : 'badge-free'}`}>{o.status}</span></td>
+                                                        <td>{fmtDate(o.created_at)}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    )}
+                                </div>
+
+                                {/* Rapport-adgang */}
+                                <div className="detail-section">
+                                    <div className="detail-section-title">Rapport-adgang ({data.report_access.length})</div>
+                                    {data.report_access.length === 0 ? (
+                                        <p style={{ color: 'var(--text-4)', fontSize: '.85rem' }}>Ingen rapporter tilg&aring;et</p>
+                                    ) : (
+                                        <div style={{ display: 'flex', gap: '.35rem', flexWrap: 'wrap' }}>
+                                            {data.report_access.map(ra => (
+                                                <span key={ra.id} className={`test-pill ${TEST_COLORS[ra.test_type]||''}`}>
+                                                    {TEST_LABELS[ra.test_type]||ra.test_type} {'\u2014'} {fmtDate(ra.granted_at)}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </>
+                        ) : (
+                            <p>Kunne ikke hente brugerdata</p>
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // ══════════════════════════════════════════════════════
+    // ANONYMOUS STATS PAGE
+    // ══════════════════════════════════════════════════════
+    function AnonymousPage() {
+        const [data, setData] = useState(null);
+        const [loading, setLoading] = useState(true);
+
+        useEffect(() => {
+            (async () => {
+                try {
+                    const sb = getSB();
+                    const { data: result, error } = await sb.rpc('admin_anonymous_stats');
+                    if (error) throw error;
+                    setData(result);
+                } catch (err) { console.error(err); }
+                setLoading(false);
+            })();
+        }, []);
+
+        if (loading) return <div className="admin-loading"><div className="admin-spinner"></div>Henter anonym statistik...</div>;
+        if (!data) return <p>Kunne ikke hente data</p>;
+
+        const byType = data.by_test_type || {};
+
+        return (
+            <div>
+                <div className="admin-page-header">
+                    <div>
+                        <h1 className="admin-page-title">Anonyme brugere</h1>
+                        <p className="admin-page-subtitle">Statistik over tests uden konto</p>
+                    </div>
+                </div>
+
+                <div className="stat-grid fade-up">
+                    <div className="stat-card stat-card-accent">
+                        <div className="stat-card-label">Anonyme tests i alt</div>
+                        <div className="stat-card-value">{fmtNumber(data.total_anonymous_tests)}</div>
+                    </div>
+                    <div className="stat-card">
+                        <div className="stat-card-label">Unikke sessioner</div>
+                        <div className="stat-card-value">{fmtNumber(data.unique_anonymous_tokens)}</div>
+                    </div>
+                </div>
+
+                <div className="admin-panel fade-up fade-up-1">
+                    <div className="admin-panel-header"><span className="admin-panel-title">Anonyme tests pr. dag (30 dage)</span></div>
+                    <div style={{ padding: '1rem 1.25rem' }}>
+                        <BarChart data={data.daily_anonymous} color="#8a857e" />
+                    </div>
+                </div>
+
+                <div className="admin-panel fade-up fade-up-2">
+                    <div className="admin-panel-header"><span className="admin-panel-title">Fordeling pr. testtype</span></div>
+                    <table className="admin-table">
+                        <thead>
+                            <tr><th>Test</th><th>Gennemf&oslash;rt</th><th>Uf&aelig;rdig</th><th>Total</th><th>Seneste</th></tr>
+                        </thead>
+                        <tbody>
+                            {Object.entries(byType).map(([type, stats]) => (
+                                <tr key={type}>
+                                    <td><span className={`test-pill ${TEST_COLORS[type]||''}`}>{TEST_LABELS[type]||type}</span></td>
+                                    <td style={{ fontWeight: 600 }}>{stats.completed || 0}</td>
+                                    <td style={{ color: 'var(--text-3)' }}>{stats.incomplete || 0}</td>
+                                    <td style={{ fontWeight: 600 }}>{stats.count}</td>
+                                    <td style={{ fontSize: '.8rem', color: 'var(--text-2)' }}>{fmtDateTime(stats.latest)}</td>
+                                </tr>
+                            ))}
+                            {Object.keys(byType).length === 0 && (
+                                <tr><td colSpan="5" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-3)' }}>Ingen anonyme tests endnu</td></tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        );
+    }
+
+    // ══════════════════════════════════════════════════════
+    // COUPONS PAGE
+    // ══════════════════════════════════════════════════════
+    function CouponsPage() {
+        const [coupons, setCoupons] = useState(null);
+        const [loading, setLoading] = useState(true);
+
+        useEffect(() => {
+            (async () => {
+                try {
+                    const sb = getSB();
+                    const { data, error } = await sb.rpc('admin_list_coupons');
+                    if (error) throw error;
+                    setCoupons(data);
+                } catch (err) { console.error(err); }
+                setLoading(false);
+            })();
+        }, []);
+
+        if (loading) return <div className="admin-loading"><div className="admin-spinner"></div>Henter kuponer...</div>;
+
+        return (
+            <div>
+                <div className="admin-page-header">
+                    <div>
+                        <h1 className="admin-page-title">Kuponkoder</h1>
+                        <p className="admin-page-subtitle">Administrer kuponer og se indl&oslash;sninger</p>
+                    </div>
+                </div>
+
+                {(!coupons || coupons.length === 0) ? (
+                    <div className="admin-panel" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-3)' }}>
+                        Ingen kuponer oprettet endnu.
+                    </div>
+                ) : coupons.map(c => (
+                    <div key={c.id} className="admin-panel fade-up" style={{ marginBottom: '1rem' }}>
+                        <div className="admin-panel-header">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '.75rem' }}>
+                                <span style={{ fontFamily: 'var(--sans)', fontSize: '1.1rem', fontWeight: 700, letterSpacing: '.05em', color: 'var(--admin)' }}>
+                                    {c.code}
+                                </span>
+                                <span className={`badge ${c.is_active ? 'badge-single' : 'badge-free'}`}>
+                                    {c.is_active ? 'Aktiv' : 'Deaktiveret'}
+                                </span>
+                            </div>
+                            <div style={{ display: 'flex', gap: '1.5rem', fontSize: '.85rem', color: 'var(--text-2)' }}>
+                                <span><strong>{c.credits}</strong> credits</span>
+                                <span><strong>{c.times_used}</strong> / {c.max_uses} brugt</span>
+                                {c.expires_at && <span>Udl&oslash;ber: {fmtDate(c.expires_at)}</span>}
+                            </div>
+                        </div>
+                        {c.description && (
+                            <div style={{ padding: '.5rem 1.5rem', fontSize: '.85rem', color: 'var(--text-3)' }}>{c.description}</div>
+                        )}
+                        {c.redemptions && c.redemptions.length > 0 && (
+                            <table className="admin-table" style={{ fontSize: '.8rem' }}>
+                                <thead><tr><th>Email</th><th>Credits</th><th>Indl&oslash;st</th></tr></thead>
+                                <tbody>
+                                    {c.redemptions.map((r, i) => (
+                                        <tr key={i}>
+                                            <td>{r.email}</td>
+                                            <td style={{ fontWeight: 600 }}>{r.credits_granted}</td>
+                                            <td>{fmtDateTime(r.redeemed_at)}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
+                        {(!c.redemptions || c.redemptions.length === 0) && (
+                            <div style={{ padding: '.75rem 1.5rem', fontSize: '.8rem', color: 'var(--text-4)' }}>Ingen indl&oslash;sninger endnu</div>
+                        )}
+                    </div>
+                ))}
+            </div>
+        );
+    }
+
+    // ══════════════════════════════════════════════════════
+    // MAIN APP
+    // ══════════════════════════════════════════════════════
+    function AdminApp() {
+        const [authed, setAuthed] = useState(false);
+        const [user, setUser] = useState(null);
+        const [activePage, setActivePage] = useState('dashboard');
+        const [stats, setStats] = useState(null);
+        const [selectedUserId, setSelectedUserId] = useState(null);
+
+        // Load dashboard stats when authenticated
+        useEffect(() => {
+            if (!authed) return;
+            (async () => {
+                try {
+                    const sb = getSB();
+                    const { data, error } = await sb.rpc('admin_dashboard_stats');
+                    if (error) throw error;
+                    setStats(data);
+                } catch (err) { console.error('Dashboard stats error:', err); }
+            })();
+        }, [authed]);
+
+        function handleAuth(u) {
+            setUser(u);
+            setAuthed(true);
+        }
+
+        async function handleLogout() {
+            const sb = getSB();
+            await sb.auth.signOut();
+            setAuthed(false);
+            setUser(null);
+            window.location.reload();
+        }
+
+        if (!authed) return <AuthGate onAuth={handleAuth} />;
+
+        const navItems = [
+            { id: 'dashboard', icon: Icons.dashboard, label: 'Dashboard' },
+            { id: 'users', icon: Icons.users, label: 'Brugere' },
+            { id: 'anonymous', icon: Icons.anonymous, label: 'Anonyme' },
+            { id: 'coupons', icon: Icons.coupons, label: 'Kuponer' },
+        ];
+
+        return (
+            <div className="admin-shell">
+                {/* Sidebar */}
+                <nav className="admin-sidebar">
+                    <div className="admin-sidebar-brand">
+                        <h2>Hjernebarometeret</h2>
+                        <span>Admin Panel</span>
+                    </div>
+                    <div className="admin-nav">
+                        {navItems.map(item => (
+                            <button
+                                key={item.id}
+                                className={`admin-nav-item ${activePage === item.id ? 'active' : ''}`}
+                                onClick={() => setActivePage(item.id)}
+                            >
+                                {item.icon}
+                                {item.label}
+                            </button>
+                        ))}
+                    </div>
+                    <div className="admin-sidebar-footer">
+                        <div style={{ fontSize: '.75rem', color: 'rgba(255,255,255,.35)', marginBottom: '.4rem' }}>
+                            {user?.email}
+                        </div>
+                        <button onClick={handleLogout}>Log ud</button>
+                        <span style={{ margin: '0 .5rem', color: 'rgba(255,255,255,.2)' }}>{'\u00b7'}</span>
+                        <button onClick={() => window.location.href = '/'}>Til forsiden</button>
+                    </div>
+                </nav>
+
+                {/* Main */}
+                <main className="admin-main">
+                    {activePage === 'dashboard' && <DashboardPage stats={stats} />}
+                    {activePage === 'users' && <UsersPage onSelectUser={setSelectedUserId} />}
+                    {activePage === 'anonymous' && <AnonymousPage />}
+                    {activePage === 'coupons' && <CouponsPage />}
+                </main>
+
+                {/* User detail modal */}
+                {selectedUserId && (
+                    <UserDetailModal userId={selectedUserId} onClose={() => setSelectedUserId(null)} />
+                )}
+            </div>
+        );
+    }
+
+    // ── Mount ────────────────────────────────────────────
+    ReactDOM.createRoot(document.getElementById('admin-root')).render(<AdminApp />);
+    </script>
+</body>
+</html>
