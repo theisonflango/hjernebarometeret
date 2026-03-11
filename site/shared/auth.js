@@ -237,11 +237,27 @@
     _callbacks = [];
   }
 
+  // Refresh credits from DB (called after coupon redemption)
+  async function refreshCredits() {
+    if (!_user) return 0;
+    var { data } = await sb.from('user_profiles').select('report_credits').eq('id', _user.id).single();
+    if (data) _credits = data.report_credits || 0;
+    return _credits;
+  }
+
+  // Listen for credits change (from coupon module)
+  window.addEventListener('hb-credits-change', function(e) {
+    if (e.detail && typeof e.detail.credits === 'number') {
+      _credits = e.detail.credits;
+    }
+  });
+
   // Listen for auth state changes
   sb.auth.onAuthStateChange(function(event, session) {
     if (event === 'SIGNED_OUT') {
       _user = null;
       _plan = 'free';
+      _credits = 0;
       _updateNav();
     }
   });
@@ -271,6 +287,7 @@
     hideLogin: hideLogin,
     logout: logout,
     showUserMenu: showUserMenu,
+    refreshCredits: refreshCredits,
     supabase: sb,
     _handleLogin: _handleLogin,
     _toggleSignup: _toggleSignup

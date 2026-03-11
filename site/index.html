@@ -156,6 +156,7 @@ footer{padding:36px clamp(20px,4vw,48px);border-top:1px solid var(--border);max-
 <script src="shared/nav.js"></script>
 <script src="shared/footer.js"></script>
 <script src="shared/auth.js"></script>
+<script src="shared/coupon.js"></script>
 <script>
 const o=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('v')})},{threshold:.08,rootMargin:'0px 0px -20px 0px'});document.querySelectorAll('.rv').forEach(e=>o.observe(e));
 document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click',e=>{const h=a.getAttribute('href');if(h==='#'){e.preventDefault();scrollTo({top:0,behavior:'smooth'});return}e.preventDefault();const t=document.querySelector(h);if(t)t.scrollIntoView({behavior:'smooth',block:'start'})})});

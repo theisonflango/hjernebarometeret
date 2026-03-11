@@ -52,8 +52,6 @@
         .maybeSingle();
       if (data) return true;
 
-      // Check remaining pack4 credits
-      if (HB_AUTH.credits > 0) return true;
     }
 
     return false;
@@ -279,7 +277,7 @@
     return null;
   }
 
-  // ── Use a credit (for pack4 users) ──
+  // ── Use a credit to unlock a report ──
   async function useCredit(testType) {
     if (!window.HB_AUTH || !HB_AUTH.user) return false;
     if (HB_AUTH.credits <= 0) return false;
@@ -307,6 +305,52 @@
     return false;
   }
 
+  // ── Render "Brug credit" option in paywall ──
+  // Call this from report pages after showing #no-access
+  function renderCreditOption(testType) {
+    if (!window.HB_AUTH || !HB_AUTH.user || HB_AUTH.credits <= 0) return;
+
+    var container = document.getElementById('no-access');
+    if (!container) return;
+
+    // Don't add twice
+    if (container.querySelector('.credit-option')) return;
+
+    var credits = HB_AUTH.credits;
+    var div = document.createElement('div');
+    div.className = 'credit-option';
+    div.style.cssText = 'margin-top:20px;padding:20px;background:var(--accent-light,#e8f0ec);border-radius:14px;text-align:center;';
+    div.innerHTML =
+      '<p style="font-size:14px;font-weight:600;color:var(--accent,#2c5f4b);margin-bottom:4px">Du har ' + credits + ' rapport-credit' + (credits !== 1 ? 's' : '') + '</p>' +
+      '<p style="font-size:13px;color:var(--text-2,#5a5650);margin-bottom:14px">Brug 1 credit for at l\u00e5se denne rapport op</p>' +
+      '<button class="buy-btn credit-use-btn" style="background:var(--accent,#2c5f4b)">' +
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="vertical-align:-3px;margin-right:6px"><rect x="2" y="3" width="20" height="18" rx="3"/><path d="M2 8h20"/></svg>' +
+        'Brug 1 credit' +
+      '</button>';
+
+    // Insert before the "Tilbage" link
+    var backLink = container.querySelector('p:last-child');
+    if (backLink) {
+      container.insertBefore(div, backLink);
+    } else {
+      container.appendChild(div);
+    }
+
+    // Click handler
+    div.querySelector('.credit-use-btn').addEventListener('click', async function() {
+      var btn = this;
+      btn.disabled = true;
+      btn.textContent = 'Aktiverer...';
+      var ok = await useCredit(testType);
+      if (ok) {
+        window.location.reload();
+      } else {
+        btn.textContent = 'Fejl — pr\u00f8v igen';
+        btn.disabled = false;
+      }
+    });
+  }
+
   // ── Public API ──
   window.HB_PAY = {
     hasAccess: hasAccess,
@@ -317,6 +361,7 @@
     loadResults: loadResults,
     loadResultsFromDB: loadResultsFromDB,
     getResultsHistory: getResultsHistory,
-    useCredit: useCredit
+    useCredit: useCredit,
+    renderCreditOption: renderCreditOption
   };
 })();

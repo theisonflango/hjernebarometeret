@@ -281,6 +281,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:
 <script src="../shared/nav.js"></script>
 <script src="../shared/footer.js"></script>
 <script src="../shared/auth.js"></script>
+<script src="../shared/coupon.js"></script>
 <script src="../shared/payment.js"></script>
 <script src="../shared/normdata.js"></script>
 <script src="../shared/profilecard.js"></script>
@@ -740,6 +741,7 @@ function downloadPDF() {
   if (!hasAccess) {
     document.getElementById('loading').style.display = 'none';
     document.getElementById('no-access').style.display = 'block';
+    if(window.HB_PAY)HB_PAY.renderCreditOption('adhd');
     return;
   }
 
