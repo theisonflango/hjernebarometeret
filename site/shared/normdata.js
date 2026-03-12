@@ -69,6 +69,9 @@
     source: 'Johnson (2014) IPIP, n=300.000+'
   };
 
+  // EQ: Schutte et al. (1998), SSEIT
+  var EQ_NORMS = { mean: 124, sd: 13, source: 'Schutte et al. (1998), SSEIT, n=346' };
+
   // ADHD: Intervalbaseret (ingen populationsnormer for screeningstools)
   var ADHD_RANGES = {
     quick: [
@@ -112,6 +115,11 @@
           result.percentile = scoreToPercentile(raw, norm.mean, norm.sd);
         }
         result.source = BIGFIVE_NORMS.source;
+        break;
+
+      case 'eq':
+        result.percentile = scoreToPercentile(score, EQ_NORMS.mean, EQ_NORMS.sd);
+        result.source = EQ_NORMS.source;
         break;
 
       case 'adhd':
@@ -181,7 +189,8 @@
       stress: PSS_NORMS,
       autisme: AQ_NORMS,
       personlighed: BIGFIVE_NORMS,
-      adhd: ADHD_RANGES
+      adhd: ADHD_RANGES,
+      eq: EQ_NORMS
     }
   };
 })();

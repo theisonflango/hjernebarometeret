@@ -851,6 +851,10 @@
                 const likert = { 1: 'Aldrig', 2: 'Sjældent', 3: 'Sommetider', 4: 'Ofte', 5: 'Meget ofte' };
                 return { text: a.text, answer: likert[a.chosen] || 'Ikke besvaret', extra: `${a.domain}${a.reverse ? ' (R)' : ''}` };
             }
+            if (testType === 'eq') {
+                const likert = { 1: 'Helt uenig', 2: 'Uenig', 3: 'Neutral', 4: 'Enig', 5: 'Helt enig' };
+                return { text: a.text, answer: likert[a.chosen] || 'Ikke besvaret', extra: `${a.domain}${a.reverse ? ' (R)' : ''}` };
+            }
             return { text: JSON.stringify(a), answer: '', extra: '' };
         }
 

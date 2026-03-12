@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Gratis EQ-test baseret på Schutte Self-Report Emotional Intelligence Test (SSEIT). Mål dine evner inden for emotionel perception, regulering og social forståelse.">
+<title>Emotionel Intelligens — Hjernebarometeret.dk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,500&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
+<style>
+:root {
+  --bg: #faf9f7;
+  --bg-card: #fff;
+  --bg-card-hover: rgba(0,0,0,.02);
+  --bg-warm: #f5f2ee;
+  --bg-dark: #1c1b1a;
+  --text: #1c1b1a;
+  --text-2: #5a5650;
+  --text-3: #8a857e;
+  --text-4: #b5b0a8;
+  --text-dim: #5a5650;
+  --text-muted: #8a857e;
+  --border: #e8e5e0;
+  --border-2: #d5d0c9;
+  --accent: #7a6b3a;
+  --accent-light: #f5f2e8;
+  --accent-hover: #5e5230;
+  --accent-glow: rgba(122,107,58,0.08);
+  --green: #2c6e49;
+  --green-bg: #e8f5ee;
+  --yellow: #b8860b;
+  --yellow-bg: #faf5eb;
+  --orange: #c2553a;
+  --orange-bg: #fdf0ec;
+  --red: #a23030;
+  --red-bg: #fbeaea;
+  --radius: 12px;
+  --radius-lg: 20px;
+  --serif: 'Source Serif 4', Georgia, serif;
+  --sans: 'Figtree', system-ui, sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.6; -webkit-font-smoothing: antialiased; overflow-x: hidden; padding-top: 64px; }
+
+.container { max-width: 720px; margin: 0 auto; padding: 0 20px; }
+
+/* ── Hero ── */
+.hero { min-height: calc(100vh - 64px); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 60px 24px 80px; position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; top: -20%; right: -10%; width: 600px; height: 600px; background: radial-gradient(circle, rgba(122,107,58,0.06) 0%, transparent 70%); border-radius: 50%; pointer-events: none; }
+.hero::after { content: ''; position: absolute; bottom: -10%; left: -10%; width: 500px; height: 500px; background: radial-gradient(circle, rgba(122,107,58,0.04) 0%, transparent 70%); border-radius: 50%; pointer-events: none; }
+.hero-badge { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: var(--accent); background: var(--accent-light); padding: 6px 16px; border-radius: 100px; margin-bottom: 32px; letter-spacing: 0.03em; }
+.hero h1 { font-family: var(--serif); font-size: clamp(2.4rem, 5.5vw, 3.6rem); font-weight: 600; letter-spacing: -0.03em; line-height: 1.15; max-width: 700px; margin-bottom: 20px; }
+.hero h1 em { font-style: italic; color: var(--accent); }
+.hero-sub { font-size: 17px; color: var(--text-2); max-width: 560px; line-height: 1.7; margin-bottom: 40px; }
+.hero-stats { display: flex; gap: 32px; flex-wrap: wrap; justify-content: center; margin-bottom: 48px; }
+.hero-stat { text-align: center; }
+.hero-stat strong { display: block; font-family: var(--serif); font-size: 22px; font-weight: 600; color: var(--text); }
+.hero-stat span { font-size: 13px; color: var(--text-3); }
+.btn-primary { display: inline-flex; align-items: center; gap: 8px; background: var(--accent); color: #fff; font-family: var(--sans); font-size: 16px; font-weight: 600; padding: 14px 36px; border-radius: 12px; border: none; cursor: pointer; transition: all .2s; text-decoration: none; }
+.btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(122,107,58,0.2); }
+
+/* ── Science box ── */
+.science-box { max-width: 680px; margin: 0 auto; background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 32px; text-align: left; }
+.science-box h3 { font-family: var(--serif); font-size: 18px; font-weight: 600; margin-bottom: 12px; }
+.science-box p { font-size: 14.5px; color: var(--text-2); line-height: 1.7; margin-bottom: 20px; }
+.domains-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.domain-card { background: var(--accent-light); border-radius: 10px; padding: 14px; text-align: center; }
+.domain-card h4 { font-size: 13px; font-weight: 600; color: var(--accent); margin-bottom: 4px; }
+.domain-card span { font-size: 12px; color: var(--text-3); }
+.disclaimer { font-size: 12.5px; color: var(--text-4); border-top: 1px solid var(--border); padding-top: 16px; line-height: 1.6; }
+
+/* ── Lang toggle ── */
+.lang-toggle { position: fixed; top: 80px; right: 20px; z-index: 100; display: flex; align-items: center; gap: 6px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text-2); transition: all .15s; }
+.lang-toggle:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── Question phase ── */
+.test-container { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 100px 24px 80px; }
+.progress-bar { width: 100%; max-width: 560px; height: 3px; background: var(--border); border-radius: 4px; margin-bottom: 12px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.4s ease; }
+.progress-text { font-size: 13px; color: var(--text-4); margin-bottom: 48px; font-variant-numeric: tabular-nums; }
+.question-card { max-width: 600px; width: 100%; text-align: center; }
+.question-text { font-family: var(--serif); font-size: clamp(1.15rem, 2.5vw, 1.4rem); font-weight: 400; line-height: 1.5; letter-spacing: -0.01em; color: var(--text); margin-bottom: 40px; min-height: 80px; }
+.likert-scale { display: flex; flex-direction: column; gap: 10px; max-width: 420px; margin: 0 auto 40px; }
+.likert-option { display: flex; align-items: center; gap: 14px; padding: 12px 18px; border: 1.5px solid var(--border); border-radius: 10px; cursor: pointer; transition: all .15s; background: var(--bg-card); }
+.likert-option:hover { border-color: var(--accent); background: var(--accent-light); }
+.likert-option.selected { border-color: var(--accent); background: var(--accent-light); }
+.likert-dot { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border-2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all .15s; }
+.likert-option.selected .likert-dot { border-color: var(--accent); background: var(--accent); }
+.likert-option.selected .likert-dot::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #fff; }
+.likert-label { font-size: 15px; color: var(--text-2); text-align: left; }
+.likert-option.selected .likert-label { color: var(--text); font-weight: 500; }
+.likert-number { font-size: 12px; font-weight: 600; color: var(--text-4); width: 18px; text-align: center; flex-shrink: 0; }
+.likert-option.selected .likert-number { color: var(--accent); }
+
+.nav-buttons { display: flex; gap: 12px; justify-content: center; }
+.btn-nav { padding: 10px 24px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--bg-card); font-family: var(--sans); font-size: 14px; font-weight: 500; color: var(--text-2); cursor: pointer; transition: all .15s; }
+.btn-nav:hover { border-color: var(--accent); color: var(--accent); }
+.btn-nav.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-nav.primary:hover { background: var(--accent-hover); }
+.btn-nav:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.keyboard-hint { font-size: 12px; color: var(--text-4); margin-top: 20px; }
+.keyboard-hint code { background: var(--bg-warm); padding: 2px 6px; border-radius: 4px; font-size: 11px; }
+
+/* ── Loading ── */
+.loading-phase { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; text-align: center; }
+.loading-title { font-family: var(--serif); font-size: 24px; font-weight: 600; margin-bottom: 32px; }
+.loading-steps { display: flex; flex-direction: column; gap: 16px; }
+.loading-step { display: flex; align-items: center; gap: 12px; font-size: 15px; color: var(--text-3); transition: color 0.3s; }
+.loading-step.active { color: var(--text); }
+.loading-step.done { color: var(--green); }
+.loading-spinner { width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.6s linear infinite; }
+.loading-check { width: 20px; height: 20px; color: var(--green); }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Results ── */
+.results-container { max-width: 720px; margin: 0 auto; padding: 60px 24px 80px; }
+.results-header { text-align: center; margin-bottom: 48px; }
+.results-header h1 { font-family: var(--serif); font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 600; letter-spacing: -0.03em; margin-bottom: 12px; }
+.results-header p { font-size: 16px; color: var(--text-2); max-width: 520px; margin: 0 auto; line-height: 1.6; }
+
+.score-hero { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 40px; text-align: center; margin-bottom: 32px; }
+.score-circle { width: 140px; height: 140px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 auto 20px; border: 4px solid; }
+.score-circle .score-value { font-family: var(--serif); font-size: 38px; font-weight: 700; }
+.score-circle .score-max { font-size: 13px; color: var(--text-3); }
+.score-label { font-family: var(--serif); font-size: 22px; font-weight: 600; margin-bottom: 8px; }
+.score-desc { font-size: 15px; color: var(--text-2); max-width: 480px; margin: 0 auto; line-height: 1.7; }
+
+.level-bar { margin: 24px 0 16px; }
+.level-track { height: 8px; background: var(--bg-warm); border-radius: 8px; position: relative; overflow: hidden; }
+.level-fill { height: 100%; border-radius: 8px; transition: width 1s ease; }
+.level-labels { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: var(--text-4); }
+
+.norm-badge { text-align: center; font-size: 13px; color: var(--text-2); margin: 12px 0; padding: 10px 16px; background: rgba(122,107,58,0.05); border-radius: 10px; border: 1px solid rgba(122,107,58,0.1); }
+
+/* Domain cards */
+.section-title { font-family: var(--serif); font-size: 20px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 20px; }
+.domain-results { display: flex; flex-direction: column; gap: 16px; margin-bottom: 40px; }
+.domain-result { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 24px; }
+.domain-result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.domain-result-name { font-weight: 600; font-size: 15px; }
+.domain-result-score { font-family: var(--serif); font-size: 18px; font-weight: 600; }
+.domain-bar { height: 6px; background: var(--bg-warm); border-radius: 6px; margin-bottom: 10px; overflow: hidden; }
+.domain-bar-fill { height: 100%; border-radius: 6px; transition: width 1s ease; }
+.domain-result-desc { font-size: 14px; color: var(--text-2); line-height: 1.6; }
+
+/* Radar chart */
+.radar-section { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 32px; margin-bottom: 32px; text-align: center; }
+.radar-section h3 { font-family: var(--serif); font-size: 18px; font-weight: 600; margin-bottom: 20px; }
+.radar-svg { max-width: 360px; margin: 0 auto; }
+
+/* Strengths/challenges */
+.insights-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 40px; }
+.insight-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 24px; }
+.insight-card h4 { font-size: 14px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.insight-item { font-size: 14px; color: var(--text-2); line-height: 1.6; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.insight-item:last-child { border-bottom: none; }
+
+/* CTA / paywall */
+.cta-box { background: linear-gradient(135deg, var(--accent-light), #f0ebe0); border: 1px solid var(--border); border-radius: 16px; padding: 32px; text-align: center; margin-bottom: 32px; }
+.cta-box h3 { font-family: var(--serif); font-size: 20px; font-weight: 600; margin-bottom: 10px; }
+.cta-box p { font-size: 14.5px; color: var(--text-2); margin-bottom: 20px; line-height: 1.6; }
+.cta-features { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 24px; }
+.cta-feature { font-size: 13px; color: var(--accent); background: rgba(122,107,58,0.08); padding: 4px 12px; border-radius: 100px; }
+
+/* Cross-sell */
+.cross-sell { margin: 40px 0; }
+.cross-sell h3 { font-family: var(--serif); font-size: 18px; font-weight: 600; margin-bottom: 16px; text-align: center; }
+.cross-sell-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.cross-sell-card { display: block; background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; text-align: center; text-decoration: none; color: inherit; transition: all .15s; }
+.cross-sell-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+.cross-sell-card .name { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+.cross-sell-card .sub { font-size: 12px; color: var(--text-3); }
+
+/* Admin link */
+.admin-link { display: inline-block; margin-top: 12px; font-size: 13px; color: var(--accent); text-decoration: underline; cursor: pointer; }
+
+/* Disclaimer */
+.results-disclaimer { font-size: 13px; color: var(--text-4); text-align: center; border-top: 1px solid var(--border); padding-top: 24px; margin-top: 40px; line-height: 1.6; }
+
+/* ── Animations ── */
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+.fade-in-up { animation: fadeInUp 0.5s ease forwards; }
+
+/* Mobile */
+@media (max-width: 600px) {
+  .hero { padding: 40px 20px 60px; }
+  .hero-stats { gap: 20px; }
+  .test-container { padding: 90px 20px 60px; }
+  .results-container { padding: 40px 16px 60px; }
+  .score-hero { padding: 28px 20px; }
+  .likert-scale { max-width: 100%; }
+  .lang-toggle { top: 76px; right: 12px; }
+  .insights-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div id="site-nav" data-active="tests" data-test-mode="true"></div>
+
+<button class="lang-toggle" id="langToggle" onclick="toggleLang()">
+    <span id="langLabel">EN</span>
+</button>
+
+<div id="app"></div>
+
+<div id="site-footer"></div>
+
+<script src="../shared/nav.js"></script>
+<script src="../shared/footer.js"></script>
+<script src="../shared/auth.js"></script>
+<script src="../shared/coupon.js"></script>
+<script src="../shared/payment.js"></script>
+<script src="../shared/normdata.js"></script>
+<script src="../shared/profilecard.js"></script>
+
+<script type="text/babel">
+const { useState, useEffect, useCallback, useRef } = React;
+
+// ─── LANGUAGE ───
+let currentLang = 'da';
+function toggleLang() {
+    currentLang = currentLang === 'da' ? 'en' : 'da';
+    document.getElementById('langLabel').textContent = currentLang === 'da' ? 'EN' : 'DA';
+    ReactDOM.createRoot(document.getElementById('app')).render(<App />);
+}
+window.toggleLang = toggleLang;
+
+const t = (da, en) => currentLang === 'da' ? da : en;
+
+// ─── QUESTIONS (SSEIT / Schutte et al., 1998) ───
+// 4 subscales: Perception of Emotion, Managing Own Emotions, Managing Others' Emotions, Utilization of Emotion
+// Reverse scored: items 5, 28, 33 (0-indexed: 4, 27, 32)
+const QUESTIONS = [
+    { da: 'Jeg ved, hvornår det er passende at tale om mine personlige problemer til andre.', en: 'I know when to speak about my personal problems to others.', domain: 'perception', reverse: false },
+    { da: 'Når jeg møder forhindringer, husker jeg tidspunkter hvor jeg klarede lignende udfordringer.', en: 'When I am faced with obstacles, I remember times I faced similar obstacles and overcame them.', domain: 'utilization', reverse: false },
+    { da: 'Jeg forventer, at det vil gå godt med de fleste ting, jeg prøver.', en: 'I expect that I will do well on most things I try.', domain: 'utilization', reverse: false },
+    { da: 'Andre mennesker finder det let at betro sig til mig.', en: 'Other people find it easy to confide in me.', domain: 'others', reverse: false },
+    { da: 'Jeg har svært ved at forstå andre menneskers nonverbale signaler.', en: 'I find it hard to understand the non-verbal messages of other people.', domain: 'perception', reverse: true },
+    { da: 'Nogle af de store begivenheder i mit liv har fået mig til at revurdere, hvad der er vigtigt og ikke vigtigt.', en: 'Some of the major events of my life have led me to re-evaluate what is important and not important.', domain: 'managing', reverse: false },
+    { da: 'Når mit humør ændrer sig, ser jeg nye muligheder.', en: 'When my mood changes, I see new possibilities.', domain: 'utilization', reverse: false },
+    { da: 'Følelser er en af de ting, der gør mit liv værd at leve.', en: 'Emotions are one of the things that make my life worth living.', domain: 'utilization', reverse: false },
+    { da: 'Jeg er opmærksom på mine følelser, når jeg oplever dem.', en: 'I am aware of my emotions as I experience them.', domain: 'perception', reverse: false },
+    { da: 'Jeg forventer, at gode ting vil ske.', en: 'I expect good things to happen.', domain: 'managing', reverse: false },
+    { da: 'Jeg kan lide at dele mine følelser med andre.', en: 'I like to share my emotions with others.', domain: 'others', reverse: false },
+    { da: 'Når jeg oplever en positiv følelse, ved jeg, hvordan jeg kan fastholde den.', en: 'When I experience a positive emotion, I know how to make it last.', domain: 'managing', reverse: false },
+    { da: 'Jeg arrangerer begivenheder, som andre nyder.', en: 'I arrange events others enjoy.', domain: 'others', reverse: false },
+    { da: 'Jeg opsøger aktiviteter, der gør mig glad.', en: 'I seek out activities that make me happy.', domain: 'managing', reverse: false },
+    { da: 'Jeg er opmærksom på de nonverbale signaler, jeg sender til andre.', en: 'I am aware of the non-verbal messages I send to others.', domain: 'perception', reverse: false },
+    { da: 'Jeg præsenterer mig selv på en måde, der giver et godt indtryk.', en: 'I present myself in a way that makes a good impression on others.', domain: 'managing', reverse: false },
+    { da: 'Når jeg er i godt humør, er det let for mig at løse problemer.', en: 'When I am in a positive mood, solving problems is easy for me.', domain: 'utilization', reverse: false },
+    { da: 'Ved at se på deres ansigtsudtryk genkender jeg de følelser, folk oplever.', en: 'By looking at their facial expressions, I recognize the emotions people are experiencing.', domain: 'perception', reverse: false },
+    { da: 'Jeg ved, hvorfor mine følelser ændrer sig.', en: 'I know why my emotions change.', domain: 'perception', reverse: false },
+    { da: 'Når jeg er i godt humør, kan jeg finde på nye idéer.', en: 'When I am in a positive mood, I am able to come up with new ideas.', domain: 'utilization', reverse: false },
+    { da: 'Jeg har kontrol over mine følelser.', en: 'I have control over my emotions.', domain: 'managing', reverse: false },
+    { da: 'Jeg genkender let mine følelser, når jeg oplever dem.', en: 'I easily recognize my emotions as I experience them.', domain: 'perception', reverse: false },
+    { da: 'Jeg motiverer mig selv ved at forestille mig et godt resultat af opgaver, jeg tager fat på.', en: 'I motivate myself by imagining a good outcome to tasks I take on.', domain: 'utilization', reverse: false },
+    { da: 'Jeg giver andre komplimenter, når de har gjort noget godt.', en: 'I compliment others when they have done something well.', domain: 'others', reverse: false },
+    { da: 'Jeg er opmærksom på de nonverbale signaler, andre mennesker sender.', en: 'I am aware of the non-verbal messages other people send.', domain: 'perception', reverse: false },
+    { da: 'Når en anden person fortæller mig om en vigtig begivenhed i sit liv, føler jeg næsten, som om jeg selv har oplevet den.', en: 'When another person tells me about an important event in their life, I almost feel as though I have experienced this event myself.', domain: 'others', reverse: false },
+    { da: 'Når mine følelser ændrer sig, har jeg tendens til at komme på nye idéer.', en: 'When I feel a change in emotions, I tend to come up with new ideas.', domain: 'utilization', reverse: false },
+    { da: 'Når jeg står over for en udfordring, giver jeg op, fordi jeg tror, jeg vil fejle.', en: 'When I am faced with a challenge, I give up because I believe I will fail.', domain: 'managing', reverse: true },
+    { da: 'Jeg ved, hvad andre mennesker føler bare ved at se på dem.', en: 'I know what other people are feeling just by looking at them.', domain: 'perception', reverse: false },
+    { da: 'Jeg hjælper andre med at føle sig bedre, når de er nede.', en: 'I help other people feel better when they are down.', domain: 'others', reverse: false },
+    { da: 'Jeg bruger mit gode humør til at hjælpe mig selv med at blive ved, når jeg møder forhindringer.', en: 'I use good moods to help myself keep trying in the face of obstacles.', domain: 'utilization', reverse: false },
+    { da: 'Jeg kan fornemme, hvordan folk har det, ved at lytte til tonen i deres stemme.', en: 'I can tell how people are feeling by listening to the tone of their voice.', domain: 'perception', reverse: false },
+    { da: 'Det er svært for mig at forstå, hvorfor folk føler, som de gør.', en: 'It is difficult for me to understand why people feel the way they do.', domain: 'perception', reverse: true },
+];
+
+// Subscale item indices (0-based)
+const SUBSCALES = {
+    perception: {
+        da: 'Emotionel perception', en: 'Emotion Perception',
+        items: [0, 4, 8, 14, 17, 18, 21, 24, 28, 31, 32],
+        da_desc: 'Evnen til at opfatte og genkende følelser \u2014 både hos dig selv og andre. Inkluderer opmærksomhed på nonverbale signaler, ansigtsudtryk og stemmeleje.',
+        en_desc: 'The ability to perceive and recognize emotions in yourself and others. Includes awareness of non-verbal cues, facial expressions and tone of voice.'
+    },
+    managing: {
+        da: 'Emotionel regulering', en: 'Managing Own Emotions',
+        items: [5, 9, 11, 13, 15, 20, 27],
+        da_desc: 'Evnen til at regulere, kontrollere og styre dine egne følelser. Inkluderer optimisme, emotionel kontrol og evnen til at fastholde positive tilstande.',
+        en_desc: 'The ability to regulate, control and manage your own emotions. Includes optimism, emotional control and the ability to sustain positive states.'
+    },
+    others: {
+        da: 'Social emotionel kompetence', en: 'Managing Others\' Emotions',
+        items: [3, 10, 12, 23, 25, 29],
+        da_desc: 'Evnen til at forstå, påvirke og reagere hensigtsmæssigt på andres følelser. Inkluderer empati, social sensitivitet og evnen til at støtte andre.',
+        en_desc: 'The ability to understand, influence and respond appropriately to others\' emotions. Includes empathy, social sensitivity and the ability to support others.'
+    },
+    utilization: {
+        da: 'Emotionel anvendelse', en: 'Utilization of Emotion',
+        items: [1, 2, 6, 7, 16, 19, 22, 26, 30],
+        da_desc: 'Evnen til at anvende følelser konstruktivt \u2014 til kreativitet, problemløsning, motivation og vedholdenhed.',
+        en_desc: 'The ability to use emotions constructively \u2014 for creativity, problem-solving, motivation and persistence.'
+    }
+};
+
+const LIKERT_OPTIONS = {
+    da: ['Helt uenig', 'Uenig', 'Hverken enig eller uenig', 'Enig', 'Helt enig'],
+    en: ['Strongly disagree', 'Disagree', 'Neither agree nor disagree', 'Agree', 'Strongly agree']
+};
+
+// ─── SCORING ───
+function calculateScores(answers) {
+    const scores = {};
+    let total = 0;
+
+    const itemScores = answers.map((a, i) => {
+        const q = QUESTIONS[i];
+        if (a === null) return 3;
+        const raw = a + 1;
+        return q.reverse ? (6 - raw) : raw;
+    });
+
+    total = itemScores.reduce((s, v) => s + v, 0);
+
+    for (const [key, sub] of Object.entries(SUBSCALES)) {
+        const subItems = sub.items.map(i => itemScores[i]);
+        const sum = subItems.reduce((s, v) => s + v, 0);
+        const max = sub.items.length * 5;
+        const pct = Math.round((sum / max) * 100);
+        scores[key] = { sum, max, pct, count: sub.items.length };
+    }
+
+    let percentile = 50;
+    let zScore = (total - 124) / 13;
+
+    if (window.HB_NORM) {
+        var normResult = HB_NORM.getPercentile('eq', total);
+        percentile = normResult.percentile || 50;
+    } else {
+        percentile = Math.round(Math.min(99, Math.max(1, 50 * (1 + erf(zScore / Math.sqrt(2))))));
+    }
+
+    return { total, max: 165, percentile, zScore, subscales: scores };
+}
+
+function erf(x) {
+    const a1 = 0.254829592, a2 = -0.284496736, a3 = 1.421413741;
+    const a4 = -1.453152027, a5 = 1.061405429, p = 0.3275911;
+    const sign = x < 0 ? -1 : 1;
+    x = Math.abs(x);
+    const t2 = 1.0 / (1.0 + p * x);
+    const y = 1.0 - (((((a5 * t2 + a4) * t2) + a3) * t2 + a2) * t2 + a1) * t2 * Math.exp(-x * x);
+    return sign * y;
+}
+
+// ─── LEVEL + PROFILE ───
+function getLevel(total) {
+    if (total >= 141) return { da: 'Meget h\u00f8j', en: 'Very High', color: 'var(--green)', bg: 'var(--green-bg)' };
+    if (total >= 130) return { da: 'H\u00f8j', en: 'High', color: '#3a8a5c', bg: '#eaf7ef' };
+    if (total >= 118) return { da: 'Gennemsnitlig', en: 'Average', color: 'var(--yellow)', bg: 'var(--yellow-bg)' };
+    if (total >= 105) return { da: 'Under gennemsnit', en: 'Below Average', color: 'var(--orange)', bg: 'var(--orange-bg)' };
+    return { da: 'Lav', en: 'Low', color: 'var(--red)', bg: 'var(--red-bg)' };
+}
+
+function getProfile(scores) {
+    const { subscales } = scores;
+    const p = subscales.perception.pct;
+    const m = subscales.managing.pct;
+    const o = subscales.others.pct;
+    const u = subscales.utilization.pct;
+
+    if (p >= 75 && o >= 75 && m >= 70 && u >= 70) return {
+        da: 'Den Empatiske Leder', en: 'The Empathic Leader',
+        da_desc: 'Du kombinerer st\u00e6rk emotionel perception med evnen til at regulere dig selv og st\u00f8tte andre. Dette er profilen for naturlige ledere og r\u00e5dgivere, der skaber tryghed og tillid omkring sig.',
+        en_desc: 'You combine strong emotional perception with the ability to regulate yourself and support others. This is the profile of natural leaders and counselors who create safety and trust around them.'
+    };
+    if (p >= 75 && o >= 70) return {
+        da: 'Den Sociale Antenne', en: 'The Social Antenna',
+        da_desc: 'Du er us\u00e6dvanlig dygtig til at afl\u00e6se andres f\u00f8lelser og reagere empatisk. Du fanger stemninger i rummet og tilpasser dig intuitivt. Andre f\u00f8ler sig set og forst\u00e5et af dig.',
+        en_desc: 'You are exceptionally skilled at reading others\' emotions and responding empathetically. You pick up on the mood in the room and adapt intuitively. Others feel seen and understood by you.'
+    };
+    if (m >= 75 && u >= 70) return {
+        da: 'Den Selvregulerede', en: 'The Self-Regulated',
+        da_desc: 'Du har en st\u00e6rk indre kontrol og bruger dine f\u00f8lelser som br\u00e6ndstof for motivation og kreativitet. Du er god til at holde hovedet koldt og navigere i vanskelige situationer.',
+        en_desc: 'You have strong internal control and use your emotions as fuel for motivation and creativity. You excel at keeping a cool head and navigating difficult situations.'
+    };
+    if (u >= 75) return {
+        da: 'Den Kreative Motor', en: 'The Creative Engine',
+        da_desc: 'Du er mester i at kanalisere f\u00f8lelser til handling. Dine hum\u00f8rskift inspirerer dig, og du bruger positive f\u00f8lelser til at l\u00f8se problemer og drive projekter fremad.',
+        en_desc: 'You are a master at channeling emotions into action. Your mood shifts inspire you, and you use positive emotions to solve problems and drive projects forward.'
+    };
+    if (p >= 70 && m < 60) return {
+        da: 'Den Sensitive Observat\u00f8r', en: 'The Sensitive Observer',
+        da_desc: 'Du har en fin fornemmelse for f\u00f8lelser \u2014 dine egne og andres \u2014 men kan opleve det som overv\u00e6ldende at regulere dem. Din sensitivitet er en styrke, men kr\u00e6ver strategier for selvregulering.',
+        en_desc: 'You have a fine sense for emotions \u2014 your own and others\' \u2014 but may find it overwhelming to regulate them. Your sensitivity is a strength, but requires strategies for self-regulation.'
+    };
+    if (o >= 70 && p < 60) return {
+        da: 'Den Omsorgsfulde', en: 'The Caretaker',
+        da_desc: 'Du er naturligt fokuseret p\u00e5 andres velbefindende og er ofte den, folk s\u00f8ger til for st\u00f8tte. Dog kan du have gavn af at styrke din bevidsthed om dine egne emotionelle behov.',
+        en_desc: 'You are naturally focused on others\' wellbeing and are often the person people turn to for support. However, you may benefit from strengthening awareness of your own emotional needs.'
+    };
+    if (scores.total >= 118) return {
+        da: 'Den Balancerede', en: 'The Balanced',
+        da_desc: 'Du har en j\u00e6vn og solid emotionel intelligens p\u00e5 tv\u00e6rs af dom\u00e6nerne. Ingen udpr\u00e6gede spidser, men heller ingen blinde pletter. En god base at bygge videre p\u00e5.',
+        en_desc: 'You have an even and solid emotional intelligence across domains. No pronounced peaks, but no blind spots either. A good foundation to build on.'
+    };
+    return {
+        da: 'Udvikleren', en: 'The Developer',
+        da_desc: 'Der er et klart potentiale for v\u00e6kst i din emotionelle intelligens. Den gode nyhed: EQ kan tr\u00e6nes og udvikles markant med bevidst indsats og de rette strategier.',
+        en_desc: 'There is clear potential for growth in your emotional intelligence. The good news: EQ can be trained and developed significantly with conscious effort and the right strategies.'
+    };
+}
+
+// ─── STRENGTHS & CHALLENGES ───
+function getInsights(subscales) {
+    const sorted = Object.entries(subscales).sort((a, b) => b[1].pct - a[1].pct);
+    const strengths = sorted.slice(0, 2).map(([key, data]) => {
+        const labels = {
+            perception: { da: 'Emotionel perception', en: 'Emotion Perception' },
+            managing: { da: 'Selvregulering', en: 'Self-Regulation' },
+            others: { da: 'Social kompetence', en: 'Social Competence' },
+            utilization: { da: 'Emotionel anvendelse', en: 'Emotion Utilization' }
+        };
+        const descs = {
+            perception: { da: 'Du er god til at afl\u00e6se f\u00f8lelser \u2014 dine egne og andres.', en: 'You\'re skilled at reading emotions \u2014 your own and others\'.' },
+            managing: { da: 'Du har st\u00e6rk kontrol over dine egne f\u00f8lelsesm\u00e6ssige reaktioner.', en: 'You have strong control over your own emotional reactions.' },
+            others: { da: 'Du er dygtig til at st\u00f8tte og forst\u00e5 andre mennesker.', en: 'You\'re skilled at supporting and understanding others.' },
+            utilization: { da: 'Du bruger dine f\u00f8lelser konstruktivt til kreativitet og motivation.', en: 'You use your emotions constructively for creativity and motivation.' }
+        };
+        return { name: t(labels[key].da, labels[key].en), desc: t(descs[key].da, descs[key].en), pct: data.pct };
+    });
+
+    const challenges = sorted.slice(-2).reverse().map(([key, data]) => {
+        const descs = {
+            perception: { da: 'At udvikle din evne til at opfange emotionelle signaler kan styrke alle dine relationer.', en: 'Developing your ability to pick up emotional signals can strengthen all your relationships.' },
+            managing: { da: 'Tr\u00e6ning i emotionel regulering kan give dig mere ro og handlekraft i pressede situationer.', en: 'Training in emotional regulation can give you more calm and agency in pressured situations.' },
+            others: { da: 'At styrke din sociale emotionelle kompetence kan forbedre samarbejde og n\u00e6rhed.', en: 'Strengthening your social emotional competence can improve collaboration and closeness.' },
+            utilization: { da: 'At l\u00e6re at bruge dine f\u00f8lelser som ressource kan booste din kreativitet og vedholdenhed.', en: 'Learning to use your emotions as a resource can boost your creativity and persistence.' }
+        };
+        const labels = {
+            perception: { da: 'Emotionel perception', en: 'Emotion Perception' },
+            managing: { da: 'Selvregulering', en: 'Self-Regulation' },
+            others: { da: 'Social kompetence', en: 'Social Competence' },
+            utilization: { da: 'Emotionel anvendelse', en: 'Emotion Utilization' }
+        };
+        return { name: t(labels[key].da, labels[key].en), desc: t(descs[key].da, descs[key].en), pct: data.pct };
+    });
+
+    return { strengths, challenges };
+}
+
+// ─── RADAR CHART (SVG) ───
+function RadarChart({ subscales }) {
+    const domains = ['perception', 'utilization', 'managing', 'others'];
+    const labels = {
+        perception: t('Perception', 'Perception'),
+        managing: t('Regulering', 'Regulation'),
+        others: t('Social EQ', 'Social EQ'),
+        utilization: t('Anvendelse', 'Utilization')
+    };
+    const cx = 180, cy = 180, r = 130;
+    const angles = domains.map((_, i) => (Math.PI * 2 * i / domains.length) - Math.PI / 2);
+
+    function getPoint(angle, val) {
+        const dist = (val / 100) * r;
+        return [cx + Math.cos(angle) * dist, cy + Math.sin(angle) * dist];
+    }
+
+    const gridLevels = [25, 50, 75, 100];
+    const gridPaths = gridLevels.map(level => {
+        const pts = angles.map(a => getPoint(a, level));
+        return pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p[0]},${p[1]}`).join(' ') + ' Z';
+    });
+
+    const dataPts = domains.map((d, i) => getPoint(angles[i], subscales[d].pct));
+    const dataPath = dataPts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p[0]},${p[1]}`).join(' ') + ' Z';
+
+    const normPts = angles.map(a => getPoint(a, 70));
+    const normPath = normPts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p[0]},${p[1]}`).join(' ') + ' Z';
+
+    return (
+        <svg viewBox="0 0 360 360" className="radar-svg">
+            {gridPaths.map((d, i) => (
+                <path key={i} d={d} fill="none" stroke="var(--border)" strokeWidth={i === 2 ? 1.5 : 0.8} opacity={0.6} />
+            ))}
+            {angles.map((a, i) => (
+                <line key={i} x1={cx} y1={cy} x2={cx + Math.cos(a) * r} y2={cy + Math.sin(a) * r} stroke="var(--border)" strokeWidth="0.8" opacity="0.4" />
+            ))}
+            <path d={normPath} fill="var(--text-4)" fillOpacity="0.08" stroke="var(--text-4)" strokeWidth="1" strokeDasharray="4 4" opacity="0.5" />
+            <path d={dataPath} fill="var(--accent)" fillOpacity="0.15" stroke="var(--accent)" strokeWidth="2.5" />
+            {dataPts.map((p, i) => (
+                <circle key={i} cx={p[0]} cy={p[1]} r="5" fill="var(--accent)" stroke="#fff" strokeWidth="2" />
+            ))}
+            {domains.map((d, i) => {
+                const labelR = r + 24;
+                const lx = cx + Math.cos(angles[i]) * labelR;
+                const ly = cy + Math.sin(angles[i]) * labelR;
+                return (
+                    <text key={i} x={lx} y={ly} textAnchor="middle" dominantBaseline="central"
+                        fill="var(--text-2)" fontSize="12" fontWeight="500" fontFamily="var(--sans)">
+                        {labels[d]}
+                    </text>
+                );
+            })}
+            {domains.map((d, i) => {
+                const vx = cx + Math.cos(angles[i]) * (subscales[d].pct / 100 * r + 14);
+                const vy = cy + Math.sin(angles[i]) * (subscales[d].pct / 100 * r + 14);
+                return (
+                    <text key={`v${i}`} x={vx} y={vy} textAnchor="middle" dominantBaseline="central"
+                        fill="var(--accent)" fontSize="11" fontWeight="700" fontFamily="var(--sans)">
+                        {subscales[d].pct}%
+                    </text>
+                );
+            })}
+        </svg>
+    );
+}
+
+// ─── BUILD RESULT OBJECT ───
+function buildResultObj(scores, answersArr) {
+    return {
+        total: scores.total,
+        max: scores.max,
+        percentile: scores.percentile,
+        zScore: scores.zScore,
+        subscales: scores.subscales,
+        profile: getProfile(scores)[currentLang],
+        level: getLevel(scores.total)[currentLang],
+        answers: QUESTIONS.map(function(q, i) {
+            return {
+                q: i + 1,
+                text: q.da,
+                chosen: answersArr && answersArr[i] !== null ? answersArr[i] + 1 : null,
+                domain: q.domain,
+                reverse: q.reverse
+            };
+        })
+    };
+}
+
+// ─── PAYMENT HANDLERS ───
+window.handleBuyReport = function() {
+    if (window._eqScores && window.HB_PAY) {
+        HB_PAY.checkout('single', 'eq', buildResultObj(window._eqScores, window._eqAnswers));
+    }
+};
+window.handleBuyUnlimited = function() {
+    if (window._eqScores && window.HB_PAY) {
+        HB_PAY.checkout('unlimited', 'eq', buildResultObj(window._eqScores, window._eqAnswers));
+    }
+};
+window.handleShareCard = function() {
+    if (window._eqScores && window.HB_CARD) {
+        HB_CARD.share('eq', buildResultObj(window._eqScores, window._eqAnswers));
+    }
+};
+
+// ─── MAIN APP ───
+function App() {
+    const [phase, setPhase] = useState('hero');
+    const [current, setCurrent] = useState(0);
+    const [answers, setAnswers] = useState(new Array(QUESTIONS.length).fill(null));
+    const [scores, setScores] = useState(null);
+    const [loadingStep, setLoadingStep] = useState(0);
+
+    useEffect(() => {
+        function handleKey(e) {
+            if (phase !== 'test') return;
+            if (e.key >= '1' && e.key <= '5') {
+                const val = parseInt(e.key) - 1;
+                const next = [...answers];
+                next[current] = val;
+                setAnswers(next);
+            }
+            if (e.key === 'Enter' && answers[current] !== null && current < QUESTIONS.length - 1) {
+                setCurrent(c => c + 1);
+            }
+            if (e.key === 'ArrowLeft' && current > 0) {
+                setCurrent(c => c - 1);
+            }
+        }
+        window.addEventListener('keydown', handleKey);
+        return () => window.removeEventListener('keydown', handleKey);
+    }, [phase, current, answers]);
+
+    useEffect(() => {
+        var navEl = document.getElementById('site-nav');
+        if (navEl) {
+            navEl.setAttribute('data-test-mode', phase === 'test' || phase === 'loading' ? 'true' : 'false');
+        }
+    }, [phase]);
+
+    function startTest() {
+        setPhase('test');
+        setCurrent(0);
+        setAnswers(new Array(QUESTIONS.length).fill(null));
+        window.scrollTo(0, 0);
+    }
+
+    function selectAnswer(val) {
+        const next = [...answers];
+        next[current] = val;
+        setAnswers(next);
+    }
+
+    function goNext() {
+        if (current < QUESTIONS.length - 1) {
+            setCurrent(c => c + 1);
+        } else {
+            finishTest();
+        }
+    }
+
+    function finishTest() {
+        setPhase('loading');
+        window.scrollTo(0, 0);
+        const steps = [0, 1, 2, 3];
+        steps.forEach((s, i) => {
+            setTimeout(() => setLoadingStep(s + 1), 600 * (i + 1));
+        });
+        setTimeout(() => {
+            const result = calculateScores(answers);
+            setScores(result);
+
+            window._eqScores = result;
+            window._eqAnswers = answers;
+
+            var resultObj = buildResultObj(result, answers);
+            if (window.HB_PAY) HB_PAY.saveResults('eq', resultObj);
+
+            setPhase('results');
+            window.scrollTo(0, 0);
+        }, 3200);
+    }
+
+    // ── HERO ──
+    if (phase === 'hero') {
+        return (
+            <div className="hero fade-in-up">
+                <div className="hero-badge">{t('Emotionel Intelligens', 'Emotional Intelligence')}</div>
+                <h1>{t(<>Forst\u00e5r du dine <em>f\u00f8lelser</em>?</>, <>Do you understand your <em>emotions</em>?</>)}</h1>
+                <p className="hero-sub">
+                    {t(
+                        'En videnskabelig vurdering af din emotionelle intelligens. Baseret p\u00e5 Schutte Self-Report Emotional Intelligence Test (SSEIT) \u2014 et af de mest validerede instrumenter til m\u00e5ling af EQ.',
+                        'A scientific assessment of your emotional intelligence. Based on the Schutte Self-Report Emotional Intelligence Test (SSEIT) \u2014 one of the most validated instruments for measuring EQ.'
+                    )}
+                </p>
+                <div className="hero-stats">
+                    <div className="hero-stat"><strong>33</strong><span>{t('sp\u00f8rgsm\u00e5l', 'questions')}</span></div>
+                    <div className="hero-stat"><strong>5-8</strong><span>{t('minutter', 'minutes')}</span></div>
+                    <div className="hero-stat"><strong>4</strong><span>{t('dom\u00e6ner', 'domains')}</span></div>
+                    <div className="hero-stat"><strong>{t('Gratis', 'Free')}</strong><span>{t('resultat', 'result')}</span></div>
+                </div>
+                <button className="btn-primary" onClick={startTest}>
+                    {t('Start testen \u2192', 'Start the test \u2192')}
+                </button>
+
+                <div style={{ marginTop: 48, width: '100%' }}>
+                    <div className="science-box">
+                        <h3>{t('Videnskabeligt grundlag', 'Scientific Foundation')}</h3>
+                        <p>
+                            {t(
+                                'Testen er baseret p\u00e5 Schutte Self-Report Emotional Intelligence Test (SSEIT), udviklet af Dr. Nicola Schutte og kolleger i 1998. Instrumentet bygger p\u00e5 Salovey & Mayers model for emotionel intelligens og har en dokumenteret intern konsistens (Cronbachs \u03b1 = 0.87\u20130.90). Testen m\u00e5ler fire kernedimensioner af EQ:',
+                                'The test is based on the Schutte Self-Report Emotional Intelligence Test (SSEIT), developed by Dr. Nicola Schutte and colleagues in 1998. The instrument builds on the Salovey & Mayer model of emotional intelligence and has documented internal consistency (Cronbach\'s \u03b1 = 0.87\u20130.90). The test measures four core dimensions of EQ:'
+                            )}
+                        </p>
+                        <div className="domains-grid">
+                            <div className="domain-card">
+                                <h4>{t('Emotionel perception', 'Emotion Perception')}</h4>
+                                <span>{t('Afl\u00e6se f\u00f8lelser', 'Reading emotions')}</span>
+                            </div>
+                            <div className="domain-card">
+                                <h4>{t('Selvregulering', 'Self-Regulation')}</h4>
+                                <span>{t('Styre egne f\u00f8lelser', 'Managing own emotions')}</span>
+                            </div>
+                            <div className="domain-card">
+                                <h4>{t('Social EQ', 'Social EQ')}</h4>
+                                <span>{t('Forst\u00e5 andre', 'Understanding others')}</span>
+                            </div>
+                            <div className="domain-card">
+                                <h4>{t('Emotionel anvendelse', 'Emotion Utilization')}</h4>
+                                <span>{t('Bruge f\u00f8lelser konstruktivt', 'Using emotions constructively')}</span>
+                            </div>
+                        </div>
+                        <p className="disclaimer">
+                            {t(
+                                'Denne test er ikke et diagnostisk v\u00e6rkt\u00f8j og erstatter ikke professionel vurdering. Ingen data gemmes uden dit samtykke. Dine svar forbliver p\u00e5 din enhed.',
+                                'This test is not a diagnostic tool and does not replace professional assessment. No data is saved without your consent. Your answers remain on your device.'
+                            )}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // ── TEST ──
+    if (phase === 'test') {
+        const q = QUESTIONS[current];
+        const progress = ((current + 1) / QUESTIONS.length) * 100;
+        const options = LIKERT_OPTIONS[currentLang];
+        const isLast = current === QUESTIONS.length - 1;
+
+        return (
+            <div className="test-container">
+                <div className="progress-bar">
+                    <div className="progress-fill" style={{ width: `${progress}%` }} />
+                </div>
+                <div className="progress-text">{current + 1} / {QUESTIONS.length}</div>
+
+                <div className="question-card fade-in-up" key={current}>
+                    <div className="question-text">{currentLang === 'da' ? q.da : q.en}</div>
+
+                    <div className="likert-scale">
+                        {options.map((label, i) => (
+                            <div key={i}
+                                className={`likert-option ${answers[current] === i ? 'selected' : ''}`}
+                                onClick={() => selectAnswer(i)}>
+                                <span className="likert-number">{i + 1}</span>
+                                <div className="likert-dot" />
+                                <span className="likert-label">{label}</span>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="nav-buttons">
+                        <button className="btn-nav" onClick={() => setCurrent(c => c - 1)} disabled={current === 0}>
+                            {t('\u2190 Tilbage', '\u2190 Back')}
+                        </button>
+                        <button className={`btn-nav ${answers[current] !== null ? 'primary' : ''}`}
+                            onClick={goNext} disabled={answers[current] === null}>
+                            {isLast ? t('Se resultat \u2192', 'See result \u2192') : t('N\u00e6ste \u2192', 'Next \u2192')}
+                        </button>
+                    </div>
+
+                    <div className="keyboard-hint">
+                        <code>1</code>\u2013<code>5</code> {t('v\u00e6lg', 'select')} \u00b7 <code>Enter</code> {t('n\u00e6ste', 'next')} \u00b7 <code>\u2190</code> {t('tilbage', 'back')}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // ── LOADING ──
+    if (phase === 'loading') {
+        const steps = [
+            t('Scorer 4 EQ-dimensioner', 'Scoring 4 EQ dimensions'),
+            t('Beregner emotionel profil', 'Calculating emotional profile'),
+            t('Sammenligner med normalbefolkning', 'Comparing with population norms'),
+            t('Genererer din EQ-profil', 'Generating your EQ profile')
+        ];
+        return (
+            <div className="loading-phase">
+                <div className="loading-title">{t('Analyserer dine svar...', 'Analyzing your answers...')}</div>
+                <div className="loading-steps">
+                    {steps.map((s, i) => (
+                        <div key={i} className={`loading-step ${loadingStep > i ? 'done' : loadingStep === i ? 'active' : ''}`}>
+                            {loadingStep > i ? (
+                                <svg className="loading-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+                            ) : loadingStep === i ? (
+                                <div className="loading-spinner" />
+                            ) : (
+                                <div style={{ width: 20, height: 20 }} />
+                            )}
+                            {s}
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
+    // ── RESULTS ──
+    if (phase === 'results' && scores) {
+        const level = getLevel(scores.total);
+        const profile = getProfile(scores);
+        const insights = getInsights(scores.subscales);
+        const levelText = t(level.da, level.en);
+        const profileName = t(profile.da, profile.en);
+        const profileDesc = t(profile.da_desc, profile.en_desc);
+        const isAdmin = window.HB_AUTH && HB_AUTH.isAdmin();
+
+        let normBadge = null;
+        if (window.HB_NORM) {
+            const nr = HB_NORM.getPercentile('eq', scores.total);
+            if (nr && nr.percentile) {
+                normBadge = (
+                    <div className="norm-badge">
+                        {nr.description} <span style={{ opacity: 0.6, fontSize: 12 }}>({nr.source})</span>
+                    </div>
+                );
+            }
+        }
+
+        return (
+            <div className="results-container fade-in-up">
+                <div className="results-header">
+                    <h1>{t('Din EQ-profil', 'Your EQ Profile')}</h1>
+                    <p>{t('Baseret p\u00e5 Schutte Self-Report Emotional Intelligence Test (SSEIT)', 'Based on the Schutte Self-Report Emotional Intelligence Test (SSEIT)')}</p>
+                </div>
+
+                <div className="score-hero">
+                    <div className="score-circle" style={{ borderColor: level.color, background: level.bg }}>
+                        <span className="score-value" style={{ color: level.color }}>{scores.total}</span>
+                        <span className="score-max">{t('af', 'of')} {scores.max}</span>
+                    </div>
+                    <div className="score-label" style={{ color: level.color }}>{profileName}</div>
+                    <div style={{ fontSize: 14, color: 'var(--text-3)', marginBottom: 12 }}>
+                        {t('EQ-niveau:', 'EQ level:')} <strong style={{ color: level.color }}>{levelText}</strong>
+                        {' \u00b7 '}{t('Percentil:', 'Percentile:')} <strong>{scores.percentile}</strong>
+                    </div>
+                    <div className="score-desc">{profileDesc}</div>
+
+                    {normBadge}
+
+                    <div className="level-bar">
+                        <div className="level-track">
+                            <div className="level-fill" style={{ width: `${(scores.total / scores.max) * 100}%`, background: level.color }} />
+                        </div>
+                        <div className="level-labels">
+                            <span>33</span>
+                            <span>99</span>
+                            <span>124</span>
+                            <span>137</span>
+                            <span>165</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="radar-section">
+                    <h3>{t('Din emotionelle profil', 'Your Emotional Profile')}</h3>
+                    <RadarChart subscales={scores.subscales} />
+                    <div style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 12 }}>
+                        {t('Stiplet linje = gennemsnit for normalbefolkning', 'Dashed line = population average')}
+                    </div>
+                </div>
+
+                <h3 className="section-title">{t('Dine 4 EQ-dimensioner', 'Your 4 EQ Dimensions')}</h3>
+                <div className="domain-results">
+                    {Object.entries(SUBSCALES).map(([key, sub]) => {
+                        const data = scores.subscales[key];
+                        const domainColor = data.pct >= 70 ? 'var(--green)' : data.pct >= 50 ? 'var(--yellow)' : 'var(--orange)';
+                        return (
+                            <div className="domain-result" key={key}>
+                                <div className="domain-result-header">
+                                    <span className="domain-result-name">{t(sub.da, sub.en)}</span>
+                                    <span className="domain-result-score" style={{ color: domainColor }}>{data.pct}%</span>
+                                </div>
+                                <div className="domain-bar">
+                                    <div className="domain-bar-fill" style={{ width: `${data.pct}%`, background: domainColor }} />
+                                </div>
+                                <div className="domain-result-desc">{t(sub.da_desc, sub.en_desc)}</div>
+                            </div>
+                        );
+                    })}
+                </div>
+
+                <h3 className="section-title">{t('Styrker & udviklingsomr\u00e5der', 'Strengths & Development Areas')}</h3>
+                <div className="insights-grid">
+                    <div className="insight-card">
+                        <h4><span style={{ color: 'var(--green)' }}>{'\u25cf'}</span> {t('Dine styrker', 'Your Strengths')}</h4>
+                        {insights.strengths.map((s, i) => (
+                            <div className="insight-item" key={i}>
+                                <strong>{s.name}</strong> ({s.pct}%)<br/>{s.desc}
+                            </div>
+                        ))}
+                    </div>
+                    <div className="insight-card">
+                        <h4><span style={{ color: 'var(--orange)' }}>{'\u25cf'}</span> {t('Udviklingsomr\u00e5der', 'Development Areas')}</h4>
+                        {insights.challenges.map((c, i) => (
+                            <div className="insight-item" key={i}>
+                                <strong>{c.name}</strong> ({c.pct}%)<br/>{c.desc}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <div style={{ textAlign: 'center', margin: '24px 0' }}>
+                    <button onClick={window.handleShareCard} style={{ background: 'var(--bg-dark)', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--sans)' }}>
+                        {t('Del dit resultat', 'Share your result')}
+                    </button>
+                </div>
+
+                <div className="cta-box">
+                    <h3>{t('F\u00e5 din fulde EQ-rapport', 'Get your full EQ report')}</h3>
+                    <p>
+                        {t(
+                            'Detaljeret analyse af alle 4 dom\u00e6ner, profil-arketype, personlige strategier og handlingsplan.',
+                            'Detailed analysis of all 4 domains, profile archetype, personal strategies and action plan.'
+                        )}
+                    </p>
+                    <div className="cta-features">
+                        <span className="cta-feature">{t('4 dom\u00e6ne-dybdeanalyser', '4 domain deep analyses')}</span>
+                        <span className="cta-feature">{t('Profil-arketype', 'Profile archetype')}</span>
+                        <span className="cta-feature">{t('Handlingsplan', 'Action plan')}</span>
+                        <span className="cta-feature">{t('PDF-download', 'PDF download')}</span>
+                    </div>
+                    <button className="btn-primary" onClick={window.handleBuyReport}>
+                        {t('K\u00f8b rapport \u2014 49 kr', 'Buy report \u2014 49 DKK')}
+                    </button>
+                    <p style={{ marginTop: 12 }}>
+                        <button onClick={window.handleBuyUnlimited} style={{ background: 'transparent', border: 'none', color: 'var(--accent)', fontWeight: 500, fontSize: 14, cursor: 'pointer', textDecoration: 'underline', fontFamily: 'var(--sans)' }}>
+                            {t('Eller: Ubegr\u00e6nset \u2014 89 kr/md', 'Or: Unlimited \u2014 89 DKK/mo')}
+                        </button>
+                    </p>
+                    {isAdmin && (
+                        <a className="admin-link" href={`../rapporter/eq.html?total=${scores.total}&p=${scores.subscales.perception.pct}&m=${scores.subscales.managing.pct}&o=${scores.subscales.others.pct}&u=${scores.subscales.utilization.pct}`}>
+                            {t('Admin: Se rapport direkte', 'Admin: View report directly')}
+                        </a>
+                    )}
+                </div>
+
+                <div className="cross-sell">
+                    <h3>{t('Relaterede tests', 'Related tests')}</h3>
+                    <div className="cross-sell-grid">
+                        <a href="/tests/personlighed.html" className="cross-sell-card">
+                            <div className="name">{t('Personlighedstest', 'Personality Test')}</div>
+                            <div className="sub">{t('Dine Big Five-tr\u00e6k p\u00e5virker din EQ', 'Your Big Five traits influence your EQ')}</div>
+                        </a>
+                        <a href="/tests/stress.html" className="cross-sell-card">
+                            <div className="name">{t('Stress & Udbr\u00e6ndthed', 'Stress & Burnout')}</div>
+                            <div className="sub">{t('EQ og stressh\u00e5ndtering h\u00e6nger sammen', 'EQ and stress management are connected')}</div>
+                        </a>
+                        <a href="/tests/adhd.html" className="cross-sell-card">
+                            <div className="name">{t('ADHD-screening', 'ADHD Screening')}</div>
+                            <div className="sub">{t('Emotionel regulering og ADHD', 'Emotional regulation and ADHD')}</div>
+                        </a>
+                    </div>
+                </div>
+
+                <div style={{ textAlign: 'center', marginBottom: 24 }}>
+                    <button className="btn-nav" onClick={startTest}>
+                        {t('\u21bb Tag testen igen', '\u21bb Take the test again')}
+                    </button>
+                </div>
+
+                <div className="results-disclaimer">
+                    {t(
+                        'Denne screening er baseret p\u00e5 Schutte Self-Report Emotional Intelligence Test (SSEIT) af Schutte et al. (1998). Resultatet er ikke en klinisk vurdering og erstatter ikke professionel r\u00e5dgivning. EQ er en tr\u00e6nings- og udviklingsbar evne \u2014 dine resultater afspejler et \u00f8jebliksbillede, ikke en fast tilstand. Normdata baseret p\u00e5 Schutte et al. (1998): M = 124, SD = 13.',
+                        'This screening is based on the Schutte Self-Report Emotional Intelligence Test (SSEIT) by Schutte et al. (1998). The result is not a clinical assessment and does not replace professional advice. EQ is a trainable and developable ability \u2014 your results reflect a snapshot, not a fixed state. Norm data based on Schutte et al. (1998): M = 124, SD = 13.'
+                    )}
+                </div>
+            </div>
+        );
+    }
+
+    return null;
+}
+
+const root = ReactDOM.createRoot(document.getElementById('app'));
+root.render(<App />);
+</script>
+</body>
+</html>

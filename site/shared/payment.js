@@ -10,7 +10,8 @@
     adhd: '/tests/adhd.html',
     autisme: '/tests/autisme.html',
     personlighed: '/tests/personlighed.html',
-    stress: '/tests/stress.html'
+    stress: '/tests/stress.html',
+    eq: '/tests/eq.html'
   };
 
   // Report pages (redirected to after successful payment)
@@ -19,7 +20,8 @@
     adhd: '/rapporter/adhd.html',
     stress: '/rapporter/stress.html',
     iq: '/rapporter/iq.html',
-    autisme: '/rapporter/autisme.html'
+    autisme: '/rapporter/autisme.html',
+    eq: '/rapporter/eq.html'
   };
 
   // ── Check report access ──
@@ -137,6 +139,8 @@
           return 'Big Five completed';
         case 'stress':
           return 'PSS: ' + (d.pssTotal||0) + '/40 (' + (d.pssPct||0).toFixed(0) + '%), ' + (d.burnoutProfile||'?');
+        case 'eq':
+          return 'EQ: ' + (d.total||0) + '/' + (d.max||165) + ' (' + (d.percentile||0) + '%)';
         default:
           return testType + ' completed';
       }
@@ -274,6 +278,7 @@
     if (path.includes('autisme')) return 'autisme';
     if (path.includes('personlighed')) return 'personlighed';
     if (path.includes('stress')) return 'stress';
+    if (path.includes('eq')) return 'eq';
     return null;
   }
 

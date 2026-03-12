@@ -37,6 +37,12 @@
       name: 'Stress & Udbr\u00e6ndthed', icon: '\uD83D\uDD25',
       getHero: function(s) { return { main: s.pssTotal + '/40', sub: s.burnoutProfile || s.level, pct: null }; },
       drawVisual: drawStressRadar
+    },
+    eq: {
+      accent: '#7a6b3a', accentDark: '#2e2816', accentLight: '#c4b070',
+      name: 'Emotionel Intelligens', icon: '\uD83D\uDCA1',
+      getHero: function(s) { return { main: s.total + '/165', sub: s.profile || getEQProfile(s), pct: null }; },
+      drawVisual: drawEQRadar
     }
   };
 
@@ -390,6 +396,33 @@
     drawRadar(ctx, dims, cx, cy, Math.min(w, h) * 0.38);
   }
 
+  function getEQProfile(s) {
+    if (!s.subscales) return '';
+    var p = s.subscales.perception ? s.subscales.perception.pct : 0;
+    var m = s.subscales.managing ? s.subscales.managing.pct : 0;
+    var o = s.subscales.others ? s.subscales.others.pct : 0;
+    var u = s.subscales.utilization ? s.subscales.utilization.pct : 0;
+    if (p >= 75 && o >= 75 && m >= 70 && u >= 70) return 'Den Empatiske Leder';
+    if (p >= 75 && o >= 70) return 'Den Sociale Antenne';
+    if (m >= 75 && u >= 70) return 'Den Selvregulerede';
+    if (u >= 75) return 'Den Kreative Motor';
+    if (p >= 70 && m < 60) return 'Den Sensitive Observat\u00f8r';
+    if (o >= 70 && p < 60) return 'Den Omsorgsfulde';
+    if (s.total >= 118) return 'Den Balancerede';
+    return 'Udvikleren';
+  }
+
+  function drawEQRadar(ctx, scores, cx, cy, w, h) {
+    var subs = scores.subscales || {};
+    var dims = [
+      { label: 'Perception', pct: subs.perception ? subs.perception.pct : 50 },
+      { label: 'Anvendelse', pct: subs.utilization ? subs.utilization.pct : 50 },
+      { label: 'Regulering', pct: subs.managing ? subs.managing.pct : 50 },
+      { label: 'Social EQ', pct: subs.others ? subs.others.pct : 50 }
+    ];
+    drawRadar(ctx, dims, cx, cy, Math.min(w, h) * 0.38);
+  }
+
   function drawStressRadar(ctx, scores, cx, cy, w, h) {
     var dims = [
       { label: 'Stress', pct: scores.pssPct || 0 },
@@ -543,6 +576,8 @@
         normResult = HB_NORM.getPercentile('stress', scores.pssTotal);
       } else if (testType === 'autisme') {
         normResult = HB_NORM.getPercentile('autisme', scores.t);
+      } else if (testType === 'eq') {
+        normResult = HB_NORM.getPercentile('eq', scores.total);
       }
       // For personlighed we skip single percentile (5 traits)
       // For ADHD no population percentile

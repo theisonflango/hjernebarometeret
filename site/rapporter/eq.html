@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Din EQ-Rapport — Hjernebarometeret</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,500&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+:root {
+  --bg:#faf9f7; --bg-card:#fff; --bg-warm:#f5f2ee; --bg-dark:#1c1b1a;
+  --text:#1c1b1a; --text-2:#5a5650; --text-3:#8a857e; --text-4:#b5b0a8;
+  --border:#e8e5e0; --border-2:#d5d0c9;
+  --accent:#7a6b3a; --accent-light:rgba(122,107,58,0.08);
+  --green:#3B9979; --yellow:#D4920B; --orange:#e67e22; --red:#C0392B;
+  --serif:'Source Serif 4',Georgia,serif; --sans:'Figtree',system-ui,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased;padding-top:64px}
+.report{max-width:760px;margin:0 auto;padding:20px}
+.report section{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:32px;margin-bottom:20px}
+.report h2{font-family:var(--serif);font-size:22px;font-weight:600;letter-spacing:-.03em;margin-bottom:16px}
+.report h3{font-family:var(--serif);font-size:17px;font-weight:600;margin-bottom:10px}
+.cover{background:var(--bg-dark)!important;color:#faf9f7!important;border:none!important;text-align:center;padding:48px 32px!important;border-radius:16px!important}
+.cover .logo{font-family:var(--serif);font-size:14px;letter-spacing:2px;text-transform:uppercase;opacity:.5;margin-bottom:24px}
+.cover h1{font-family:var(--serif);font-size:clamp(28px,5vw,38px);font-weight:600;letter-spacing:-.03em;margin-bottom:8px}
+.cover .profile-label{font-size:20px;font-weight:600;margin:16px 0 8px}
+.cover .date{font-size:13px;opacity:.4;margin-top:16px}
+.cover .disclaimer{font-size:11px;opacity:.35;margin-top:16px;line-height:1.5}
+.summary-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:16px 0}
+@media(max-width:600px){.summary-grid{grid-template-columns:1fr}}
+.summary-card{padding:16px;border-radius:12px;background:var(--bg-warm);text-align:center}
+.summary-card .num{font-family:var(--serif);font-size:28px;font-weight:700}
+.summary-card .lbl{font-size:12px;color:var(--text-3);margin-top:4px}
+.domain-block{margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border)}
+.domain-block:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.domain-header{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.domain-name{font-family:var(--serif);font-size:16px;font-weight:600}
+.domain-score{margin-left:auto;font-family:var(--serif);font-size:20px;font-weight:700}
+.domain-bar{height:8px;border-radius:4px;background:var(--border);overflow:hidden}
+.domain-bar-fill{height:100%;border-radius:4px;transition:width 1s ease}
+.domain-desc{font-size:14px;color:var(--text-2);line-height:1.7;margin-top:8px}
+.radar-container{text-align:center;margin:16px 0}
+.radar-container svg{max-width:380px;width:100%}
+.sc-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:600px){.sc-grid{grid-template-columns:1fr}}
+.sc-card{padding:20px;border-radius:12px}
+.sc-card.strengths{background:rgba(92,184,92,0.06);border:1px solid rgba(92,184,92,0.2)}
+.sc-card.challenges{background:rgba(217,83,79,0.06);border:1px solid rgba(217,83,79,0.2)}
+.sc-item{padding:8px 0;border-bottom:1px solid rgba(0,0,0,.05);font-size:14px;line-height:1.6}
+.sc-item:last-child{border-bottom:none}
+.sc-item strong{display:block;margin-bottom:2px}
+.med-table{width:100%;border-collapse:collapse;font-size:13px;margin:16px 0}
+.med-table th{text-align:left;padding:10px 8px;border-bottom:2px solid var(--border-2);font-weight:600;font-size:12px;color:var(--text-3)}
+.med-table td{padding:10px 8px;border-bottom:1px solid var(--border);vertical-align:top}
+.med-table tr:last-child td{border-bottom:none}
+@media(max-width:600px){.med-table{font-size:11px}.med-table th,.med-table td{padding:8px 4px}}
+.action-grid{display:grid;gap:16px}
+.action-card{padding:20px;border-radius:12px;background:var(--bg-warm)}
+.action-card h4{font-family:var(--serif);font-size:15px;font-weight:600;margin-bottom:8px}
+.action-card ul{padding-left:18px;font-size:14px;color:var(--text-2)}
+.action-card li{margin-bottom:6px}
+.coping-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:600px){.coping-grid{grid-template-columns:1fr}}
+.coping-card{padding:16px;border-radius:12px;background:var(--bg-warm)}
+.coping-card h4{font-size:14px;font-weight:600;margin-bottom:6px}
+.coping-card p{font-size:13px;color:var(--text-2);line-height:1.6}
+.red-flag{padding:20px;border-radius:12px;background:rgba(192,57,43,0.06);border:1px solid rgba(192,57,43,0.2);margin-bottom:16px}
+.red-flag h4{color:var(--red);font-size:15px;margin-bottom:6px}
+.red-flag p{font-size:14px;color:var(--text-2);line-height:1.7}
+.pdf-btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:12px;background:var(--bg-dark);color:#fff;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:var(--sans)}
+.pdf-btn:hover{opacity:.9}
+.no-access{text-align:center;padding:80px 20px;max-width:500px;margin:0 auto}
+.no-access h1{font-family:var(--serif);font-size:28px;margin-bottom:12px}
+.no-access p{color:var(--text-2);margin-bottom:24px}
+.no-access .buy-btn{padding:14px 28px;border-radius:12px;background:var(--bg-dark);color:#fff;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:var(--sans)}
+.loading{text-align:center;padding:100px 20px}
+.loading .spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.doctor-section{background:var(--bg-warm)!important;border:2px solid var(--accent)!important}
+.doctor-section h2{color:var(--accent)}
+@media print{body{padding-top:0}.sn-wrap,.sf-wrap,.pdf-actions,.no-print{display:none!important}.report section{break-inside:avoid;border:none;box-shadow:none}.cover{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style>
+</head>
+<body>
+<div id="site-nav" data-active="rapporter"></div>
+<div id="loading" class="loading"><div class="spinner"></div><p style="color:var(--text-3)">Indlæser din rapport...</p></div>
+<div id="no-access" class="no-access" style="display:none">
+  <h1>🔒 Rapport låst</h1>
+  <p>Køb adgang for at se din fulde EQ-rapport med domæneanalyser, profil-arketype og personlig handlingsplan.</p>
+  <button class="buy-btn" onclick="if(window.HB_PAY)HB_PAY.checkout('single','eq')">Køb rapport — 49 kr</button>
+  <p style="margin-top:12px"><button onclick="if(window.HB_PAY)HB_PAY.checkout('unlimited','eq')" style="background:none;border:1.5px solid var(--accent);color:var(--accent);padding:10px 20px;border-radius:10px;font-size:13px;cursor:pointer;font-family:var(--sans)">Eller: Ubegrænset — 89 kr/md</button></p>
+  <p style="margin-top:24px;font-size:13px;color:var(--text-4)"><a href="/tests/eq.html" style="color:var(--text-3)">← Tilbage til testen</a></p>
+</div>
+
+<div id="report" class="report" style="display:none">
+  <div class="pdf-actions no-print" style="text-align:right;margin-bottom:12px;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap"><button class="pdf-btn" onclick="if(window.HB_CARD)HB_CARD.share('eq',HB_PAY.loadResults('eq'))">📸 Del profilkort</button><button class="pdf-btn" onclick="downloadPDF()">📄 Download PDF</button></div>
+  <div id="report-content">
+
+  <section class="cover">
+    <div class="logo">☉ Hjernebarometeret</div>
+    <h1>Din EQ-Rapport</h1>
+    <p style="opacity:.6;font-size:14px">SSEIT — 33 spørgsmål, 4 domæner</p>
+    <div class="profile-label" id="cover-profile" style="color:var(--accent)"></div>
+    <div class="date" id="cover-date"></div>
+    <div class="disclaimer">Denne rapport er ikke en klinisk diagnose. Den er baseret på SSEIT (Schutte et al. 1998) og Salovey & Mayers model for emotionel intelligens.</div>
+  </section>
+
+  <section><h2>📋 Opsummering</h2><p id="summary-text" style="font-size:15px;line-height:1.7;color:var(--text-2);margin-bottom:16px"></p><div class="summary-grid" id="summary-grid"></div><div id="top-findings" style="margin-top:16px"></div></section>
+
+  <section><h2>📊 Domæneoversigt</h2><p style="font-size:13px;color:var(--text-3);margin-bottom:20px">Dine scores på de 4 EQ-domæner med forklaring og niveau.</p><div id="domains-detail"></div></section>
+
+  <section><h2>🕸️ EQ-profil</h2><p style="font-size:13px;color:var(--text-3);margin-bottom:8px">Din profil på tværs af 4 domæner. Balancen mellem domænerne afgør din EQ-profil.</p><div class="radar-container" id="radar"></div></section>
+
+  <section><h2>🏛️ Din profilarketype</h2><p style="font-size:13px;color:var(--text-3);margin-bottom:16px">Baseret på forholdet mellem dine 4 domæner.</p><div id="profile-detail"></div></section>
+
+  <section><h2>💎 Styrker & udfordringer</h2><div class="sc-grid" id="strengths-challenges"></div></section>
+
+  <section><h2>🧰 EQ-udviklingsstrategier</h2><p style="font-size:13px;color:var(--text-3);margin-bottom:16px">Konkrete øvelser tilpasset din profil.</p><div class="coping-grid" id="coping-toolkit"></div></section>
+
+  <section><h2>🔬 Domæne: Perception af emotioner</h2><p style="font-size:13px;color:var(--text-3);margin-bottom:16px">Evnen til at genkende og identificere emotioner hos dig selv og andre.</p><div id="deep-perception"></div></section>
+
+  <section><h2>🎯 Domæne: Håndtering af egne emotioner</h2><p style="font-size:13px;color:var(--text-3);margin-bottom:16px">Evnen til at regulere og styre dine egne følelser konstruktivt.</p><div id="deep-managing"></div></section>
+
+  <section><h2>🤝 Domæne: Andres emotioner</h2><p style="font-size:13px;color:var(--text-3);margin-bottom:16px">Evnen til at forstå, påvirke og respondere på andres følelser.</p><div id="deep-others"></div></section>
+
+  <section><h2>⚡ Domæne: Anvendelse af emotioner</h2><p style="font-size:13px;color:var(--text-3);margin-bottom:16px">Evnen til at bruge emotioner til kreativitet, motivation og problemløsning.</p><div id="deep-utilization"></div></section>
+
+  <section><h2>🎯 Personlig handlingsplan</h2><div class="action-grid" id="action-plan"></div></section>
+
+  <section class="doctor-section"><h2>🩺 Til din sundhedsprofessionelle</h2><p style="font-size:13px;color:var(--text-2);margin-bottom:16px">Tag denne sektion med til en samtale om personlig udvikling.</p><div id="doctor-section"></div></section>
+
+  <section><h2>📚 Anbefalede ressourcer</h2><div id="resources"></div></section>
+
+  <section style="background:var(--bg-warm)">
+    <p style="font-size:12px;color:var(--text-3);line-height:1.7"><strong>Om denne rapport:</strong> Baseret på Schutte Self-Report Emotional Intelligence Test (SSEIT; Schutte, Malouff, Hall et al., 1998), udviklet ud fra Salovey & Mayers (1990) model for emotionel intelligens. Rapporten er til personlig indsigt — den er <strong>ikke en klinisk diagnose</strong>.</p>
+    <p style="font-size:11px;color:var(--text-4);margin-top:12px">© Hjernebarometeret.dk</p>
+  </section>
+
+  </div>
+</div>
+<div id="site-footer"></div>
+<script src="../shared/nav.js"></script>
+<script src="../shared/footer.js"></script>
+<script src="../shared/auth.js"></script>
+<script src="../shared/coupon.js"></script>
+<script src="../shared/payment.js"></script>
+<script src="../shared/normdata.js"></script>
+<script src="../shared/profilecard.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════
+   EQ-RAPPORT — Hjernebarometeret
+   ═══════════════════════════════════════════════════ */
+
+var DOMAINS = {
+  perception:   { name:'Perception af emotioner', emoji:'🔬', color:'#8e44ad' },
+  managing:     { name:'Håndtering af egne emotioner', emoji:'🎯', color:'#27ae60' },
+  others:       { name:'Andres emotioner', emoji:'🤝', color:'#2e6b9e' },
+  utilization:  { name:'Anvendelse af emotioner', emoji:'⚡', color:'#d4920b' }
+};
+
+var PROFILES = {
+  'Den Empatiske Leder': {
+    desc:'Du har en sjælden kombination af høj emotionel perception, stærk selvregulering og dyb social forståelse. Du opfanger nuancer i andres følelser og kan bruge denne indsigt til at motivere, trøste og lede. Din emotionelle intelligens er en kernestyrke i både personlige relationer og professionelle sammenhænge.',
+    strengths:['Exceptionel evne til at aflæse sociale situationer','Stærk selvregulering under pres','Naturlig evne til at motivere og inspirere andre','Dyb empati kombineret med handlekraft'],
+    challenges:['Kan påtage sig andres emotionelle byrder','Risiko for emotionel udmattelse ved overdreven omsorg','Kan have svært ved at sætte grænser'],
+    coping:[{t:'Emotionel grænse-øvelse',d:'Øv dig i at skelne mellem dine egne og andres følelser. Spørg dig selv: "Er denne følelse min, eller bærer jeg den for en anden?"'},{t:'Leder-restitution',d:'Planlæg daglig alene-tid (15-20 min) til emotionel nulstilling. Meditation eller stille gåtur.'},{t:'Delegering af omsorg',d:'Du behøver ikke løse alle andres problemer. Øv dig i at støtte uden at overtage.'}]
+  },
+  'Den Sociale Antenne': {
+    desc:'Du har en særlig evne til at opfange emotionelle signaler fra omgivelserne. Du mærker stemninger i et rum, opfanger uudtalte behov og forstår hvad andre føler — ofte før de selv er bevidste om det. Denne sensitivitet er en gave, men kan også være overvældende.',
+    strengths:['Exceptionel empati og indlevelsesevne','Stærk intuition i sociale situationer','God til at opbygge tillid og dybe relationer','Hurtig til at opfange konflikter tidligt'],
+    challenges:['Kan blive overvældet af andres emotioner','Risiko for at undgå konfrontation','Kan have svært ved at regulere egne følelser trods høj social perception'],
+    coping:[{t:'Emotionel filter',d:'Træn dig i at observere andres følelser uden at absorbere dem. Visualisér en gennemsigtig skærm mellem dig og andre.'},{t:'Grounding efter social kontakt',d:'Efter intense sociale situationer: 5 minutters body scan for at vende tilbage til din egen emotionelle baseline.'},{t:'Assertiv kommunikation',d:'Øv dig i at udtrykke dine egne behov tydeligt. Din empati gør dig god til at forstå andre — nu er det din tur.'}]
+  },
+  'Den Selvregulerede': {
+    desc:'Du har stærk kontrol over dine egne emotioner og er god til at kanalisere følelser produktivt. Du bevarer roen under pres, tænker før du handler og bruger dine emotioner som brændstof snarere end som forstyrrelser. Andre ser dig som stabil og pålidelig.',
+    strengths:['Stærk emotionel stabilitet under pres','God til at kanalisere frustration til handling','Evne til at motivere dig selv','Konsistent og pålidelig i relationer'],
+    challenges:['Kan virke følelseskold eller fjern for andre','Risiko for at undertrykke følelser i stedet for at regulere dem','Kan undervurdere andres emotionelle behov'],
+    coping:[{t:'Emotionel åbenhed',d:'Øv dig i at dele dine følelser med nære personer — også de sårbare. Det styrker relationer og forebygger emotionel isolering.'},{t:'Empati-træning',d:'Prøv aktivt at sætte dig i andres sted dagligt. Spørg: "Hvad føler denne person, og hvorfor?"'},{t:'Kreativt udtryk',d:'Brug kunst, musik eller skrivning til at udforske følelser du normalt regulerer væk. Det åbner nye selvindsigter.'}]
+  },
+  'Den Kreative Motor': {
+    desc:'Du er mester i at bruge dine emotioner som drivkraft. Du kanaliserer følelser til kreativitet, problemløsning og motivation. Når du er inspireret, er din produktivitet enorm. Du forstår intuitivt sammenhængen mellem humør og præstation.',
+    strengths:['Stærk evne til at bruge emotioner produktivt','Kreativ og innovativ tænkning','Høj intrinsisk motivation','God til at finde flow-tilstande'],
+    challenges:['Kan være humørsvingende i sin produktivitet','Risiko for at lade negative emotioner lamme handling','Kan undervurdere vigtigheden af emotionel stabilitet'],
+    coping:[{t:'Emotions-surfing',d:'Lær at ride på dine emotionelle bølger uden at drukne. Når en følelse kommer: navngiv den, mærk den, og spørg hvad den vil fortælle dig.'},{t:'Struktureret kreativitet',d:'Skab rutiner der støtter din kreative energi — fast tid til kreativt arbejde, uanset humør.'},{t:'Emotionel diversificering',d:'Træn dig i at hente motivation fra flere kilder end kun inspiration. Disciplin og vane er vigtige supplement.'}]
+  },
+  'Den Sensitive Observatør': {
+    desc:'Du har en fint kalibreret emotionel radar — du opfanger følelser med stor præcision, men har svært ved at regulere de følelser, du opfanger. Det er som at have en kraftig antenne uden volumen-kontrol. Din sensitivitet er en styrke, men kræver bevidst håndtering.',
+    strengths:['Dyb emotionel bevidsthed','Stærk selvindsigt','Empatisk og indfølende','Autentisk og ærlig om følelser'],
+    challenges:['Overvældes let af egne og andres emotioner','Svært ved at regulere intense følelser','Kan blive handlingslammet af emotionel information','Risiko for emotionel udmattelse'],
+    coping:[{t:'RAIN-teknikken',d:'Recognize (genkend), Allow (tillad), Investigate (undersøg), Non-identify (adskil dig fra følelsen). Øv dagligt i 5 minutter.'},{t:'Emotions-dagbog',d:'Skriv 3 emotionelle oplevelser ned hver aften. Navngiv følelsen, styrken (1-10) og hvad der udløste den. Øger reguleringsevnen over tid.'},{t:'Progressiv eksponering',d:'Udsæt dig gradvist for følelsesmæssigt udfordrende situationer med en bevidst coping-strategi klar.'}]
+  },
+  'Den Omsorgsfulde': {
+    desc:'Du er dybt optaget af andres velbefindende og har en naturlig evne til at støtte, trøste og hjælpe. Du prioriterer relationer højt og investerer energi i at få andre til at føle sig set og hørt. Din omsorg er ægte og dybt værdsat.',
+    strengths:['Stærk social intelligens','Naturlig omsorgsgiver','God til at skabe trygge relationer','Løser konflikter med empati'],
+    challenges:['Kan forsømme egne emotionelle behov','Risiko for people-pleasing','Kan have svært ved at genkende egne følelser','Sårbar over for manipulation'],
+    coping:[{t:'Selvomsorgs-ritual',d:'Planlæg daglig tid (mindst 15 min) udelukkende til dine egne behov. Ikke forhandlingsbar.'},{t:'Emotionel selvscanning',d:'3 gange dagligt: Stop op og spørg "Hvad føler JEG lige nu?" — ikke hvad andre føler.'},{t:'Grænse-sprog',d:'Øv sætninger som: "Jeg kan se du har det svært, og jeg har brug for at passe på mig selv lige nu."'}]
+  },
+  'Den Balancerede': {
+    desc:'Du har en harmonisk EQ-profil med solide scores på tværs af alle domæner. Du er hverken ekstremt høj eller lav på nogen dimension — i stedet har du en stabil og alsidig emotionel intelligens der tjener dig godt i de fleste situationer.',
+    strengths:['Alsidig emotionel kompetence','Stabil og forudsigelig i relationer','Fleksibel tilpasning til sociale krav','God generel selvindsigt'],
+    challenges:['Ingen enkelt outstanding styrke at trække på','Kan blive selvtilfreds uden videreudvikling','Risiko for at underpræstere i situationer der kræver intens empati eller regulering'],
+    coping:[{t:'Spidskompetence-træning',d:'Vælg ét domæne og fokusér på at gøre det exceptionelt i 30 dage. Fra god til fremragende.'},{t:'Bevidst udfordring',d:'Opsøg situationer der udfordrer din emotionelle komfortzone. Vækst kræver ubehag.'},{t:'Daglig refleksion',d:'Evaluér én emotionel interaktion dagligt: Hvad gik godt? Hvad kunne forbedres?'}]
+  },
+  'Udvikleren': {
+    desc:'Din EQ er på et tidligt udviklingsstadie med plads til vækst på flere domæner. Det vigtige er: emotionel intelligens er ikke fast — den kan trænes og udvikles hele livet. Du har taget det første skridt ved at måle din baseline.',
+    strengths:['Stort udviklingspotentiale','At du søger selvindsigt er et styrketegn','Plads til mærkbar fremgang på kort tid','Hver forbedring vil have stor positiv effekt'],
+    challenges:['Svært ved at genkende og navngive følelser','Udfordringer med at regulere intense emotioner','Sociale situationer kan føles drænende','Risiko for at emotioner styrer handlinger'],
+    coping:[{t:'Emotions-ordforråd',d:'Lær 3 nye ord for følelser om ugen. Jo flere ord du har, jo bedre kan du genkende og regulere. Start med "hjulet af emotioner" (Plutchik).'},{t:'Daglig check-in',d:'Morgen og aften: "Hvad føler jeg lige nu?" Navngiv det. Intensitet 1-10. Ingen dom — bare observation.'},{t:'Én ting ad gangen',d:'Vælg ét domæne og ét mål. Start med perception — det er fundamentet for alle andre EQ-kompetencer.'}]
+  }
+};
+
+var DOMAIN_DEEP = {
+  perception: {
+    high:'Du har en stærk evne til at genkende emotioner — både hos dig selv og andre. Du opfanger subtile signaler som tonefald, kropssprog og ansigtsudtryk. Denne bevidsthed giver dig et solidt fundament for alle andre EQ-kompetencer.',
+    low:'Du kan have svært ved at identificere og navngive dine egne følelser i øjeblikket. Det betyder ikke at du ikke føler — men at forbindelsen mellem oplevelse og bevidsthed kan styrkes.',
+    exercises:[
+      {t:'Body scanning',d:'Sæt dig stille i 5 minutter. Scan din krop fra top til tå. Hvor mærker du spænding? Hvor er der ro? Forbind fysiske fornemmelser med emotioner.'},
+      {t:'Emotions-journaling',d:'Skriv 3 emotionelle øjeblikke ned hver aften. Hvad følte du? Hvad udløste det? Hvad var den fysiske fornemmelse? Byg dit emotionelle ordforråd.'},
+      {t:'Mikroudtryks-opmærksomhed',d:'I samtaler: Fokusér på den anden persons ansigt. Læg mærke til små ændringer i øjne, mund og pande. Hvad fortæller de?'},
+      {t:'Mindfulness-meditation',d:'10 minutters daglig meditation med fokus på at observere følelser uden at dømme dem. Apps som Headspace eller Calm kan hjælpe.'}
+    ]
+  },
+  managing: {
+    high:'Du har stærk kontrol over dine emotionelle reaktioner. Du kan mærke en følelse uden at lade den styre din adfærd. Dette er en central kompetence der beskytter mod impulsive beslutninger og hjælper dig med at bevare perspektiv.',
+    low:'Intense følelser kan nogle gange overvælde dig og styre dine reaktioner. Det kan føre til impulsive beslutninger, konflikter eller undgåelsesadfærd. Den gode nyhed: Emotionel regulering er en færdighed der kan trænes.',
+    exercises:[
+      {t:'Kognitiv omvurdering (CBT)',d:'Når en negativ følelse opstår: Identificér den automatiske tanke bag. Udfordr den: "Er dette en kendsgerning eller en fortolkning?" Find en mere balanceret tanke.'},
+      {t:'STOP-teknikken',d:'Stop → Tag en dyb indånding → Observér hvad du føler → Proceed med et bevidst valg. Brug den i øjeblikke med intens emotion.'},
+      {t:'Distress Tolerance (DBT)',d:'Øv dig i at tåle ubehagelige følelser uden at handle på dem. Hold en isterning i hånden og mærk kulden — det træner evnen til at udholde diskomfort.'},
+      {t:'Emotions-surfing',d:'Forestil dig at følelsen er en bølge. Den stiger, topper og falder. Du behøver ikke kæmpe imod — bare ride den. De fleste intense emotioner topper inden 90 sekunder.'}
+    ]
+  },
+  others: {
+    high:'Du er stærk til at forstå og respondere på andres emotioner. Du opfanger stemninger, motivationer og uudtalte behov. Det gør dig til en værdsat samtalepartner, ven og kollega.',
+    low:'Du kan have svært ved at aflæse andres emotionelle tilstand eller ved at tilpasse din kommunikation til andres behov. Det kan føre til misforståelser eller følelsen af at være "ude af sync" i sociale situationer.',
+    exercises:[
+      {t:'Aktiv lytning',d:'I din næste samtale: Lyt 80%, tal 20%. Gentag hvad den anden siger med dine egne ord: "Så det du siger er...". Det viser forståelse og bygger tillid.'},
+      {t:'Perspektivskifte',d:'Vælg en person du havde en interaktion med i dag. Genspil situationen i dit hoved, men fra deres perspektiv. Hvad følte de? Hvad havde de brug for?'},
+      {t:'Emotionel validering',d:'Øv dig i at anerkende andres følelser før du forsøger at løse problemet: "Det lyder virkelig frustrerende" er ofte mere værdifuldt end "Du burde bare...".'},
+      {t:'Social eksponering',d:'Opsøg bevidst sociale situationer der udfordrer dig. Start småt — en kort samtale med en fremmed — og byg op gradvist.'}
+    ]
+  },
+  utilization: {
+    high:'Du er dygtig til at bruge dine emotioner som brændstof. Du forstår at humør påvirker tænkning og præstation, og du kan aktivt bruge denne forbindelse til din fordel — til kreativitet, motivation og problemløsning.',
+    low:'Du udnytter muligvis ikke det fulde potentiale af dine emotioner. Følelser rummer information og energi der kan kanaliseres til kreativitet, motivation og bedre beslutninger — men det kræver bevidst øvelse.',
+    exercises:[
+      {t:'Mood-kreativitet kobling',d:'Næste gang du har en stærk følelse (positiv eller negativ): Kanalisér den til noget kreativt. Skriv, tegn, lav musik eller brainstorm. Emotioner er brændstof for kreativitet.'},
+      {t:'Emotionel motivation',d:'Identificér den følelse der driver dig mest (nysgerrighed, stolthed, omsorg, retfærdighed). Forbind dine mål med denne følelse — det øger din intrinsiske motivation markant.'},
+      {t:'Flow-protokol',d:'Find de betingelser der bringer dig i flow: Optimal udfordring (ikke for let, ikke for svært), klare mål, umiddelbar feedback, og frihed fra distraktioner. Skab disse betingelser bevidst.'},
+      {t:'Emotionel strategisk tænkning',d:'Før vigtige beslutninger: Tjek dit humør først. Er du vred, trist eller euforisk? Alle tre forvrænger dømmeevnen. Vent til du er i emotionel balance.'}
+    ]
+  }
+};
+
+function getProfile(subscales, total) {
+  var p = subscales.perception ? subscales.perception.pct : 0;
+  var m = subscales.managing ? subscales.managing.pct : 0;
+  var o = subscales.others ? subscales.others.pct : 0;
+  var u = subscales.utilization ? subscales.utilization.pct : 0;
+  if (p >= 75 && o >= 75 && m >= 70 && u >= 70) return 'Den Empatiske Leder';
+  if (p >= 75 && o >= 70) return 'Den Sociale Antenne';
+  if (m >= 75 && u >= 70) return 'Den Selvregulerede';
+  if (u >= 75) return 'Den Kreative Motor';
+  if (p >= 70 && m < 60) return 'Den Sensitive Observatør';
+  if (o >= 70 && p < 60) return 'Den Omsorgsfulde';
+  if (total >= 118) return 'Den Balancerede';
+  return 'Udvikleren';
+}
+
+function getLevelColor(total) {
+  if (total >= 141) return '#3B9979';
+  if (total >= 130) return '#3a8a5c';
+  if (total >= 118) return '#D4920B';
+  if (total >= 105) return '#e67e22';
+  return '#C0392B';
+}
+
+function getLevelLabel(total) {
+  if (total >= 141) return 'Meget høj';
+  if (total >= 130) return 'Høj';
+  if (total >= 118) return 'Gennemsnitlig';
+  if (total >= 105) return 'Under gennemsnit';
+  return 'Lav';
+}
+
+function getDomainLevel(pct) {
+  if (pct >= 80) return 'Meget høj';
+  if (pct >= 65) return 'Høj';
+  if (pct >= 50) return 'Gennemsnitlig';
+  if (pct >= 35) return 'Under gennemsnit';
+  return 'Lav';
+}
+
+function buildReport(data) {
+  var total = data.total || 0;
+  var maxScore = data.max || 165;
+  var subscales = data.subscales || {};
+  var profile = data.profile || getProfile(subscales, total);
+  var level = data.level || getLevelLabel(total);
+  var levelColor = getLevelColor(total);
+  var bp = PROFILES[profile] || PROFILES['Udvikleren'];
+
+  var pPerc = subscales.perception ? subscales.perception.pct : 0;
+  var mPerc = subscales.managing ? subscales.managing.pct : 0;
+  var oPerc = subscales.others ? subscales.others.pct : 0;
+  var uPerc = subscales.utilization ? subscales.utilization.pct : 0;
+
+  // Cover
+  document.getElementById('cover-profile').textContent = '« ' + profile + ' »';
+  document.getElementById('cover-profile').style.color = levelColor;
+  document.getElementById('cover-date').textContent = new Date().toLocaleDateString('da-DK', { year:'numeric', month:'long', day:'numeric' });
+
+  // Summary
+  document.getElementById('summary-text').innerHTML = bp.desc;
+  document.getElementById('summary-grid').innerHTML =
+    '<div class="summary-card"><div class="num" style="color:'+levelColor+'">'+total+'/'+maxScore+'</div><div class="lbl">Total EQ-score</div></div>' +
+    '<div class="summary-card"><div class="num" style="color:'+levelColor+';font-size:18px">'+profile+'</div><div class="lbl">Profil</div></div>' +
+    '<div class="summary-card"><div class="num" style="color:'+levelColor+'">'+level+'</div><div class="lbl">Niveau</div></div>';
+
+  // Top findings
+  var findings = [];
+  var sorted = [
+    { key:'perception', pct:pPerc, name:'Perception' },
+    { key:'managing', pct:mPerc, name:'Håndtering' },
+    { key:'others', pct:oPerc, name:'Andres emotioner' },
+    { key:'utilization', pct:uPerc, name:'Anvendelse' }
+  ].sort(function(a,b){ return b.pct - a.pct; });
+
+  if (sorted[0].pct >= 70) findings.push('🟢 Din stærkeste side er <strong>'+sorted[0].name+'</strong> ('+Math.round(sorted[0].pct)+'%) — dette er en kernestyrke.');
+  if (sorted[3].pct < 50) findings.push('🟠 Dit største udviklingspotentiale er <strong>'+sorted[3].name+'</strong> ('+Math.round(sorted[3].pct)+'%) — fokusér her for størst effekt.');
+  if (total >= 141) findings.push('🌟 Din samlede EQ er <strong>meget høj</strong> — du tilhører den øverste gruppe.');
+  if (total < 105) findings.push('📈 Din samlede EQ har <strong>stort udviklingspotentiale</strong> — emotionel intelligens kan trænes markant.');
+  if (findings.length > 0) {
+    document.getElementById('top-findings').innerHTML = '<h3>🔍 Vigtigste fund</h3>' + findings.map(function(f){ return '<p style="font-size:14px;color:var(--text-2);margin:8px 0;line-height:1.6">'+f+'</p>'; }).join('');
+  }
+
+  // Domain overview
+  var domainData = [
+    { key:'perception', emoji:'🔬', name:'Perception af emotioner', pct:pPerc, color:'#8e44ad', desc:'Evnen til at genkende, identificere og skelne mellem emotioner — hos dig selv og andre. Fundamentet for al emotionel intelligens.' },
+    { key:'managing', emoji:'🎯', name:'Håndtering af egne emotioner', pct:mPerc, color:'#27ae60', desc:'Evnen til at regulere dine egne følelsesmæssige reaktioner. At mærke en følelse uden at lade den styre din adfærd.' },
+    { key:'others', emoji:'🤝', name:'Andres emotioner', pct:oPerc, color:'#2e6b9e', desc:'Evnen til at forstå, påvirke og respondere hensigtsmæssigt på andres følelser. Social intelligens i praksis.' },
+    { key:'utilization', emoji:'⚡', name:'Anvendelse af emotioner', pct:uPerc, color:'#d4920b', desc:'Evnen til at bruge emotioner som brændstof for kreativitet, motivation, problemløsning og beslutningstagning.' }
+  ];
+  var domHTML = '';
+  domainData.forEach(function(d){
+    var lvl = getDomainLevel(d.pct);
+    domHTML += '<div class="domain-block"><div class="domain-header"><span style="font-size:22px">'+d.emoji+'</span><span class="domain-name">'+d.name+'</span><span class="domain-score" style="color:'+d.color+'">'+Math.round(d.pct)+'%</span></div><div class="domain-bar"><div class="domain-bar-fill" style="width:'+d.pct+'%;background:'+d.color+'"></div></div><p style="font-size:12px;color:var(--text-3);margin:8px 0">Niveau: '+lvl+'</p><p class="domain-desc">'+d.desc+'</p></div>';
+  });
+  document.getElementById('domains-detail').innerHTML = domHTML;
+
+  // Radar
+  var radarDims = [
+    { name:'Perception', pct:pPerc, color:'#8e44ad' },
+    { name:'Anvendelse', pct:uPerc, color:'#d4920b' },
+    { name:'Regulering', pct:mPerc, color:'#27ae60' },
+    { name:'Social EQ', pct:oPerc, color:'#2e6b9e' }
+  ];
+  buildRadar(radarDims);
+
+  // Profile archetype detail
+  var profHTML = '<div style="padding:20px;border-radius:12px;background:'+levelColor+'10;border:1.5px solid '+levelColor+'30">';
+  profHTML += '<h3 style="color:'+levelColor+';margin-bottom:8px">'+profile+'</h3>';
+  profHTML += '<p style="font-size:14px;color:var(--text-2);line-height:1.7">'+bp.desc+'</p>';
+  profHTML += '</div>';
+  profHTML += '<div style="margin-top:20px"><h3 style="margin-bottom:12px">8 EQ-profiler</h3>';
+  var allProfiles = ['Den Empatiske Leder','Den Sociale Antenne','Den Selvregulerede','Den Kreative Motor','Den Sensitive Observatør','Den Omsorgsfulde','Den Balancerede','Udvikleren'];
+  profHTML += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+  allProfiles.forEach(function(name){
+    var active = name === profile;
+    profHTML += '<div style="padding:12px;border-radius:10px;border:1.5px solid '+(active?levelColor:'var(--border)')+';background:'+(active?levelColor+'08':'var(--bg-warm)')+';text-align:center;font-size:13px;font-weight:'+(active?'600':'400')+';color:'+(active?levelColor:'var(--text-2)')+'">'+name+(active?' ←':'')+'</div>';
+  });
+  profHTML += '</div></div>';
+  document.getElementById('profile-detail').innerHTML = profHTML;
+
+  // Strengths & challenges
+  var topDomains = sorted.slice(0,2);
+  var bottomDomains = sorted.slice(2,4);
+  document.getElementById('strengths-challenges').innerHTML =
+    '<div class="sc-card strengths"><h3 style="color:#3B9979">✦ Styrker</h3>'+topDomains.map(function(d){
+      return '<div class="sc-item"><strong>'+DOMAINS[d.key].emoji+' '+DOMAINS[d.key].name+' ('+Math.round(d.pct)+'%)</strong>'+(d.pct >= 70 ? 'Dette er en af dine kernekompetencer. Brug den bevidst i udfordrende situationer.' : 'Et solidt fundament du kan bygge videre på.')+'</div>';
+    }).join('')+'</div>'+
+    '<div class="sc-card challenges"><h3 style="color:#c0392b">✧ Udviklingsområder</h3>'+bottomDomains.map(function(d){
+      return '<div class="sc-item"><strong>'+DOMAINS[d.key].emoji+' '+DOMAINS[d.key].name+' ('+Math.round(d.pct)+'%)</strong>'+(d.pct < 50 ? 'Her er dit største udviklingspotentiale. Selv små forbedringer vil have mærkbar effekt.' : 'Et område med plads til vækst — målrettet træning vil styrke din samlede EQ.')+'</div>';
+    }).join('')+'</div>';
+
+  // Coping toolkit
+  document.getElementById('coping-toolkit').innerHTML = bp.coping.map(function(c){
+    return '<div class="coping-card"><h4>'+c.t+'</h4><p>'+c.d+'</p></div>';
+  }).join('');
+
+  // Domain deep-dives
+  var domainKeys = ['perception','managing','others','utilization'];
+  var domainIds = ['deep-perception','deep-managing','deep-others','deep-utilization'];
+  var domainPcts = [pPerc, mPerc, oPerc, uPerc];
+
+  domainKeys.forEach(function(key, idx) {
+    var dd = DOMAIN_DEEP[key];
+    var pct = domainPcts[idx];
+    var isHigh = pct >= 60;
+    var deepHTML = '<div style="font-size:14px;color:var(--text-2);line-height:1.7">';
+    deepHTML += '<div style="padding:16px;border-radius:12px;background:'+(isHigh ? 'rgba(59,153,121,0.06);border:1px solid rgba(59,153,121,0.15)' : 'rgba(212,146,11,0.06);border:1px solid rgba(212,146,11,0.15)')+';margin-bottom:16px">';
+    deepHTML += '<p><strong>'+(isHigh ? '✅ Din score: '+Math.round(pct)+'% — '+getDomainLevel(pct) : '📈 Din score: '+Math.round(pct)+'% — '+getDomainLevel(pct))+'</strong></p>';
+    deepHTML += '<p style="margin-top:8px">'+(isHigh ? dd.high : dd.low)+'</p></div>';
+    deepHTML += '<h4 style="margin-bottom:12px">Øvelser til '+DOMAINS[key].name.toLowerCase()+'</h4>';
+    dd.exercises.forEach(function(ex) {
+      deepHTML += '<div style="padding:14px;border-radius:10px;background:var(--bg-warm);margin-bottom:10px"><strong style="display:block;margin-bottom:4px">'+ex.t+'</strong><p style="margin:0;font-size:13px">'+ex.d+'</p></div>';
+    });
+    deepHTML += '</div>';
+    document.getElementById(domainIds[idx]).innerHTML = deepHTML;
+  });
+
+  // Action plan
+  var weakest = sorted[3];
+  var secondWeakest = sorted[2];
+  var actions = [
+    { title:'📅 I morgen', items:[
+      'Start en emotions-dagbog: Skriv 3 følelsesmæssige øjeblikke ned i aften',
+      'Øv STOP-teknikken i én situation: Stop, Tag en dyb indånding, Observér, Proceed',
+      weakest.pct < 50 ? 'Læs beskrivelsen af "'+DOMAINS[weakest.key].name+'" og vælg én øvelse' : 'Prøv én ny øvelse fra din svageste dimension'
+    ]},
+    { title:'📋 Ugentlig plan', items:[
+      'Daglig emotions check-in morgen og aften (2 min)',
+      'Øv mindfulness/meditation 10 min mindst 3 dage',
+      'Én bevidst empati-øvelse pr. dag (aktiv lytning, perspektivskifte)',
+      'Journaling: Ugentlig refleksion over emotionelle mønstre'
+    ]},
+    { title:'🎯 Månedligt mål', items:[
+      'Fokusér på '+DOMAINS[weakest.key].name.toLowerCase()+' — dit største udviklingspotentiale',
+      'Tag EQ-testen igen om 30 dage og sammenlign dine scores',
+      total < 118 ? 'Overvej et kursus i emotionel intelligens eller empati-træning' : 'Udfordre dig selv med en avanceret øvelse fra din svageste dimension'
+    ]}
+  ];
+  document.getElementById('action-plan').innerHTML = actions.map(function(a){ return '<div class="action-card"><h4>'+a.title+'</h4><ul>'+a.items.map(function(i){return '<li>'+i+'</li>';}).join('')+'</ul></div>'; }).join('');
+
+  // Doctor section
+  var docHTML = '<div style="font-size:14px;line-height:1.8;color:var(--text-2)">';
+  docHTML += '<h3 style="margin-bottom:12px">Klinisk opsummering</h3>';
+  docHTML += '<p><strong>Test:</strong> SSEIT — Schutte Self-Report Emotional Intelligence Test (Schutte et al., 1998)</p>';
+  docHTML += '<p><strong>Dato:</strong> '+new Date().toLocaleDateString('da-DK')+'</p>';
+  docHTML += '<p><strong>Total score:</strong> '+total+'/'+maxScore+' — '+level+'</p>';
+  docHTML += '<p><strong>Profil:</strong> '+profile+'</p>';
+  docHTML += '<p><strong>Domæner:</strong> Perception '+Math.round(pPerc)+'% · Håndtering '+Math.round(mPerc)+'% · Andres emotioner '+Math.round(oPerc)+'% · Anvendelse '+Math.round(uPerc)+'%</p>';
+  docHTML += '<h3 style="margin-top:20px;margin-bottom:12px">Samtaleguide</h3><ul style="padding-left:18px">';
+  docHTML += '<li>"Jeg har taget en valideret EQ-test (SSEIT) og scorer '+total+'/'+maxScore+', hvilket placerer mig i kategorien \''+level+'\'."</li>';
+  docHTML += '<li>"Min profil er \''+profile+'\', med stærkeste domæne i '+sorted[0].name.toLowerCase()+' og størst udviklingspotentiale i '+sorted[3].name.toLowerCase()+'."</li>';
+  if (total < 105) docHTML += '<li>"Jeg vil gerne drøfte muligheder for at udvikle min emotionelle intelligens — evt. coaching eller terapeutisk støtte."</li>';
+  docHTML += '</ul>';
+  docHTML += '<p style="margin-top:12px;font-size:12px;color:var(--text-3)"><strong>Reference:</strong> SSEIT total score range 33-165. Gennemsnitlig score i normalpopulation: ca. 124 (SD ≈ 13). Test-retest reliabilitet: r = .78. Cronbach alpha: .90 (Schutte et al., 1998).</p></div>';
+  document.getElementById('doctor-section').innerHTML = docHTML;
+
+  // Resources
+  var resHTML = '';
+  resHTML += '<div style="margin-bottom:16px"><h4 style="font-size:14px;font-weight:600;margin-bottom:8px">📖 Bøger</h4><ul style="padding-left:18px;font-size:14px;color:var(--text-2)"><li style="margin-bottom:4px"><em>Emotional Intelligence 2.0</em> — Travis Bradberry & Jean Greaves</li><li style="margin-bottom:4px"><em>Emotional Intelligence</em> — Daniel Goleman</li><li style="margin-bottom:4px"><em>Permission to Feel</em> — Marc Brackett</li><li style="margin-bottom:4px"><em>Nonviolent Communication</em> — Marshall B. Rosenberg</li></ul></div>';
+  resHTML += '<div style="margin-bottom:16px"><h4 style="font-size:14px;font-weight:600;margin-bottom:8px">📱 Apps</h4><ul style="padding-left:18px;font-size:14px;color:var(--text-2)"><li style="margin-bottom:4px">Mood Meter (Yale Center for Emotional Intelligence) — emotions-tracking</li><li style="margin-bottom:4px">Headspace / Calm — mindfulness og emotionel bevidsthed</li><li style="margin-bottom:4px">Daylio — daglig humør- og adfærdstracking</li></ul></div>';
+  resHTML += '<div style="margin-bottom:16px"><h4 style="font-size:14px;font-weight:600;margin-bottom:8px">🇩🇰 Danske organisationer</h4><ul style="padding-left:18px;font-size:14px;color:var(--text-2)"><li style="margin-bottom:4px">Psykiatrifonden (psykiatrifonden.dk) — viden om mental sundhed</li><li style="margin-bottom:4px">Center for Konfliktløsning (konfliktloesning.dk) — kurser i empati og kommunikation</li><li style="margin-bottom:4px">Din læge → henvisning til psykolog (evt. med tilskud ved personlige udfordringer)</li></ul></div>';
+  resHTML += '<div><h4 style="font-size:14px;font-weight:600;margin-bottom:8px">🔬 Videnskab</h4><ul style="padding-left:18px;font-size:14px;color:var(--text-2)"><li style="margin-bottom:4px">Schutte, Malouff, Hall et al. (1998) — SSEIT: Development and validation</li><li style="margin-bottom:4px">Salovey & Mayer (1990) — Emotional Intelligence framework</li><li style="margin-bottom:4px">Mayer, Salovey & Caruso (2008) — Emotional Intelligence: New Ability or Eclectic Traits?</li><li style="margin-bottom:4px">Petrides & Furnham (2003) — Trait Emotional Intelligence</li></ul></div>';
+  document.getElementById('resources').innerHTML = resHTML;
+}
+
+function buildRadar(dims) {
+  var n = dims.length, cx = 170, cy = 170, R = 130;
+  var step = (2 * Math.PI) / n, start = -Math.PI / 2;
+  function p(a, r) { return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; }
+  var svg = '<svg viewBox="0 0 340 360" xmlns="http://www.w3.org/2000/svg">';
+  for (var ring = 1; ring <= 4; ring++) {
+    var r = R * ring / 4, pts = [];
+    for (var i = 0; i < n; i++) pts.push(p(start + i * step, r).join(','));
+    svg += '<polygon points="'+pts.join(' ')+'" fill="none" stroke="rgba(0,0,0,0.06)" stroke-width="1"/>';
+    if (ring === 2) svg += '<text x="'+(cx+4)+'" y="'+(cy-r+12)+'" fill="rgba(0,0,0,0.15)" font-size="9" font-family="Figtree">50%</text>';
+  }
+  for (var i = 0; i < n; i++) { var ep = p(start + i * step, R); svg += '<line x1="'+cx+'" y1="'+cy+'" x2="'+ep[0]+'" y2="'+ep[1]+'" stroke="rgba(0,0,0,0.08)" stroke-width="1"/>'; }
+  var dataPts = [];
+  for (var i = 0; i < n; i++) dataPts.push(p(start + i * step, R * (dims[i].pct / 100)).join(','));
+  svg += '<polygon points="'+dataPts.join(' ')+'" fill="rgba(122,107,58,0.12)" stroke="#7a6b3a" stroke-width="2.5"/>';
+  for (var i = 0; i < n; i++) {
+    var dp = p(start + i * step, R * (dims[i].pct / 100));
+    svg += '<circle cx="'+dp[0]+'" cy="'+dp[1]+'" r="5" fill="'+dims[i].color+'" stroke="#fff" stroke-width="2"/>';
+    var lp = p(start + i * step, R + 28);
+    var anchor = lp[0] < cx - 10 ? 'end' : lp[0] > cx + 10 ? 'start' : 'middle';
+    svg += '<text x="'+lp[0]+'" y="'+(lp[1]+4)+'" text-anchor="'+anchor+'" fill="var(--text-2)" font-size="11" font-weight="500" font-family="Figtree,sans-serif">'+dims[i].name+'</text>';
+    svg += '<text x="'+lp[0]+'" y="'+(lp[1]+19)+'" text-anchor="'+anchor+'" fill="'+dims[i].color+'" font-size="14" font-weight="700" font-family="Source Serif 4,serif">'+Math.round(dims[i].pct)+'%</text>';
+  }
+  svg += '</svg>';
+  document.getElementById('radar').innerHTML = svg;
+}
+
+function downloadPDF() {
+  html2pdf().set({ margin:[10,10,10,10], filename:'Hjernebarometeret-EQ-Rapport.pdf', image:{type:'jpeg',quality:0.95}, html2canvas:{scale:2,useCORS:true}, jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}, pagebreak:{mode:['avoid-all','css','legacy']} }).from(document.getElementById('report-content')).save();
+}
+
+(async function init() {
+  var paymentReturn = false;
+  if (window.HB_PAY) { var ret = HB_PAY.handleReturn(); if (ret && ret.success) { paymentReturn = true; if (ret.token) localStorage.setItem('hb_report_token_eq', ret.token); } }
+  if (window.HB_AUTH) await new Promise(function(r){ HB_AUTH.onReady(r); });
+  var hasAccess = false;
+  if (window.HB_AUTH && HB_AUTH.isAdmin()) hasAccess = true;
+  else if (paymentReturn && window.HB_PAY) { document.querySelector('#loading p').textContent = 'Bekræfter betaling...'; hasAccess = await HB_PAY.waitForAccess('eq', 10); }
+  else if (window.HB_PAY) hasAccess = await HB_PAY.hasAccess('eq');
+  if (!hasAccess) { document.getElementById('loading').style.display = 'none'; document.getElementById('no-access').style.display = 'block'; if(window.HB_PAY)HB_PAY.renderCreditOption('eq'); return; }
+  var data = null;
+  if (window.HB_PAY) data = HB_PAY.loadResults('eq');
+  if (!data && window.HB_PAY) data = await HB_PAY.loadResultsFromDB('eq');
+  if (!data) { document.getElementById('loading').style.display='none'; document.getElementById('no-access').style.display='block'; document.querySelector('#no-access h1').textContent='📊 Ingen resultater fundet'; document.querySelector('#no-access p').textContent='Du skal gennemføre EQ-testen først.'; document.querySelector('#no-access .buy-btn').textContent='Tag EQ-testen'; document.querySelector('#no-access .buy-btn').onclick=function(){window.location.href='/tests/eq.html';}; return; }
+  try {
+    buildReport(data);
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('report').style.display = 'block';
+  } catch(err) {
+    console.error('buildReport fejl:', err);
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('no-access').style.display = 'block';
+    document.querySelector('#no-access h1').textContent = '⚠️ Noget gik galt';
+    document.querySelector('#no-access p').textContent = 'Der opstod en fejl ved visning af rapporten. Prøv at tage testen igen.';
+    document.querySelector('#no-access .buy-btn').textContent = 'Tag EQ-testen igen';
+    document.querySelector('#no-access .buy-btn').onclick = function(){ window.location.href='/tests/eq.html'; };
+  }
+})();
+</script>
+</body>
+</html>
