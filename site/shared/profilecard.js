@@ -43,6 +43,12 @@
       name: 'Emotionel Intelligens', icon: '\uD83D\uDCA1',
       getHero: function(s) { return { main: s.total + '/165', sub: s.profile || getEQProfile(s), pct: null }; },
       drawVisual: drawEQRadar
+    },
+    karriere: {
+      accent: '#2a7d8f', accentDark: '#152e35', accentLight: '#7dc4c8',
+      name: 'Karrieretest', icon: '\uD83E\uDDED',
+      getHero: function(s) { return { main: s.hollandCode || '?', sub: getRIASECLabel(s.primaryType), pct: null }; },
+      drawVisual: drawKarriereHexagon
     }
   };
 
@@ -423,6 +429,26 @@
     drawRadar(ctx, dims, cx, cy, Math.min(w, h) * 0.38);
   }
 
+  // ─── Karriere: RIASEC helpers ──────────────────────────────
+
+  function getRIASECLabel(type) {
+    var labels = { R: 'Realistisk', I: 'Investigativ', A: 'Artistisk', S: 'Social', E: 'Entrepren\u00f8r', C: 'Konventionel' };
+    return labels[type] || type || '';
+  }
+
+  function drawKarriereHexagon(ctx, scores, cx, cy, w, h) {
+    var ri = scores.riasec || {};
+    var dims = [
+      { label: 'R', pct: ri.R || 0 },
+      { label: 'I', pct: ri.I || 0 },
+      { label: 'A', pct: ri.A || 0 },
+      { label: 'S', pct: ri.S || 0 },
+      { label: 'E', pct: ri.E || 0 },
+      { label: 'C', pct: ri.C || 0 }
+    ];
+    drawRadar(ctx, dims, cx, cy, Math.min(w, h) * 0.34);
+  }
+
   function drawStressRadar(ctx, scores, cx, cy, w, h) {
     var dims = [
       { label: 'Stress', pct: scores.pssPct || 0 },
@@ -579,7 +605,7 @@
       } else if (testType === 'eq') {
         normResult = HB_NORM.getPercentile('eq', scores.total);
       }
-      // For personlighed we skip single percentile (5 traits)
+      // For karriere/personlighed we skip percentile (interest profile / 5 traits)
       // For ADHD no population percentile
 
       if (normResult && normResult.percentile !== null) {

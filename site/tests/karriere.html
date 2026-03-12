@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Gratis karrieretest baseret på Holland/RIASEC-modellen og O*NET Interest Profiler. Find dit 3-bogstavs karrierekode og match med 900+ erhverv.">
+<title>Karrieretest — Hjernebarometeret.dk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,500&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
+<style>
+:root {
+  --bg: #faf9f7;
+  --bg-card: #fff;
+  --bg-card-hover: rgba(0,0,0,.02);
+  --bg-warm: #f5f2ee;
+  --bg-dark: #1c1b1a;
+  --text: #1c1b1a;
+  --text-2: #5a5650;
+  --text-3: #8a857e;
+  --text-4: #b5b0a8;
+  --text-dim: #5a5650;
+  --text-muted: #8a857e;
+  --border: #e8e5e0;
+  --border-2: #d5d0c9;
+  --accent: #2a7d8f;
+  --accent-light: rgba(42,125,143,0.08);
+  --accent-hover: #1f6270;
+  --accent-glow: rgba(42,125,143,0.08);
+  --green: #2c6e49;
+  --green-bg: #e8f5ee;
+  --yellow: #b8860b;
+  --yellow-bg: #faf5eb;
+  --orange: #c2553a;
+  --orange-bg: #fdf0ec;
+  --red: #a23030;
+  --red-bg: #fbeaea;
+  --radius: 12px;
+  --radius-lg: 20px;
+  --serif: 'Source Serif 4', Georgia, serif;
+  --sans: 'Figtree', system-ui, sans-serif;
+  --clr-R: #e07a3a;
+  --clr-I: #5b8ec9;
+  --clr-A: #9b59b6;
+  --clr-S: #3cb7a0;
+  --clr-E: #e8c547;
+  --clr-C: #7f8c8d;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.6; -webkit-font-smoothing: antialiased; overflow-x: hidden; padding-top: 64px; }
+
+.container { max-width: 720px; margin: 0 auto; padding: 0 20px; }
+
+/* ── Hero ── */
+.hero { min-height: calc(100vh - 64px); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 60px 24px 80px; position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; top: -20%; right: -10%; width: 600px; height: 600px; background: radial-gradient(circle, rgba(42,125,143,0.06) 0%, transparent 70%); border-radius: 50%; pointer-events: none; }
+.hero::after { content: ''; position: absolute; bottom: -10%; left: -10%; width: 500px; height: 500px; background: radial-gradient(circle, rgba(42,125,143,0.04) 0%, transparent 70%); border-radius: 50%; pointer-events: none; }
+.hero-badge { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: var(--accent); background: var(--accent-light); padding: 6px 16px; border-radius: 100px; margin-bottom: 32px; letter-spacing: 0.03em; }
+.hero h1 { font-family: var(--serif); font-size: clamp(2.4rem, 5.5vw, 3.6rem); font-weight: 600; letter-spacing: -0.03em; line-height: 1.15; max-width: 700px; margin-bottom: 20px; }
+.hero h1 em { font-style: italic; color: var(--accent); }
+.hero-sub { font-size: 17px; color: var(--text-2); max-width: 560px; line-height: 1.7; margin-bottom: 40px; }
+.hero-stats { display: flex; gap: 32px; flex-wrap: wrap; justify-content: center; margin-bottom: 48px; }
+.hero-stat { text-align: center; }
+.hero-stat strong { display: block; font-family: var(--serif); font-size: 22px; font-weight: 600; color: var(--text); }
+.hero-stat span { font-size: 13px; color: var(--text-3); }
+.btn-primary { display: inline-flex; align-items: center; gap: 8px; background: var(--accent); color: #fff; font-family: var(--sans); font-size: 16px; font-weight: 600; padding: 14px 36px; border-radius: 12px; border: none; cursor: pointer; transition: all .2s; text-decoration: none; }
+.btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(42,125,143,0.2); }
+
+/* ── Science box ── */
+.science-box { max-width: 680px; margin: 0 auto; background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 32px; text-align: left; }
+.science-box h3 { font-family: var(--serif); font-size: 18px; font-weight: 600; margin-bottom: 12px; }
+.science-box p { font-size: 14.5px; color: var(--text-2); line-height: 1.7; margin-bottom: 20px; }
+.domains-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.domain-card { background: var(--accent-light); border-radius: 10px; padding: 14px; text-align: center; }
+.domain-card h4 { font-size: 13px; font-weight: 600; color: var(--accent); margin-bottom: 4px; }
+.domain-card span { font-size: 12px; color: var(--text-3); }
+.disclaimer { font-size: 12.5px; color: var(--text-4); border-top: 1px solid var(--border); padding-top: 16px; line-height: 1.6; }
+
+/* ── Lang toggle ── */
+.lang-toggle { position: fixed; top: 80px; right: 20px; z-index: 100; display: flex; align-items: center; gap: 6px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text-2); transition: all .15s; }
+.lang-toggle:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── Question phase ── */
+.test-container { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 100px 24px 80px; }
+.progress-bar { width: 100%; max-width: 560px; height: 3px; background: var(--border); border-radius: 4px; margin-bottom: 12px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.4s ease; }
+.progress-text { font-size: 13px; color: var(--text-4); margin-bottom: 48px; font-variant-numeric: tabular-nums; }
+.section-indicator { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: var(--accent); background: var(--accent-light); padding: 4px 12px; border-radius: 100px; margin-bottom: 16px; letter-spacing: 0.02em; text-transform: uppercase; }
+.question-card { max-width: 600px; width: 100%; text-align: center; }
+.question-text { font-family: var(--serif); font-size: clamp(1.15rem, 2.5vw, 1.4rem); font-weight: 400; line-height: 1.5; letter-spacing: -0.01em; color: var(--text); margin-bottom: 40px; min-height: 80px; }
+.likert-scale { display: flex; flex-direction: column; gap: 10px; max-width: 420px; margin: 0 auto 40px; }
+.likert-option { display: flex; align-items: center; gap: 14px; padding: 12px 18px; border: 1.5px solid var(--border); border-radius: 10px; cursor: pointer; transition: all .15s; background: var(--bg-card); }
+.likert-option:hover { border-color: var(--accent); background: var(--accent-light); }
+.likert-option.selected { border-color: var(--accent); background: var(--accent-light); }
+.likert-dot { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border-2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all .15s; }
+.likert-option.selected .likert-dot { border-color: var(--accent); background: var(--accent); }
+.likert-option.selected .likert-dot::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #fff; }
+.likert-label { font-size: 15px; color: var(--text-2); text-align: left; }
+.likert-option.selected .likert-label { color: var(--text); font-weight: 500; }
+.likert-number { font-size: 12px; font-weight: 600; color: var(--text-4); width: 18px; text-align: center; flex-shrink: 0; }
+.likert-option.selected .likert-number { color: var(--accent); }
+
+.nav-buttons { display: flex; gap: 12px; justify-content: center; }
+.btn-nav { padding: 10px 24px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--bg-card); font-family: var(--sans); font-size: 14px; font-weight: 500; color: var(--text-2); cursor: pointer; transition: all .15s; }
+.btn-nav:hover { border-color: var(--accent); color: var(--accent); }
+.btn-nav.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-nav.primary:hover { background: var(--accent-hover); }
+.btn-nav:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.keyboard-hint { font-size: 12px; color: var(--text-4); margin-top: 20px; }
+.keyboard-hint code { background: var(--bg-warm); padding: 2px 6px; border-radius: 4px; font-size: 11px; }
+
+/* ── Transition screen ── */
+.transition-screen { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 60px 24px; text-align: center; }
+.transition-screen h2 { font-family: var(--serif); font-size: clamp(1.6rem, 3.5vw, 2.2rem); font-weight: 600; letter-spacing: -0.02em; margin-bottom: 16px; }
+.transition-screen p { font-size: 16px; color: var(--text-2); max-width: 520px; line-height: 1.7; margin-bottom: 32px; }
+.transition-progress { display: flex; gap: 8px; margin-bottom: 32px; }
+.transition-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border); }
+.transition-dot.active { background: var(--accent); }
+.transition-dot.done { background: var(--green); }
+.skip-btn { background: transparent; border: 1px solid var(--border); padding: 10px 24px; border-radius: 10px; font-family: var(--sans); font-size: 14px; font-weight: 500; color: var(--text-3); cursor: pointer; transition: all .15s; margin-top: 12px; }
+.skip-btn:hover { border-color: var(--text-3); color: var(--text-2); }
+
+/* ── Loading ── */
+.loading-phase { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; text-align: center; }
+.loading-title { font-family: var(--serif); font-size: 24px; font-weight: 600; margin-bottom: 32px; }
+.loading-steps { display: flex; flex-direction: column; gap: 16px; }
+.loading-step { display: flex; align-items: center; gap: 12px; font-size: 15px; color: var(--text-3); transition: color 0.3s; }
+.loading-step.active { color: var(--text); }
+.loading-step.done { color: var(--green); }
+.loading-spinner { width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.6s linear infinite; }
+.loading-check { width: 20px; height: 20px; color: var(--green); }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Results ── */
+.results-container { max-width: 720px; margin: 0 auto; padding: 60px 24px 80px; }
+.results-header { text-align: center; margin-bottom: 48px; }
+.results-header h1 { font-family: var(--serif); font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 600; letter-spacing: -0.03em; margin-bottom: 12px; }
+.results-header p { font-size: 16px; color: var(--text-2); max-width: 520px; margin: 0 auto; line-height: 1.6; }
+
+.score-hero { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 40px; text-align: center; margin-bottom: 32px; }
+.holland-code { font-family: var(--serif); font-size: clamp(3rem, 8vw, 4.5rem); font-weight: 700; letter-spacing: 0.08em; margin-bottom: 8px; }
+.holland-code span { display: inline-block; }
+.primary-type { font-family: var(--serif); font-size: 22px; font-weight: 600; margin-bottom: 8px; }
+.score-desc { font-size: 15px; color: var(--text-2); max-width: 480px; margin: 0 auto; line-height: 1.7; }
+
+.norm-badge { text-align: center; font-size: 13px; color: var(--text-2); margin: 12px 0; padding: 10px 16px; background: rgba(42,125,143,0.05); border-radius: 10px; border: 1px solid rgba(42,125,143,0.1); }
+
+/* Hexagon / radar */
+.radar-section { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 32px; margin-bottom: 32px; text-align: center; }
+.radar-section h3 { font-family: var(--serif); font-size: 18px; font-weight: 600; margin-bottom: 20px; }
+.radar-svg { max-width: 380px; margin: 0 auto; }
+
+/* Domain cards */
+.section-title { font-family: var(--serif); font-size: 20px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 20px; }
+.domain-results { display: flex; flex-direction: column; gap: 16px; margin-bottom: 40px; }
+.domain-result { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 24px; }
+.domain-result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.domain-result-name { font-weight: 600; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+.domain-result-score { font-family: var(--serif); font-size: 18px; font-weight: 600; }
+.domain-bar { height: 6px; background: var(--bg-warm); border-radius: 6px; margin-bottom: 10px; overflow: hidden; }
+.domain-bar-fill { height: 100%; border-radius: 6px; transition: width 1s ease; }
+.domain-result-desc { font-size: 14px; color: var(--text-2); line-height: 1.6; }
+.domain-jobs { font-size: 12.5px; color: var(--text-3); margin-top: 8px; }
+
+/* Career matches */
+.career-matches { margin-bottom: 40px; }
+.career-match { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 8px; transition: all .15s; }
+.career-match:hover { border-color: var(--accent); }
+.career-match-info { flex: 1; }
+.career-match-title { font-weight: 600; font-size: 15px; margin-bottom: 2px; }
+.career-match-cluster { font-size: 12px; color: var(--text-3); }
+.career-match-score { font-family: var(--serif); font-size: 18px; font-weight: 700; color: var(--accent); min-width: 48px; text-align: right; }
+.career-match.blurred { filter: blur(4px); pointer-events: none; user-select: none; }
+
+/* Values section */
+.values-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 40px; }
+.value-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+.value-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.value-card-name { font-weight: 600; font-size: 14px; }
+.value-card-score { font-family: var(--serif); font-weight: 600; font-size: 15px; color: var(--accent); }
+.value-bar { height: 4px; background: var(--bg-warm); border-radius: 4px; overflow: hidden; }
+.value-bar-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 1s ease; }
+
+/* CTA / paywall */
+.cta-box { background: linear-gradient(135deg, var(--accent-light), rgba(42,125,143,0.04)); border: 1px solid var(--border); border-radius: 16px; padding: 32px; text-align: center; margin-bottom: 32px; }
+.cta-box h3 { font-family: var(--serif); font-size: 20px; font-weight: 600; margin-bottom: 10px; }
+.cta-box p { font-size: 14.5px; color: var(--text-2); margin-bottom: 20px; line-height: 1.6; }
+.cta-features { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 24px; }
+.cta-feature { font-size: 13px; color: var(--accent); background: rgba(42,125,143,0.08); padding: 4px 12px; border-radius: 100px; }
+
+/* Cross-sell */
+.cross-sell { margin: 40px 0; }
+.cross-sell h3 { font-family: var(--serif); font-size: 18px; font-weight: 600; margin-bottom: 16px; text-align: center; }
+.cross-sell-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.cross-sell-card { display: block; background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; text-align: center; text-decoration: none; color: inherit; transition: all .15s; }
+.cross-sell-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+.cross-sell-card .name { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+.cross-sell-card .sub { font-size: 12px; color: var(--text-3); }
+
+/* Admin link */
+.admin-link { display: inline-block; margin-top: 12px; font-size: 13px; color: var(--accent); text-decoration: underline; cursor: pointer; }
+
+/* Disclaimer */
+.results-disclaimer { font-size: 13px; color: var(--text-4); text-align: center; border-top: 1px solid var(--border); padding-top: 24px; margin-top: 40px; line-height: 1.6; }
+
+/* ── Animations ── */
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+.fade-in-up { animation: fadeInUp 0.5s ease forwards; }
+
+/* Mobile */
+@media (max-width: 600px) {
+  .hero { padding: 40px 20px 60px; }
+  .hero-stats { gap: 20px; }
+  .test-container { padding: 90px 20px 60px; }
+  .results-container { padding: 40px 16px 60px; }
+  .score-hero { padding: 28px 20px; }
+  .likert-scale { max-width: 100%; }
+  .lang-toggle { top: 76px; right: 12px; }
+  .values-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div id="site-nav" data-active="tests" data-test-mode="true"></div>
+
+<button class="lang-toggle" id="langToggle" onclick="toggleLang()">
+    <span id="langLabel">EN</span>
+</button>
+
+<div id="app"></div>
+
+<div id="site-footer"></div>
+
+<script src="../shared/nav.js"></script>
+<script src="../shared/footer.js"></script>
+<script src="../shared/auth.js"></script>
+<script src="../shared/coupon.js"></script>
+<script src="../shared/payment.js"></script>
+<script src="../shared/normdata.js"></script>
+<script src="../shared/profilecard.js"></script>
+
+<script type="text/babel">
+const { useState, useEffect, useCallback, useRef } = React;
+
+// ─── LANGUAGE ───
+let currentLang = 'da';
+function toggleLang() {
+    currentLang = currentLang === 'da' ? 'en' : 'da';
+    document.getElementById('langLabel').textContent = currentLang === 'da' ? 'EN' : 'DA';
+    ReactDOM.createRoot(document.getElementById('app')).render(<App />);
+}
+window.toggleLang = toggleLang;
+
+const t = (da, en) => currentLang === 'da' ? da : en;
+
+// ─── RIASEC TYPES ───
+var RIASEC_TYPES = {
+  R: { da: 'Realistisk', en: 'Realistic', icon: '\u{1f527}', color: 'var(--clr-R)',
+    desc_da: 'Du foretr\u00e6kker praktisk, hands-on arbejde med v\u00e6rkt\u00f8j, maskiner eller fysiske materialer. Du er jordn\u00e6r og resultatorienteret.',
+    desc_en: 'You prefer practical, hands-on work with tools, machines or physical materials. You are down-to-earth and results-oriented.',
+    jobs_da: 'Ingeni\u00f8r, h\u00e5ndv\u00e6rker, tekniker, landmand, pilot',
+    jobs_en: 'Engineer, craftsperson, technician, farmer, pilot' },
+  I: { da: 'Investigativ', en: 'Investigative', icon: '\u{1f52c}', color: 'var(--clr-I)',
+    desc_da: 'Du trives med at unders\u00f8ge, analysere og forst\u00e5 komplekse problemer. Du er nysgerrig og intellektuelt orienteret.',
+    desc_en: 'You thrive on investigating, analyzing and understanding complex problems. You are curious and intellectually oriented.',
+    jobs_da: 'Forsker, l\u00e6ge, analytiker, programm\u00f8r, arkitekt',
+    jobs_en: 'Researcher, doctor, analyst, programmer, architect' },
+  A: { da: 'Artistisk', en: 'Artistic', icon: '\u{1f3a8}', color: 'var(--clr-A)',
+    desc_da: 'Du v\u00e6rds\u00e6tter kreativitet, selvudfoldelse og originale l\u00f8sninger. Du foretr\u00e6kker ustrukturerede milj\u00f8er med plads til innovation.',
+    desc_en: 'You value creativity, self-expression and original solutions. You prefer unstructured environments with room for innovation.',
+    jobs_da: 'Designer, forfatter, musiker, fotograf, kunstner',
+    jobs_en: 'Designer, writer, musician, photographer, artist' },
+  S: { da: 'Social', en: 'Social', icon: '\u{1f91d}', color: 'var(--clr-S)',
+    desc_da: 'Du br\u00e6nder for at hj\u00e6lpe, undervise og r\u00e5dgive andre mennesker. Du er empatisk og trives i samarbejde.',
+    desc_en: 'You are passionate about helping, teaching and counseling others. You are empathetic and thrive in collaboration.',
+    jobs_da: 'L\u00e6rer, sygeplejerske, psykolog, socialr\u00e5dgiver, coach',
+    jobs_en: 'Teacher, nurse, psychologist, social worker, coach' },
+  E: { da: 'Entrepren\u00f8r', en: 'Enterprising', icon: '\u{1f4ca}', color: 'var(--clr-E)',
+    desc_da: 'Du er en naturlig leder der trives med at p\u00e5virke, overtale og styre. Du er ambiti\u00f8s og m\u00e5lrettet.',
+    desc_en: 'You are a natural leader who thrives on influencing, persuading and directing. You are ambitious and goal-oriented.',
+    jobs_da: 'Leder, s\u00e6lger, iv\u00e6rks\u00e6tter, advokat, politiker',
+    jobs_en: 'Manager, salesperson, entrepreneur, lawyer, politician' },
+  C: { da: 'Konventionel', en: 'Conventional', icon: '\u{1f4cb}', color: 'var(--clr-C)',
+    desc_da: 'Du foretr\u00e6kker organiseret, systematisk arbejde med data og detaljer. Du er p\u00e5lidelig og struktureret.',
+    desc_en: 'You prefer organized, systematic work with data and details. You are reliable and structured.',
+    jobs_da: 'Revisor, bogholder, administrator, logistiker, analytiker',
+    jobs_en: 'Accountant, bookkeeper, administrator, logistics coordinator, analyst' }
+};
+
+var RIASEC_ORDER = ['R', 'I', 'A', 'S', 'E', 'C'];
+
+// ─── INTEREST ITEMS (O*NET Interest Profiler Short Form, 60 items) ───
+var INTEREST_ITEMS = [
+  // Round 1
+  { da: 'Bygge k\u00f8kkenskabe', en: 'Build kitchen cabinets', type: 'R' },
+  { da: 'Udvikle en ny medicin', en: 'Develop a new medicine', type: 'I' },
+  { da: 'Skrive b\u00f8ger eller skuespil', en: 'Write books or plays', type: 'A' },
+  { da: 'Undervise en person i et tr\u00e6ningsprogram', en: 'Teach an individual an exercise routine', type: 'S' },
+  { da: 'K\u00f8be og s\u00e6lge aktier og obligationer', en: 'Buy and sell stocks and bonds', type: 'E' },
+  { da: 'Udvikle et regneark ved hj\u00e6lp af software', en: 'Develop a spreadsheet using computer software', type: 'C' },
+  // Round 2
+  { da: 'L\u00e6gge mursten eller fliser', en: 'Lay brick or tile', type: 'R' },
+  { da: 'Unders\u00f8ge m\u00e5der at reducere vandforurening', en: 'Study ways to reduce water pollution', type: 'I' },
+  { da: 'Spille et musikinstrument', en: 'Play a musical instrument', type: 'A' },
+  { da: 'Hj\u00e6lpe mennesker med personlige eller f\u00f8lelsesm\u00e6ssige problemer', en: 'Help people with personal or emotional problems', type: 'S' },
+  { da: 'Lede en detailbutik', en: 'Manage a retail store', type: 'E' },
+  { da: 'Korrekturl\u00e6se journaler eller formularer', en: 'Proofread records or forms', type: 'C' },
+  // Round 3
+  { da: 'Reparere husholdningsapparater', en: 'Repair household appliances', type: 'R' },
+  { da: 'Udf\u00f8re kemiske eksperimenter', en: 'Conduct chemical experiments', type: 'I' },
+  { da: 'Komponere eller arrangere musik', en: 'Compose or arrange music', type: 'A' },
+  { da: 'Give karrierevejledning til mennesker', en: 'Give career guidance to people', type: 'S' },
+  { da: 'Drive en fris\u00f8rsalon', en: 'Operate a beauty salon or barber shop', type: 'E' },
+  { da: 'Installere software p\u00e5 et stort computernetv\u00e6rk', en: 'Load computer software into a large computer network', type: 'C' },
+  // Round 4
+  { da: 'Opdr\u00e6tte fisk i et dambrug', en: 'Raise fish in a fish hatchery', type: 'R' },
+  { da: 'Studere planeternes bev\u00e6gelser', en: 'Study the movement of planets', type: 'I' },
+  { da: 'Tegne billeder', en: 'Draw pictures', type: 'A' },
+  { da: 'Udf\u00f8re genoptr\u00e6ningsterapi', en: 'Perform rehabilitation therapy', type: 'S' },
+  { da: 'Lede en afdeling i en stor virksomhed', en: 'Manage a department within a large company', type: 'E' },
+  { da: 'Betjene en lommeregner', en: 'Operate a calculator', type: 'C' },
+  // Round 5
+  { da: 'Samle elektroniske dele', en: 'Assemble electronic parts', type: 'R' },
+  { da: 'Unders\u00f8ge blodpr\u00f8ver under mikroskop', en: 'Examine blood samples using a microscope', type: 'I' },
+  { da: 'Skabe specialeffekter til film', en: 'Create special effects for movies', type: 'A' },
+  { da: 'Udf\u00f8re frivilligt arbejde hos en velg\u00f8renhedsorganisation', en: 'Do volunteer work at a non-profit organization', type: 'S' },
+  { da: 'Starte din egen virksomhed', en: 'Start your own business', type: 'E' },
+  { da: 'F\u00f8re fragt- og modtagelsesoptegnelser', en: 'Keep shipping and receiving records', type: 'C' },
+  // Round 6
+  { da: 'K\u00f8re lastbil for at levere pakker', en: 'Drive a truck to deliver packages', type: 'R' },
+  { da: 'Efterforske \u00e5rsagen til en brand', en: 'Investigate the cause of a fire', type: 'I' },
+  { da: 'Male kulisser til teaterforestillinger', en: 'Paint sets for plays', type: 'A' },
+  { da: 'L\u00e6re b\u00f8rn at dyrke sport', en: 'Teach children how to play sports', type: 'S' },
+  { da: 'Forhandle forretningskontrakter', en: 'Negotiate business contracts', type: 'E' },
+  { da: 'Beregne medarbejdernes l\u00f8nninger', en: 'Calculate the wages of employees', type: 'C' },
+  // Round 7
+  { da: 'Teste kvaliteten af dele f\u00f8r forsendelse', en: 'Test the quality of parts before shipment', type: 'R' },
+  { da: 'Udvikle en bedre m\u00e5de at forudsige vejret', en: 'Develop a way to better predict the weather', type: 'I' },
+  { da: 'Skrive manuskripter til film eller tv', en: 'Write scripts for movies or television shows', type: 'A' },
+  { da: 'Undervise i tegnsprog til mennesker med h\u00f8rehandicap', en: 'Teach sign language to people with hearing disabilities', type: 'S' },
+  { da: 'Repr\u00e6sentere en klient i en retssag', en: 'Represent a client in a lawsuit', type: 'E' },
+  { da: 'Registrere lagerbeholdning med en h\u00e5ndholdt computer', en: 'Inventory supplies using a hand-held computer', type: 'C' },
+  // Round 8
+  { da: 'Reparere og installere l\u00e5se', en: 'Repair and install locks', type: 'R' },
+  { da: 'Arbejde i et biologilaboratorium', en: 'Work in a biology lab', type: 'I' },
+  { da: 'Udf\u00f8re jazz- eller stepdans', en: 'Perform jazz or tap dance', type: 'A' },
+  { da: 'Hj\u00e6lpe med at lede en gruppeterapisession', en: 'Help conduct a group therapy session', type: 'S' },
+  { da: 'Markedsf\u00f8re en ny t\u00f8jkollektion', en: 'Market a new line of clothing', type: 'E' },
+  { da: 'Registrere huslejebetalinger', en: 'Record rent payments', type: 'C' },
+  // Round 9
+  { da: 'Ops\u00e6tte og betjene maskiner til at fremstille produkter', en: 'Set up and operate machines to make products', type: 'R' },
+  { da: 'Opfinde en erstatning for sukker', en: 'Invent a replacement for sugar', type: 'I' },
+  { da: 'Synge i et band', en: 'Sing in a band', type: 'A' },
+  { da: 'Passe b\u00f8rn i en daginstitution', en: 'Take care of children at a day-care center', type: 'S' },
+  { da: 'S\u00e6lge varer i et stormagasin', en: 'Sell merchandise at a department store', type: 'E' },
+  { da: 'F\u00f8re lageroptegnelser', en: 'Keep inventory records', type: 'C' },
+  // Round 10
+  { da: 'Slukke skovbrande', en: 'Put out forest fires', type: 'R' },
+  { da: 'Udf\u00f8re laboratorietests for at identificere sygdomme', en: 'Do laboratory tests to identify diseases', type: 'I' },
+  { da: 'Redigere film', en: 'Edit movies', type: 'A' },
+  { da: 'Undervise en gymnasieklasse', en: 'Teach a high-school class', type: 'S' },
+  { da: 'Lede en t\u00f8jbutik', en: 'Manage a clothing store', type: 'E' },
+  { da: 'Stemple, sortere og distribuere post', en: 'Stamp, sort, and distribute mail for an organization', type: 'C' }
+];
+
+// ─── VALUES ITEMS (18 items, 6 dims x 3) ───
+var VALUES_ITEMS = [
+  { da: 'At kunne planl\u00e6gge mit eget arbejde', en: 'To plan my own work', dim: 'autonomy' },
+  { da: 'At arbejde selvst\u00e6ndigt uden konstant overv\u00e5gning', en: 'To work independently without constant supervision', dim: 'autonomy' },
+  { da: 'At kunne bestemme hvordan opgaver skal l\u00f8ses', en: 'To decide how tasks should be solved', dim: 'autonomy' },
+  { da: 'At have et fast job med stabil indkomst', en: 'To have a stable job with steady income', dim: 'security' },
+  { da: 'At arbejde for en virksomhed med gode pensionsordninger', en: 'To work for a company with good retirement benefits', dim: 'security' },
+  { da: 'At vide at mit job er sikret p\u00e5 lang sigt', en: 'To know my job is secure long-term', dim: 'security' },
+  { da: 'At have mulighed for at t\u00e6nke kreativt i mit arbejde', en: 'To think creatively in my work', dim: 'creativity' },
+  { da: 'At arbejde med nye id\u00e9er og innovationer', en: 'To work with new ideas and innovations', dim: 'creativity' },
+  { da: 'At kunne udtrykke mig kunstnerisk eller originalt', en: 'To express myself artistically or originally', dim: 'creativity' },
+  { da: 'At kunne p\u00e5virke vigtige beslutninger', en: 'To influence important decisions', dim: 'influence' },
+  { da: 'At have en ledende rolle i mit team', en: 'To have a leadership role in my team', dim: 'influence' },
+  { da: 'At have prestige og anerkendelse i min branche', en: 'To have prestige and recognition in my field', dim: 'influence' },
+  { da: 'At samarbejde t\u00e6t med kolleger', en: 'To collaborate closely with colleagues', dim: 'relationships' },
+  { da: 'At hj\u00e6lpe andre mennesker i mit arbejde', en: 'To help other people through my work', dim: 'relationships' },
+  { da: 'At v\u00e6re del af et st\u00f8ttende f\u00e6llesskab', en: 'To be part of a supportive community', dim: 'relationships' },
+  { da: 'At have god balance mellem arbejde og fritid', en: 'Good work-life balance', dim: 'balance' },
+  { da: 'At have fleksible arbejdstider', en: 'Flexible working hours', dim: 'balance' },
+  { da: 'At kunne arbejde hjemmefra n\u00e5r det passer', en: 'To work from home when suitable', dim: 'balance' }
+];
+
+// ─── COMPETENCY ITEMS (12 items, 6 areas x 2) ───
+var COMPETENCY_ITEMS = [
+  { da: 'Jeg er god til at analysere data og finde m\u00f8nstre', en: "I'm good at analyzing data and finding patterns", dim: 'analytical' },
+  { da: 'Jeg l\u00f8ser gerne komplekse problemer systematisk', en: 'I enjoy solving complex problems systematically', dim: 'analytical' },
+  { da: 'Jeg l\u00e6rer hurtigt at bruge ny teknologi', en: 'I quickly learn to use new technology', dim: 'technical' },
+  { da: 'Jeg er komfortabel med at reparere eller bygge ting', en: "I'm comfortable repairing or building things", dim: 'technical' },
+  { da: 'Jeg finder ofte p\u00e5 originale l\u00f8sninger', en: 'I often come up with original solutions', dim: 'creative' },
+  { da: 'Jeg kan lide at skabe noget nyt fra bunden', en: 'I enjoy creating something new from scratch', dim: 'creative' },
+  { da: 'Jeg er god til at forst\u00e5 andres perspektiver', en: "I'm good at understanding others' perspectives", dim: 'social' },
+  { da: 'Jeg trives med at kommunikere og pr\u00e6sentere', en: 'I thrive on communicating and presenting', dim: 'social' },
+  { da: 'Jeg tager naturligt styringen i gruppearbejde', en: 'I naturally take charge in group work', dim: 'leadership' },
+  { da: 'Jeg er god til at motivere og organisere andre', en: "I'm good at motivating and organizing others", dim: 'leadership' },
+  { da: 'Jeg holder styr p\u00e5 detaljer og deadlines', en: 'I keep track of details and deadlines', dim: 'organization' },
+  { da: 'Jeg foretr\u00e6kker at f\u00f8lge en klar plan og struktur', en: 'I prefer following a clear plan and structure', dim: 'organization' }
+];
+
+var INTEREST_LIKERT = {
+  da: ['Kan slet ikke lide', 'Kan ikke lide', 'Neutral', 'Kan godt lide', 'Kan virkelig godt lide'],
+  en: ['Strongly dislike', 'Dislike', 'Neutral', 'Like', 'Strongly like']
+};
+var VALUES_LIKERT = {
+  da: ['Slet ikke vigtigt', 'Ikke vigtigt', 'Neutral', 'Vigtigt', 'Meget vigtigt'],
+  en: ['Not at all important', 'Not important', 'Neutral', 'Important', 'Very important']
+};
+var COMPETENCY_LIKERT = {
+  da: ['Slet ikke mig', 'Ikke helt mig', 'Neutral', 'Ret meget mig', 'Helt klart mig'],
+  en: ['Not me at all', 'Not quite me', 'Neutral', 'Quite like me', 'Definitely me']
+};
+
+var VALUE_LABELS = {
+  autonomy: { da: 'Autonomi', en: 'Autonomy' },
+  security: { da: 'Sikkerhed', en: 'Security' },
+  creativity: { da: 'Kreativitet', en: 'Creativity' },
+  influence: { da: 'Indflydelse', en: 'Influence' },
+  relationships: { da: 'Relationer', en: 'Relationships' },
+  balance: { da: 'Balance', en: 'Balance' }
+};
+var COMP_LABELS = {
+  analytical: { da: 'Analytisk', en: 'Analytical' },
+  technical: { da: 'Teknisk', en: 'Technical' },
+  creative: { da: 'Kreativ', en: 'Creative' },
+  social: { da: 'Social', en: 'Social' },
+  leadership: { da: 'Ledelse', en: 'Leadership' },
+  organization: { da: 'Organisation', en: 'Organization' }
+};
+
+// ─── SCORING ───
+function calculateResults(interestAns, valuesAns, compAns) {
+  // 1. RIASEC scores
+  var riasecRaw = { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 };
+  INTEREST_ITEMS.forEach(function(item, i) {
+    riasecRaw[item.type] += (interestAns[i] !== null ? interestAns[i] + 1 : 3);
+  });
+  var riasec = {};
+  RIASEC_ORDER.forEach(function(k) {
+    riasec[k] = Math.round((riasecRaw[k] - 10) / 40 * 100);
+  });
+
+  // 2. Holland code (top 3)
+  var sorted = RIASEC_ORDER.slice().sort(function(a, b) { return riasec[b] - riasec[a]; });
+  var hollandCode = sorted[0] + sorted[1] + sorted[2];
+  var primaryType = sorted[0];
+
+  // 3. Values
+  var values = {};
+  var valDims = ['autonomy', 'security', 'creativity', 'influence', 'relationships', 'balance'];
+  valDims.forEach(function(dim) {
+    var items = VALUES_ITEMS.map(function(item, i) { return item.dim === dim ? i : -1; }).filter(function(i) { return i >= 0; });
+    var sum = items.reduce(function(s, i) { return s + (valuesAns[i] !== null ? valuesAns[i] + 1 : 3); }, 0);
+    values[dim] = Math.round((sum - 3) / 12 * 100);
+  });
+
+  // 4. Competencies (may be null if skipped)
+  var competencies = null;
+  if (compAns) {
+    competencies = {};
+    var compDims = ['analytical', 'technical', 'creative', 'social', 'leadership', 'organization'];
+    compDims.forEach(function(dim) {
+      var items = COMPETENCY_ITEMS.map(function(item, i) { return item.dim === dim ? i : -1; }).filter(function(i) { return i >= 0; });
+      var sum = items.reduce(function(s, i) { return s + (compAns[i] !== null ? compAns[i] + 1 : 3); }, 0);
+      competencies[dim] = Math.round((sum - 2) / 8 * 100);
+    });
+  }
+
+  return { riasec: riasec, hollandCode: hollandCode, primaryType: primaryType, values: values, competencies: competencies, riasecRaw: riasecRaw, sortedTypes: sorted };
+}
+
+function matchOccupations(riasec, occupations) {
+  var userVec = RIASEC_ORDER.map(function(k) { return riasec[k]; });
+  var results = occupations.map(function(occ) {
+    var occVec = occ.r.map(function(v) { return (v - 1) / 6 * 100; });
+    var sumSq = 0;
+    for (var i = 0; i < 6; i++) {
+      var diff = userVec[i] - occVec[i];
+      sumSq += diff * diff;
+    }
+    var dist = Math.sqrt(sumSq);
+    var score = Math.max(0, Math.round(100 - dist / 3));
+    return { soc: occ.soc, en: occ.en, da: occ.da, score: score, jz: occ.jz, cl: occ.cl, dist: dist };
+  });
+  results.sort(function(a, b) { return a.dist - b.dist; });
+  return results.slice(0, 20);
+}
+
+// ─── HEXAGON RADAR (SVG) ───
+function HexRadar({ riasec }) {
+    var cx = 190, cy = 190, r = 145;
+    var types = RIASEC_ORDER;
+    var angles = types.map(function(_, i) { return (Math.PI * 2 * i / 6) - Math.PI / 2; });
+
+    function getPoint(angle, val) {
+        var dist = (val / 100) * r;
+        return [cx + Math.cos(angle) * dist, cy + Math.sin(angle) * dist];
+    }
+
+    var gridLevels = [25, 50, 75, 100];
+    var gridPaths = gridLevels.map(function(level) {
+        var pts = angles.map(function(a) { return getPoint(a, level); });
+        return pts.map(function(p, i) { return (i === 0 ? 'M' : 'L') + p[0] + ',' + p[1]; }).join(' ') + ' Z';
+    });
+
+    var dataPts = types.map(function(k, i) { return getPoint(angles[i], riasec[k]); });
+    var dataPath = dataPts.map(function(p, i) { return (i === 0 ? 'M' : 'L') + p[0] + ',' + p[1]; }).join(' ') + ' Z';
+
+    var colors = { R: 'var(--clr-R)', I: 'var(--clr-I)', A: 'var(--clr-A)', S: 'var(--clr-S)', E: 'var(--clr-E)', C: 'var(--clr-C)' };
+
+    return (
+        <svg viewBox="0 0 380 380" className="radar-svg">
+            {gridPaths.map(function(d, i) {
+                return <path key={i} d={d} fill="none" stroke="var(--border)" strokeWidth={i === 2 ? 1.5 : 0.8} opacity={0.6} />;
+            })}
+            {angles.map(function(a, i) {
+                return <line key={i} x1={cx} y1={cy} x2={cx + Math.cos(a) * r} y2={cy + Math.sin(a) * r} stroke="var(--border)" strokeWidth="0.8" opacity="0.4" />;
+            })}
+            <path d={dataPath} fill="var(--accent)" fillOpacity="0.12" stroke="var(--accent)" strokeWidth="2.5" />
+            {dataPts.map(function(p, i) {
+                return <circle key={i} cx={p[0]} cy={p[1]} r="6" fill={colors[types[i]]} stroke="#fff" strokeWidth="2" />;
+            })}
+            {types.map(function(k, i) {
+                var labelR = r + 28;
+                var lx = cx + Math.cos(angles[i]) * labelR;
+                var ly = cy + Math.sin(angles[i]) * labelR;
+                return (
+                    <g key={i}>
+                        <text x={lx} y={ly - 8} textAnchor="middle" dominantBaseline="central"
+                            fill={colors[k]} fontSize="13" fontWeight="700" fontFamily="var(--sans)">
+                            {RIASEC_TYPES[k].icon} {k}
+                        </text>
+                        <text x={lx} y={ly + 8} textAnchor="middle" dominantBaseline="central"
+                            fill="var(--text-3)" fontSize="11" fontWeight="500" fontFamily="var(--sans)">
+                            {t(RIASEC_TYPES[k].da, RIASEC_TYPES[k].en)}
+                        </text>
+                    </g>
+                );
+            })}
+            {types.map(function(k, i) {
+                var vPt = getPoint(angles[i], Math.min(riasec[k] + 10, 100));
+                return (
+                    <text key={'v' + i} x={vPt[0]} y={vPt[1]} textAnchor="middle" dominantBaseline="central"
+                        fill={colors[k]} fontSize="11" fontWeight="700" fontFamily="var(--sans)">
+                        {riasec[k]}%
+                    </text>
+                );
+            })}
+        </svg>
+    );
+}
+
+// ─── BUILD RESULT OBJECT ───
+function buildResultObj(results, topMatches, allAnswers) {
+    return {
+        riasec: results.riasec,
+        hollandCode: results.hollandCode,
+        primaryType: results.primaryType,
+        values: results.values,
+        competencies: results.competencies,
+        topMatches: topMatches.slice(0, 10).map(function(m) {
+            return { soc: m.soc, en: m.en, da: m.da, score: m.score, jz: m.jz, cl: m.cl };
+        }),
+        answers: allAnswers
+    };
+}
+
+// ─── PAYMENT HANDLERS ───
+window.handleBuyReport = function() {
+    if (window._karriereResults && window.HB_PAY) {
+        HB_PAY.checkout('single', 'karriere', window._karriereResultObj);
+    }
+};
+window.handleBuyUnlimited = function() {
+    if (window._karriereResults && window.HB_PAY) {
+        HB_PAY.checkout('unlimited', 'karriere', window._karriereResultObj);
+    }
+};
+window.handleShareCard = function() {
+    if (window._karriereResults && window.HB_CARD) {
+        HB_CARD.share('karriere', window._karriereResultObj);
+    }
+};
+
+// ─── MAIN APP ───
+function App() {
+    const [phase, setPhase] = useState('hero');
+    const [section, setSection] = useState('interests'); // interests, transition1, values, transition2, competencies
+    const [current, setCurrent] = useState(0);
+    const [interestAnswers, setInterestAnswers] = useState(new Array(60).fill(null));
+    const [valuesAnswers, setValuesAnswers] = useState(new Array(18).fill(null));
+    const [compAnswers, setCompAnswers] = useState(new Array(12).fill(null));
+    const [skipComp, setSkipComp] = useState(false);
+    const [results, setResults] = useState(null);
+    const [topMatches, setTopMatches] = useState([]);
+    const [loadingStep, setLoadingStep] = useState(0);
+    const [occupations, setOccupations] = useState(null);
+
+    // Load occupations data
+    useEffect(function() {
+        fetch('../data/onet-karriere.json')
+          .then(function(r) { return r.json(); })
+          .then(function(data) { setOccupations(data.occupations); })
+          .catch(function(e) { console.error('Failed to load career data:', e); });
+    }, []);
+
+    // Get current items and answers for current section
+    function getCurrentItems() {
+        if (section === 'interests') return INTEREST_ITEMS;
+        if (section === 'values') return VALUES_ITEMS;
+        if (section === 'competencies') return COMPETENCY_ITEMS;
+        return [];
+    }
+    function getCurrentAnswers() {
+        if (section === 'interests') return interestAnswers;
+        if (section === 'values') return valuesAnswers;
+        if (section === 'competencies') return compAnswers;
+        return [];
+    }
+    function setCurrentAnswer(idx, val) {
+        if (section === 'interests') {
+            var next = interestAnswers.slice();
+            next[idx] = val;
+            setInterestAnswers(next);
+        } else if (section === 'values') {
+            var next = valuesAnswers.slice();
+            next[idx] = val;
+            setValuesAnswers(next);
+        } else if (section === 'competencies') {
+            var next = compAnswers.slice();
+            next[idx] = val;
+            setCompAnswers(next);
+        }
+    }
+    function getCurrentLikert() {
+        if (section === 'interests') return INTEREST_LIKERT;
+        if (section === 'values') return VALUES_LIKERT;
+        if (section === 'competencies') return COMPETENCY_LIKERT;
+        return INTEREST_LIKERT;
+    }
+
+    // Total progress across all sections
+    function getTotalProgress() {
+        var answered = interestAnswers.filter(function(a) { return a !== null; }).length;
+        if (section === 'values' || section === 'competencies' || section === 'transition2') {
+            answered = 60 + valuesAnswers.filter(function(a) { return a !== null; }).length;
+        }
+        if (section === 'competencies') {
+            answered = 78 + compAnswers.filter(function(a) { return a !== null; }).length;
+        }
+        var total = skipComp ? 78 : 90;
+        return { answered: answered, total: total };
+    }
+
+    // Keyboard
+    useEffect(function() {
+        function handleKey(e) {
+            if (phase !== 'test') return;
+            if (section === 'transition1' || section === 'transition2') return;
+            var items = getCurrentItems();
+            var answers = getCurrentAnswers();
+            if (e.key >= '1' && e.key <= '5') {
+                setCurrentAnswer(current, parseInt(e.key) - 1);
+            }
+            if (e.key === 'Enter' && answers[current] !== null && current < items.length - 1) {
+                setCurrent(function(c) { return c + 1; });
+            }
+            if (e.key === 'ArrowLeft' && current > 0) {
+                setCurrent(function(c) { return c - 1; });
+            }
+        }
+        window.addEventListener('keydown', handleKey);
+        return function() { window.removeEventListener('keydown', handleKey); };
+    }, [phase, section, current, interestAnswers, valuesAnswers, compAnswers]);
+
+    useEffect(function() {
+        var navEl = document.getElementById('site-nav');
+        if (navEl) {
+            navEl.setAttribute('data-test-mode', phase === 'test' || phase === 'loading' ? 'true' : 'false');
+        }
+    }, [phase]);
+
+    function startTest() {
+        setPhase('test');
+        setSection('interests');
+        setCurrent(0);
+        setInterestAnswers(new Array(60).fill(null));
+        setValuesAnswers(new Array(18).fill(null));
+        setCompAnswers(new Array(12).fill(null));
+        setSkipComp(false);
+        window.scrollTo(0, 0);
+    }
+
+    function selectAnswer(val) {
+        setCurrentAnswer(current, val);
+    }
+
+    function goNext() {
+        var items = getCurrentItems();
+        if (current < items.length - 1) {
+            setCurrent(function(c) { return c + 1; });
+        } else {
+            // End of section
+            if (section === 'interests') {
+                setSection('transition1');
+                window.scrollTo(0, 0);
+            } else if (section === 'values') {
+                setSection('transition2');
+                window.scrollTo(0, 0);
+            } else if (section === 'competencies') {
+                finishTest(false);
+            }
+        }
+    }
+
+    function startValues() {
+        setSection('values');
+        setCurrent(0);
+        window.scrollTo(0, 0);
+    }
+
+    function startCompetencies() {
+        setSection('competencies');
+        setCurrent(0);
+        window.scrollTo(0, 0);
+    }
+
+    function finishTest(skipped) {
+        setSkipComp(skipped);
+        setPhase('loading');
+        window.scrollTo(0, 0);
+        var steps = [0, 1, 2, 3];
+        steps.forEach(function(s, i) {
+            setTimeout(function() { setLoadingStep(s + 1); }, 600 * (i + 1));
+        });
+        setTimeout(function() {
+            var compData = skipped ? null : compAnswers;
+            var res = calculateResults(interestAnswers, valuesAnswers, compData);
+            setResults(res);
+
+            var matches = [];
+            if (occupations) {
+                matches = matchOccupations(res.riasec, occupations);
+            }
+            setTopMatches(matches);
+
+            window._karriereResults = res;
+
+            // Build full answers array
+            var allAnswers = [];
+            INTEREST_ITEMS.forEach(function(item, i) {
+                allAnswers.push({ id: 'i_' + i, type: item.type, text: item.da, chosen: interestAnswers[i] !== null ? interestAnswers[i] + 1 : null, section: 'interests' });
+            });
+            VALUES_ITEMS.forEach(function(item, i) {
+                allAnswers.push({ id: 'v_' + i, dim: item.dim, text: item.da, chosen: valuesAnswers[i] !== null ? valuesAnswers[i] + 1 : null, section: 'values' });
+            });
+            if (!skipped) {
+                COMPETENCY_ITEMS.forEach(function(item, i) {
+                    allAnswers.push({ id: 'c_' + i, dim: item.dim, text: item.da, chosen: compAnswers[i] !== null ? compAnswers[i] + 1 : null, section: 'competencies' });
+                });
+            }
+
+            var resultObj = buildResultObj(res, matches, allAnswers);
+            window._karriereResultObj = resultObj;
+            if (window.HB_PAY) HB_PAY.saveResults('karriere', resultObj);
+
+            setPhase('results');
+            window.scrollTo(0, 0);
+        }, 3200);
+    }
+
+    // ── HERO ──
+    if (phase === 'hero') {
+        return (
+            <div className="hero fade-in-up">
+                <div className="hero-badge">{t('Karriere & Jobmatch', 'Career & Job Match')}</div>
+                <h1>{t(<>Find dit <em>karrierekompas</em></>, <>Find your <em>career compass</em></>)}</h1>
+                <p className="hero-sub">
+                    {t(
+                        'Baseret p\u00e5 Hollands RIASEC-model og O*NET Interest Profiler. Opdag din karriereprofil og f\u00e5 match med over 900 erhverv.',
+                        'Based on Holland\'s RIASEC model and the O*NET Interest Profiler. Discover your career profile and get matched with over 900 occupations.'
+                    )}
+                </p>
+                <div className="hero-stats">
+                    <div className="hero-stat"><strong>60-90</strong><span>{t('sp\u00f8rgsm\u00e5l', 'questions')}</span></div>
+                    <div className="hero-stat"><strong>10-15</strong><span>{t('minutter', 'minutes')}</span></div>
+                    <div className="hero-stat"><strong>6</strong><span>{t('dimensioner', 'dimensions')}</span></div>
+                    <div className="hero-stat"><strong>900+</strong><span>{t('erhverv', 'occupations')}</span></div>
+                </div>
+                <button className="btn-primary" onClick={startTest}>
+                    {t('Start testen \u2192', 'Start the test \u2192')}
+                </button>
+
+                <div style={{ marginTop: 48, width: '100%' }}>
+                    <div className="science-box">
+                        <h3>{t('Videnskabeligt grundlag', 'Scientific Foundation')}</h3>
+                        <p>
+                            {t(
+                                'Testen er baseret p\u00e5 John Hollands RIASEC-model (1959, 1997), en af de mest velunderbyggede teorier inden for karrierepsykologi. Modellen kategoriserer b\u00e5de mennesker og arbejdsmilj\u00f8er i seks typer. Sp\u00f8rgsm\u00e5lene stammer fra O*NET Interest Profiler Short Form (public domain, U.S. Department of Labor). Matching bruger Euclidisk afstand mod 900+ erhvervsprofiler.',
+                                'The test is based on John Holland\'s RIASEC model (1959, 1997), one of the most well-supported theories in career psychology. The model categorizes both people and work environments into six types. Questions are from the O*NET Interest Profiler Short Form (public domain, U.S. Department of Labor). Matching uses Euclidean distance against 900+ occupation profiles.'
+                            )}
+                        </p>
+                        <div className="domains-grid">
+                            {RIASEC_ORDER.map(function(k) {
+                                return (
+                                    <div className="domain-card" key={k}>
+                                        <h4>{RIASEC_TYPES[k].icon} {t(RIASEC_TYPES[k].da, RIASEC_TYPES[k].en)}</h4>
+                                        <span>{k}</span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        <p className="disclaimer">
+                            {t(
+                                'Denne test er ikke et diagnostisk v\u00e6rkt\u00f8j og erstatter ikke professionel karrierer\u00e5dgivning. Ingen data gemmes uden dit samtykke. Dine svar forbliver p\u00e5 din enhed.',
+                                'This test is not a diagnostic tool and does not replace professional career counseling. No data is saved without your consent. Your answers remain on your device.'
+                            )}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // ── TEST: TRANSITION SCREENS ──
+    if (phase === 'test' && section === 'transition1') {
+        return (
+            <div className="transition-screen fade-in-up">
+                <div className="transition-progress">
+                    <div className="transition-dot done" />
+                    <div className="transition-dot active" />
+                    <div className="transition-dot" />
+                </div>
+                <h2>{t('Del 2: Dine v\u00e6rdier', 'Part 2: Your Values')}</h2>
+                <p>
+                    {t(
+                        'Nu vil vi gerne vide hvad der er vigtigt for dig i et arbejdsmilj\u00f8. Der er 18 korte udsagn om arbejdsv\u00e6rdier.',
+                        'Now we\'d like to know what\'s important to you in a work environment. There are 18 short statements about work values.'
+                    )}
+                </p>
+                <button className="btn-primary" onClick={startValues}>
+                    {t('Forts\u00e6t \u2192', 'Continue \u2192')}
+                </button>
+            </div>
+        );
+    }
+
+    if (phase === 'test' && section === 'transition2') {
+        return (
+            <div className="transition-screen fade-in-up">
+                <div className="transition-progress">
+                    <div className="transition-dot done" />
+                    <div className="transition-dot done" />
+                    <div className="transition-dot active" />
+                </div>
+                <h2>{t('Del 3: Udvid din profil', 'Part 3: Expand Your Profile')}</h2>
+                <p>
+                    {t(
+                        'Denne del er valgfri. 12 sp\u00f8rgsm\u00e5l om dine kompetencer giver en endnu mere pr\u00e6cis karriereprofil. Du kan ogs\u00e5 springe over og se dine resultater nu.',
+                        'This part is optional. 12 questions about your competencies give an even more precise career profile. You can also skip and see your results now.'
+                    )}
+                </p>
+                <button className="btn-primary" onClick={startCompetencies}>
+                    {t('Ja, udvid min profil \u2192', 'Yes, expand my profile \u2192')}
+                </button>
+                <button className="skip-btn" onClick={function() { finishTest(true); }}>
+                    {t('Spring over \u2014 vis resultater', 'Skip \u2014 show results')}
+                </button>
+            </div>
+        );
+    }
+
+    // ── TEST: QUESTIONS ──
+    if (phase === 'test') {
+        var items = getCurrentItems();
+        var answers = getCurrentAnswers();
+        var item = items[current];
+        var totalItems = 60 + 18 + (skipComp ? 0 : 12);
+        var globalIdx = section === 'interests' ? current : section === 'values' ? 60 + current : 78 + current;
+        var progress = ((globalIdx + 1) / totalItems) * 100;
+        var likert = getCurrentLikert();
+        var options = likert[currentLang];
+        var isLast = current === items.length - 1;
+        var sectionLabel = section === 'interests' ? t('Del 1: Interesser', 'Part 1: Interests') : section === 'values' ? t('Del 2: V\u00e6rdier', 'Part 2: Values') : t('Del 3: Kompetencer', 'Part 3: Competencies');
+
+        return (
+            <div className="test-container">
+                <div className="progress-bar">
+                    <div className="progress-fill" style={{ width: progress + '%' }} />
+                </div>
+                <div className="progress-text">
+                    <span className="section-indicator">{sectionLabel}</span>
+                    {' '}{current + 1} / {items.length}
+                </div>
+
+                <div className="question-card fade-in-up" key={section + '_' + current}>
+                    <div className="question-text">{currentLang === 'da' ? item.da : item.en}</div>
+
+                    <div className="likert-scale">
+                        {options.map(function(label, i) {
+                            return (
+                                <div key={i}
+                                    className={'likert-option' + (answers[current] === i ? ' selected' : '')}
+                                    onClick={function() { selectAnswer(i); }}>
+                                    <span className="likert-number">{i + 1}</span>
+                                    <div className="likert-dot" />
+                                    <span className="likert-label">{label}</span>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    <div className="nav-buttons">
+                        <button className="btn-nav" onClick={function() { setCurrent(function(c) { return c - 1; }); }} disabled={current === 0}>
+                            {t('\u2190 Tilbage', '\u2190 Back')}
+                        </button>
+                        <button className={'btn-nav' + (answers[current] !== null ? ' primary' : '')}
+                            onClick={goNext} disabled={answers[current] === null}>
+                            {isLast && section === 'competencies' ? t('Se resultat \u2192', 'See result \u2192') : isLast ? t('Forts\u00e6t \u2192', 'Continue \u2192') : t('N\u00e6ste \u2192', 'Next \u2192')}
+                        </button>
+                    </div>
+
+                    <div className="keyboard-hint">
+                        <code>1</code>{'\u2013'}<code>5</code> {t('v\u00e6lg', 'select')} {'\u00b7'} <code>Enter</code> {t('n\u00e6ste', 'next')} {'\u00b7'} <code>{'\u2190'}</code> {t('tilbage', 'back')}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // ── LOADING ──
+    if (phase === 'loading') {
+        var steps = [
+            t('Beregner din RIASEC-profil...', 'Calculating your RIASEC profile...'),
+            t('Matcher med 900+ erhverv...', 'Matching with 900+ occupations...'),
+            t('Analyserer dine v\u00e6rdier...', 'Analyzing your values...'),
+            t('Genererer din karriereprofil...', 'Generating your career profile...')
+        ];
+        return (
+            <div className="loading-phase">
+                <div className="loading-title">{t('Analyserer dine svar...', 'Analyzing your answers...')}</div>
+                <div className="loading-steps">
+                    {steps.map(function(s, i) {
+                        return (
+                            <div key={i} className={'loading-step' + (loadingStep > i ? ' done' : loadingStep === i ? ' active' : '')}>
+                                {loadingStep > i ? (
+                                    <svg className="loading-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+                                ) : loadingStep === i ? (
+                                    <div className="loading-spinner" />
+                                ) : (
+                                    <div style={{ width: 20, height: 20 }} />
+                                )}
+                                {s}
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    }
+
+    // ── RESULTS ──
+    if (phase === 'results' && results) {
+        var isAdmin = window.HB_AUTH && HB_AUTH.isAdmin();
+        var primaryInfo = RIASEC_TYPES[results.primaryType];
+        var codeColors = { R: 'var(--clr-R)', I: 'var(--clr-I)', A: 'var(--clr-A)', S: 'var(--clr-S)', E: 'var(--clr-E)', C: 'var(--clr-C)' };
+
+        return (
+            <div className="results-container fade-in-up">
+                <div className="results-header">
+                    <h1>{t('Din karriereprofil', 'Your Career Profile')}</h1>
+                    <p>{t('Baseret p\u00e5 Hollands RIASEC-model og O*NET Interest Profiler', 'Based on Holland\'s RIASEC model and the O*NET Interest Profiler')}</p>
+                </div>
+
+                {/* Holland Code Hero */}
+                <div className="score-hero">
+                    <div className="holland-code">
+                        {results.hollandCode.split('').map(function(ch, i) {
+                            return <span key={i} style={{ color: codeColors[ch] }}>{ch}</span>;
+                        })}
+                    </div>
+                    <div className="primary-type" style={{ color: primaryInfo.color }}>
+                        {primaryInfo.icon} {t(primaryInfo.da, primaryInfo.en)}
+                    </div>
+                    <div className="score-desc">
+                        {t(primaryInfo.desc_da, primaryInfo.desc_en)}
+                    </div>
+                </div>
+
+                {/* Hexagon Radar */}
+                <div className="radar-section">
+                    <h3>{t('Din RIASEC-profil', 'Your RIASEC Profile')}</h3>
+                    <HexRadar riasec={results.riasec} />
+                </div>
+
+                {/* 6 Dimension Cards */}
+                <h3 className="section-title">{t('Dine 6 dimensioner', 'Your 6 Dimensions')}</h3>
+                <div className="domain-results">
+                    {results.sortedTypes.map(function(k) {
+                        var info = RIASEC_TYPES[k];
+                        var pct = results.riasec[k];
+                        return (
+                            <div className="domain-result" key={k}>
+                                <div className="domain-result-header">
+                                    <span className="domain-result-name">
+                                        <span style={{ fontSize: 18 }}>{info.icon}</span>
+                                        {t(info.da, info.en)} ({k})
+                                    </span>
+                                    <span className="domain-result-score" style={{ color: info.color }}>{pct}%</span>
+                                </div>
+                                <div className="domain-bar">
+                                    <div className="domain-bar-fill" style={{ width: pct + '%', background: info.color }} />
+                                </div>
+                                <div className="domain-result-desc">{t(info.desc_da, info.desc_en)}</div>
+                                <div className="domain-jobs">{t(info.jobs_da, info.jobs_en)}</div>
+                            </div>
+                        );
+                    })}
+                </div>
+
+                {/* Top Career Matches */}
+                <h3 className="section-title">{t('Top karrierematch', 'Top Career Matches')}</h3>
+                <div className="career-matches">
+                    {topMatches.slice(0, 20).map(function(m, i) {
+                        var isBlurred = i >= 5;
+                        return (
+                            <div className={'career-match' + (isBlurred ? ' blurred' : '')} key={i}>
+                                <div className="career-match-info">
+                                    <div className="career-match-title">{i + 1}. {currentLang === 'da' && m.da ? m.da : m.en}</div>
+                                    <div className="career-match-cluster">{m.cl}</div>
+                                </div>
+                                <div className="career-match-score">{m.score}%</div>
+                            </div>
+                        );
+                    })}
+                </div>
+
+                {/* Work Values */}
+                <h3 className="section-title">{t('Dine arbejdsv\u00e6rdier', 'Your Work Values')}</h3>
+                <div className="values-grid">
+                    {Object.keys(results.values).map(function(dim) {
+                        var pct = results.values[dim];
+                        return (
+                            <div className="value-card" key={dim}>
+                                <div className="value-card-header">
+                                    <span className="value-card-name">{t(VALUE_LABELS[dim].da, VALUE_LABELS[dim].en)}</span>
+                                    <span className="value-card-score">{pct}%</span>
+                                </div>
+                                <div className="value-bar">
+                                    <div className="value-bar-fill" style={{ width: pct + '%' }} />
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+
+                {/* Competencies (if completed) */}
+                {results.competencies && (
+                    <>
+                        <h3 className="section-title">{t('Dine kompetencer', 'Your Competencies')}</h3>
+                        <div className="values-grid" style={{ marginBottom: 40 }}>
+                            {Object.keys(results.competencies).map(function(dim) {
+                                var pct = results.competencies[dim];
+                                return (
+                                    <div className="value-card" key={dim}>
+                                        <div className="value-card-header">
+                                            <span className="value-card-name">{t(COMP_LABELS[dim].da, COMP_LABELS[dim].en)}</span>
+                                            <span className="value-card-score">{pct}%</span>
+                                        </div>
+                                        <div className="value-bar">
+                                            <div className="value-bar-fill" style={{ width: pct + '%' }} />
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </>
+                )}
+
+                {/* Share button */}
+                <div style={{ textAlign: 'center', margin: '24px 0' }}>
+                    <button onClick={window.handleShareCard} style={{ background: 'var(--bg-dark)', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--sans)' }}>
+                        {t('Del dit resultat', 'Share your result')}
+                    </button>
+                </div>
+
+                {/* Paywall CTA */}
+                <div className="cta-box">
+                    <h3>{t('F\u00e5 din fulde karriererapport', 'Get your full career report')}</h3>
+                    <p>
+                        {t(
+                            'Se alle 20 karrierematch, detaljeret RIASEC-analyse, v\u00e6rdi-job-fit, karriereveje og handlingsplan.',
+                            'See all 20 career matches, detailed RIASEC analysis, value-job fit, career paths and action plan.'
+                        )}
+                    </p>
+                    <div className="cta-features">
+                        <span className="cta-feature">{t('20 karrierematch', '20 career matches')}</span>
+                        <span className="cta-feature">{t('RIASEC-dybdeanalyse', 'RIASEC deep analysis')}</span>
+                        <span className="cta-feature">{t('V\u00e6rdi-job fit', 'Value-job fit')}</span>
+                        <span className="cta-feature">{t('Karriereveje', 'Career paths')}</span>
+                        <span className="cta-feature">{t('Handlingsplan', 'Action plan')}</span>
+                        <span className="cta-feature">{t('PDF-download', 'PDF download')}</span>
+                    </div>
+                    <button className="btn-primary" onClick={window.handleBuyReport}>
+                        {t('K\u00f8b rapport \u2014 49 kr', 'Buy report \u2014 49 DKK')}
+                    </button>
+                    <p style={{ marginTop: 12 }}>
+                        <button onClick={window.handleBuyUnlimited} style={{ background: 'transparent', border: 'none', color: 'var(--accent)', fontWeight: 500, fontSize: 14, cursor: 'pointer', textDecoration: 'underline', fontFamily: 'var(--sans)' }}>
+                            {t('Eller: Ubegr\u00e6nset \u2014 89 kr/md', 'Or: Unlimited \u2014 89 DKK/mo')}
+                        </button>
+                    </p>
+                    {isAdmin && (
+                        <a className="admin-link" href={'../rapporter/karriere.html?code=' + results.hollandCode + '&R=' + results.riasec.R + '&I=' + results.riasec.I + '&A=' + results.riasec.A + '&S=' + results.riasec.S + '&E=' + results.riasec.E + '&C=' + results.riasec.C}>
+                            {t('Admin: Se rapport direkte', 'Admin: View report directly')}
+                        </a>
+                    )}
+                </div>
+
+                {/* Cross-sell */}
+                <div className="cross-sell">
+                    <h3>{t('Relaterede tests', 'Related tests')}</h3>
+                    <div className="cross-sell-grid">
+                        <a href="/tests/personlighed.html" className="cross-sell-card">
+                            <div className="name">{t('Personlighedstest', 'Personality Test')}</div>
+                            <div className="sub">{t('Din personlighed p\u00e5virker din karrieretilfredshed', 'Your personality affects your career satisfaction')}</div>
+                        </a>
+                        <a href="/tests/eq.html" className="cross-sell-card">
+                            <div className="name">{t('EQ-test', 'EQ Test')}</div>
+                            <div className="sub">{t('Emotionel intelligens er afg\u00f8rende p\u00e5 arbejdspladsen', 'Emotional intelligence is crucial in the workplace')}</div>
+                        </a>
+                        <a href="/tests/stress.html" className="cross-sell-card">
+                            <div className="name">{t('Stress & Udbr\u00e6ndthed', 'Stress & Burnout')}</div>
+                            <div className="sub">{t('Forkert karrierematch kan f\u00f8re til udbr\u00e6ndthed', 'Wrong career match can lead to burnout')}</div>
+                        </a>
+                    </div>
+                </div>
+
+                {/* Retake */}
+                <div style={{ textAlign: 'center', marginBottom: 24 }}>
+                    <button className="btn-nav" onClick={startTest}>
+                        {t('\u21bb Tag testen igen', '\u21bb Take the test again')}
+                    </button>
+                </div>
+
+                {/* Disclaimer */}
+                <div className="results-disclaimer">
+                    {t(
+                        'Denne test er baseret p\u00e5 Hollands RIASEC-model (1959, 1997) og O*NET Interest Profiler Short Form (U.S. Department of Labor, public domain). Erhvervsmatch anvender O*NET 29.1 (2024) data. Resultatet er ikke et diagnostisk v\u00e6rkt\u00f8j og erstatter ikke professionel karrierer\u00e5dgivning. Karrierepr\u00e6ferencer udvikler sig over tid, og dine resultater afspejler et \u00f8jebliksbillede.',
+                        'This test is based on Holland\'s RIASEC model (1959, 1997) and the O*NET Interest Profiler Short Form (U.S. Department of Labor, public domain). Occupation matching uses O*NET 29.1 (2024) data. The result is not a diagnostic tool and does not replace professional career counseling. Career preferences evolve over time, and your results reflect a snapshot.'
+                    )}
+                </div>
+            </div>
+        );
+    }
+
+    return null;
+}
+
+var root = ReactDOM.createRoot(document.getElementById('app'));
+root.render(<App />);
+</script>
+</body>
+</html>

@@ -72,6 +72,9 @@
   // EQ: Schutte et al. (1998), SSEIT
   var EQ_NORMS = { mean: 124, sd: 13, source: 'Schutte et al. (1998), SSEIT, n=346' };
 
+  // Karriere/RIASEC: Interesseprofil, ikke normeret test (ingen populationspercentiler)
+  var KARRIERE_INFO = { source: 'O*NET Interest Profiler (U.S. DOL), Rounds et al. (2010)' };
+
   // ADHD: Intervalbaseret (ingen populationsnormer for screeningstools)
   var ADHD_RANGES = {
     quick: [
@@ -121,6 +124,14 @@
         result.percentile = scoreToPercentile(score, EQ_NORMS.mean, EQ_NORMS.sd);
         result.source = EQ_NORMS.source;
         break;
+
+      case 'karriere':
+        // RIASEC is an interest profile, not a normative test — no population percentiles
+        var level = score >= 80 ? 'Meget stærk interesse' : score >= 60 ? 'Stærk interesse' : score >= 40 ? 'Moderat interesse' : score >= 20 ? 'Let interesse' : 'Svag interesse';
+        result.label = level;
+        result.description = 'RIASEC er en interesseprofil, ikke en normeret test.';
+        result.source = KARRIERE_INFO.source;
+        return result; // no percentile for RIASEC
 
       case 'adhd':
         var totalPct = typeof score === 'object' ? score.totalPct : score;

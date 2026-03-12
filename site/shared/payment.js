@@ -11,7 +11,8 @@
     autisme: '/tests/autisme.html',
     personlighed: '/tests/personlighed.html',
     stress: '/tests/stress.html',
-    eq: '/tests/eq.html'
+    eq: '/tests/eq.html',
+    karriere: '/tests/karriere.html'
   };
 
   // Report pages (redirected to after successful payment)
@@ -21,7 +22,8 @@
     stress: '/rapporter/stress.html',
     iq: '/rapporter/iq.html',
     autisme: '/rapporter/autisme.html',
-    eq: '/rapporter/eq.html'
+    eq: '/rapporter/eq.html',
+    karriere: '/rapporter/karriere.html'
   };
 
   // ── Check report access ──
@@ -141,6 +143,8 @@
           return 'PSS: ' + (d.pssTotal||0) + '/40 (' + (d.pssPct||0).toFixed(0) + '%), ' + (d.burnoutProfile||'?');
         case 'eq':
           return 'EQ: ' + (d.total||0) + '/' + (d.max||165) + ' (' + (d.percentile||0) + '%)';
+        case 'karriere':
+          return 'Holland: ' + (d.hollandCode||'?') + ', primær: ' + (d.primaryType||'?');
         default:
           return testType + ' completed';
       }
@@ -279,6 +283,7 @@
     if (path.includes('personlighed')) return 'personlighed';
     if (path.includes('stress')) return 'stress';
     if (path.includes('eq')) return 'eq';
+    if (path.includes('karriere')) return 'karriere';
     return null;
   }
 

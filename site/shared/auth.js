@@ -102,7 +102,20 @@
     try {
       var result;
       if (_isSignup) {
-        result = await sb.auth.signUp({ email: email, password: pw });
+        result = await sb.auth.signUp({
+          email: email,
+          password: pw,
+          options: { emailRedirectTo: window.location.origin + '/' }
+        });
+        if (!result.error && result.data.user && !result.data.session) {
+          // Email confirmation required — show message
+          errEl.textContent = 'Tjek din email — klik på bekræftelseslinket for at aktivere din konto.';
+          errEl.style.display = 'block';
+          errEl.style.color = 'var(--accent, #2c5f4b)';
+          btn.disabled = false;
+          btn.textContent = 'Opret konto';
+          return;
+        }
       } else {
         result = await sb.auth.signInWithPassword({ email: email, password: pw });
       }
@@ -143,15 +156,24 @@
 
   async function _loadProfile(user) {
     _user = user;
-    if (!user) { _plan = 'free'; return; }
+    if (!user) { _plan = 'free'; _credits = 0; return; }
 
-    var { data } = await sb.from('user_profiles').select('plan, report_credits, display_name').eq('id', user.id).single();
+    var { data } = await sb.from('user_profiles').select('plan, report_credits, display_name').eq('id', user.id).maybeSingle();
     if (data) {
       _plan = data.plan || 'free';
       _credits = data.report_credits || 0;
     } else {
+      // Profile doesn't exist yet — create it (e.g. user confirmed email and returned)
       _plan = 'free';
       _credits = 0;
+      try {
+        await sb.from('user_profiles').insert({
+          id: user.id,
+          email: user.email,
+          plan: 'free',
+          report_credits: 0
+        });
+      } catch(e) { /* Ignore duplicate insert errors */ }
     }
   }
 
@@ -252,13 +274,25 @@
     }
   });
 
-  // Listen for auth state changes
-  sb.auth.onAuthStateChange(function(event, session) {
+  // Listen for auth state changes (including email confirmation callback)
+  sb.auth.onAuthStateChange(async function(event, session) {
     if (event === 'SIGNED_OUT') {
       _user = null;
       _plan = 'free';
       _credits = 0;
       _updateNav();
+    } else if (event === 'SIGNED_IN' && session && session.user) {
+      // Handle email confirmation redirect or new sign-in
+      await _loadProfile(session.user);
+      // Create profile if it doesn't exist (new confirmed user)
+      if (_plan === 'free' && !_user) {
+        _user = session.user;
+      }
+      _updateNav();
+      // Clean hash fragment from URL after email confirmation
+      if (window.location.hash && window.location.hash.includes('access_token')) {
+        window.history.replaceState({}, '', window.location.pathname + window.location.search);
+      }
     }
   });
 

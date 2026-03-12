@@ -855,6 +855,14 @@
                 const likert = { 1: 'Helt uenig', 2: 'Uenig', 3: 'Neutral', 4: 'Enig', 5: 'Helt enig' };
                 return { text: a.text, answer: likert[a.chosen] || 'Ikke besvaret', extra: `${a.domain}${a.reverse ? ' (R)' : ''}` };
             }
+            if (testType === 'karriere') {
+                const intL = { 1: 'Kan slet ikke lide', 2: 'Kan ikke lide', 3: 'Neutral', 4: 'Kan godt lide', 5: 'Kan virkelig godt lide' };
+                const valL = { 1: 'Slet ikke vigtigt', 2: 'Ikke vigtigt', 3: 'Neutral', 4: 'Vigtigt', 5: 'Meget vigtigt' };
+                const compL = { 1: 'Slet ikke mig', 2: 'Ikke helt mig', 3: 'Neutral', 4: 'Ret meget mig', 5: 'Helt klart mig' };
+                const sec = a.section || (a.id?.startsWith('v_') ? 'values' : a.id?.startsWith('c_') ? 'competencies' : 'interests');
+                const labels = sec === 'values' ? valL : sec === 'competencies' ? compL : intL;
+                return { text: a.text, answer: labels[a.chosen] || 'Ikke besvaret', extra: a.type || a.cluster || a.area || '' };
+            }
             return { text: JSON.stringify(a), answer: '', extra: '' };
         }
 
