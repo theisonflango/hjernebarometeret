@@ -410,7 +410,7 @@ var LOADING_STEPS = [
 
 // ─── APP ───
 function App() {
-    var [phase, setPhase] = useState('hero'); // hero | questions | transition | paywall | loading | results | error
+    var [phase, setPhase] = useState('hero'); // hero | questions | transition | loading | results | full_report | error
     var [selectedTier, setSelectedTier] = useState(null); // 'standard' | 'premium'
     var [currentQ, setCurrentQ] = useState(0);
     var [answers, setAnswers] = useState({});
@@ -453,9 +453,8 @@ function App() {
                 window.scrollTo(0, 0);
             }
         } else {
-            // Show paywall — user must pay before analysis is generated
-            setPhase('paywall');
-            window.scrollTo(0, 0);
+            // Generate free preview analysis (~1 kr API cost)
+            submitFreeAnalysis();
         }
     }
 
@@ -489,64 +488,15 @@ function App() {
         }
     }
 
-    // Start checkout for selected tier
-    async function handleCheckout(tier) {
-        setSelectedTier(tier);
-        var productType = tier === 'premium' ? 'virksomhed_premium' : 'virksomhed_standard';
-        try {
-            await HB_PAY.startCheckout('virksomhed', productType);
-        } catch (err) {
-            console.error('Checkout error:', err);
-            alert('Fejl ved checkout: ' + (err.message || 'Prøv igen'));
-        }
-    }
-
-    // Check for payment callback on mount
-    useEffect(function() {
-        var params = new URLSearchParams(window.location.search);
-        var status = params.get('status');
-        var tier = params.get('tier') || localStorage.getItem('hb_virksomhed_tier') || 'standard';
-        if (status === 'success') {
-            // Payment succeeded — load saved answers and generate analysis
-            var savedAnswers = localStorage.getItem('hb_virksomhed_answers');
-            if (savedAnswers) {
-                try {
-                    var parsed = JSON.parse(savedAnswers);
-                    setAnswers(parsed);
-                    setSelectedTier(tier);
-                    // Clear URL params
-                    window.history.replaceState({}, '', window.location.pathname);
-                    // Start analysis generation
-                    submitAnalysis(parsed, tier);
-                } catch(e) {
-                    console.error('Failed to parse saved answers:', e);
-                }
-            }
-        } else if (status === 'cancel') {
-            // User cancelled — go back to paywall
-            var savedAnswers2 = localStorage.getItem('hb_virksomhed_answers');
-            if (savedAnswers2) {
-                try { setAnswers(JSON.parse(savedAnswers2)); } catch(e) {}
-                setPhase('paywall');
-            }
-            window.history.replaceState({}, '', window.location.pathname);
-        }
-    }, []);
-
-    // Submit to Edge Function (only called after payment)
-    async function submitAnalysis(paidAnswers, tier) {
-        var answersToUse = paidAnswers || answers;
+    // ── FREE PREVIEW: Generate short analysis (~1 kr API cost) ──
+    async function submitFreeAnalysis() {
         setPhase('loading');
         setLoadingStep(0);
         window.scrollTo(0, 0);
 
-        // Animate loading steps
         var stepInterval = setInterval(function() {
             setLoadingStep(function(prev) {
-                if (prev >= LOADING_STEPS.length - 1) {
-                    clearInterval(stepInterval);
-                    return prev;
-                }
+                if (prev >= LOADING_STEPS.length - 1) { clearInterval(stepInterval); return prev; }
                 return prev + 1;
             });
         }, 4000);
@@ -554,7 +504,6 @@ function App() {
         try {
             var token = null;
             var userId = null;
-
             if (window.HB_AUTH && HB_AUTH.user) {
                 userId = HB_AUTH.user.id;
                 var session = HB_AUTH.supabase ? (await HB_AUTH.supabase.auth.getSession()).data.session : null;
@@ -568,18 +517,14 @@ function App() {
             }
 
             var body = {
-                answers: answersToUse,
-                tier: tier || selectedTier || 'standard',
+                answers: answers,
+                tier: 'free',
                 user_id: userId,
                 anonymous_token: userId ? null : anonToken
             };
 
             var headers = { 'Content-Type': 'application/json' };
-            if (token) {
-                headers['Authorization'] = 'Bearer ' + token;
-            } else {
-                headers['Authorization'] = 'Bearer ' + SUPABASE_ANON;
-            }
+            headers['Authorization'] = 'Bearer ' + (token || SUPABASE_ANON);
 
             var response = await fetch(EDGE_URL, {
                 method: 'POST',
@@ -595,24 +540,16 @@ function App() {
             }
 
             var result = await response.json();
-            if (result.error) {
-                throw new Error(result.error);
-            }
+            if (result.error) throw new Error(result.error);
 
             setFreeResult(result);
             setAnalysisId(result.analysis_id);
             setLoadingStep(LOADING_STEPS.length);
 
-            // Clean up saved answers
-            localStorage.removeItem('hb_virksomhed_answers');
-            localStorage.removeItem('hb_virksomhed_tier');
+            // Save answers for potential full report generation after payment
+            localStorage.setItem('hb_virksomhed_answers', JSON.stringify(answers));
 
-            // Short delay then show results
-            setTimeout(function() {
-                setPhase('results');
-                window.scrollTo(0, 0);
-            }, 800);
-
+            setTimeout(function() { setPhase('results'); window.scrollTo(0, 0); }, 800);
         } catch (err) {
             clearInterval(stepInterval);
             console.error('Analysis error:', err);
@@ -622,10 +559,109 @@ function App() {
         }
     }
 
+    // ── FULL REPORT: Checkout for Standard/Premium ──
+    async function handleCheckout(tier) {
+        setSelectedTier(tier);
+        localStorage.setItem('hb_virksomhed_tier', tier);
+        localStorage.setItem('hb_virksomhed_answers', JSON.stringify(answers));
+        var productType = tier === 'premium' ? 'virksomhed_premium' : 'virksomhed_standard';
+        try {
+            await HB_PAY.startCheckout('virksomhed', productType);
+        } catch (err) {
+            console.error('Checkout error:', err);
+            alert('Fejl ved checkout: ' + (err.message || 'Prøv igen'));
+        }
+    }
+
+    // Check for payment callback on mount (return from Stripe)
+    useEffect(function() {
+        var params = new URLSearchParams(window.location.search);
+        var status = params.get('status');
+        if (status === 'success') {
+            var tier = params.get('tier') || localStorage.getItem('hb_virksomhed_tier') || 'standard';
+            var savedAnswers = localStorage.getItem('hb_virksomhed_answers');
+            if (savedAnswers) {
+                try {
+                    var parsed = JSON.parse(savedAnswers);
+                    setAnswers(parsed);
+                    setSelectedTier(tier);
+                    window.history.replaceState({}, '', window.location.pathname);
+                    submitFullReport(parsed, tier);
+                } catch(e) { console.error('Failed to parse saved answers:', e); }
+            }
+        } else if (status === 'cancel') {
+            var savedAnswers2 = localStorage.getItem('hb_virksomhed_answers');
+            if (savedAnswers2) { try { setAnswers(JSON.parse(savedAnswers2)); } catch(e) {} }
+            setPhase('results'); // Go back to free preview with paywall
+            window.history.replaceState({}, '', window.location.pathname);
+        }
+    }, []);
+
+    // ── FULL REPORT: Generate after payment ──
+    async function submitFullReport(paidAnswers, tier) {
+        setPhase('loading');
+        setLoadingStep(0);
+        window.scrollTo(0, 0);
+
+        var stepInterval = setInterval(function() {
+            setLoadingStep(function(prev) {
+                if (prev >= LOADING_STEPS.length - 1) { clearInterval(stepInterval); return prev; }
+                return prev + 1;
+            });
+        }, 4000);
+
+        try {
+            var token = null;
+            var userId = null;
+            if (window.HB_AUTH && HB_AUTH.user) {
+                userId = HB_AUTH.user.id;
+                var session = HB_AUTH.supabase ? (await HB_AUTH.supabase.auth.getSession()).data.session : null;
+                token = session ? session.access_token : null;
+            }
+
+            var body = {
+                answers: paidAnswers,
+                tier: tier,
+                user_id: userId,
+                anonymous_token: userId ? null : localStorage.getItem('hb_anon_token')
+            };
+
+            var headers = { 'Content-Type': 'application/json' };
+            headers['Authorization'] = 'Bearer ' + (token || SUPABASE_ANON);
+
+            var response = await fetch(EDGE_URL, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(body)
+            });
+
+            clearInterval(stepInterval);
+
+            if (!response.ok) throw new Error((await response.text()) || 'Server error ' + response.status);
+            var result = await response.json();
+            if (result.error) throw new Error(result.error);
+
+            setFreeResult(result);
+            setAnalysisId(result.analysis_id);
+            setSelectedTier(tier);
+            setLoadingStep(LOADING_STEPS.length);
+            localStorage.removeItem('hb_virksomhed_answers');
+            localStorage.removeItem('hb_virksomhed_tier');
+
+            setTimeout(function() { setPhase('full_report'); window.scrollTo(0, 0); }, 800);
+        } catch (err) {
+            clearInterval(stepInterval);
+            console.error('Full report error:', err);
+            setErrorMsg(err.message || 'Noget gik galt. Prøv igen.');
+            setPhase('error');
+            window.scrollTo(0, 0);
+        }
+    }
+
     async function handleRetry() {
         setRetryCount(retryCount + 1);
         setErrorMsg('');
-        await submitAnalysis();
+        await submitFreeAnalysis();
     }
 
     // Save prompt for anonymous users
@@ -701,104 +737,6 @@ function App() {
         );
     }
 
-    // ── PAYWALL ──
-    if (phase === 'paywall') {
-        // Save answers to localStorage so they survive Stripe redirect
-        localStorage.setItem('hb_virksomhed_answers', JSON.stringify(answers));
-
-        // Admin bypass
-        var isAdmin = window.HB_AUTH && (HB_AUTH.plan === 'admin' || HB_AUTH.plan === 'unlimited');
-        if (isAdmin) {
-            return (
-                <div className="results-container fade-in-up">
-                    <div className="cta-box">
-                        <h3>Admin-adgang</h3>
-                        <p>Du har fuld adgang. Vælg analysetype:</p>
-                        <div className="cta-buttons">
-                            <button className="cta-btn standard" onClick={function() { submitAnalysis(answers, 'standard'); }}>
-                                Standard (Claude Sonnet)
-                            </button>
-                            <button className="cta-btn premium" onClick={function() { submitAnalysis(answers, 'premium'); }}>
-                                Premium (Claude Opus)
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            );
-        }
-
-        return (
-            <div className="results-container fade-in-up">
-                <div className="result-hero">
-                    <h2>Dine svar er klar</h2>
-                    <div className="summary">Du har besvaret alle 35 spørgsmål. Vælg dit analyseniveau for at generere din skræddersyede virksomhedsanalyse.</div>
-                </div>
-
-                <div className="cta-box">
-                    <h3>Vælg dit analyseniveau</h3>
-                    <p>Din analyse genereres af AI baseret på dine specifikke svar. Engangskøb — ingen abonnement.</p>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, maxWidth: 600, margin: '0 auto 24px', textAlign: 'left' }}>
-                        {/* Standard */}
-                        <div style={{ background: 'var(--bg)', border: '2px solid var(--border)', borderRadius: 14, padding: 24, position: 'relative' }}>
-                            <h4 style={{ fontFamily: 'var(--serif)', fontSize: 17, fontWeight: 600, marginBottom: 4 }}>Standard</h4>
-                            <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--accent)', marginBottom: 12 }}>89 kr</div>
-                            <div style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 16 }}>Drevet af Claude Sonnet</div>
-                            <ul style={{ fontSize: 13.5, lineHeight: 1.8, paddingLeft: 16, color: 'var(--text-2)' }}>
-                                <li>SWOT-analyse</li>
-                                <li>Markedsvurdering</li>
-                                <li>Konkurrentvurdering</li>
-                                <li>Vækststrategi</li>
-                                <li>30/60/90-dages plan</li>
-                                <li>PDF-download</li>
-                            </ul>
-                            <button className="cta-btn standard" style={{ width: '100%', marginTop: 16 }} onClick={function() {
-                                localStorage.setItem('hb_virksomhed_tier', 'standard');
-                                handleCheckout('standard');
-                            }}>Vælg Standard</button>
-                        </div>
-
-                        {/* Premium */}
-                        <div style={{ background: 'var(--bg-card)', border: '2px solid var(--bg-dark)', borderRadius: 14, padding: 24, position: 'relative', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
-                            <div style={{ position: 'absolute', top: -10, right: 16, background: 'var(--bg-dark)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 100, letterSpacing: '.02em' }}>ANBEFALET</div>
-                            <h4 style={{ fontFamily: 'var(--serif)', fontSize: 17, fontWeight: 600, marginBottom: 4 }}>Premium</h4>
-                            <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--text)', marginBottom: 12 }}>149 kr</div>
-                            <div style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 16 }}>Drevet af Claude Opus</div>
-                            <ul style={{ fontSize: 13.5, lineHeight: 1.8, paddingLeft: 16, color: 'var(--text-2)' }}>
-                                <li><strong>Alt fra Standard</strong></li>
-                                <li>Dybere markedsanalyse</li>
-                                <li>Detaljeret konkurrentanalyse</li>
-                                <li>Risikovurdering</li>
-                                <li>Finansiel modellering</li>
-                                <li>Prioriteret handlingsplan</li>
-                            </ul>
-                            <button className="cta-btn premium" style={{ width: '100%', marginTop: 16 }} onClick={function() {
-                                localStorage.setItem('hb_virksomhed_tier', 'premium');
-                                handleCheckout('premium');
-                            }}>Vælg Premium</button>
-                        </div>
-                    </div>
-
-                    <p className="cta-note">Engangskøb. Ingen abonnement. Analysen genereres med det samme efter betaling.</p>
-                </div>
-
-                {/* Blurred preview */}
-                <div className="result-card" style={{ position: 'relative' }}>
-                    <h3>Eksempel: Markedsanalyse</h3>
-                    <div className="blurred" style={{ minHeight: 120 }}>
-                        <div className="result-content">
-                            <p>Dit marked viser tegn på stærk vækst inden for de seneste 24 måneder. Baseret på din branche og positionering identificerer vi tre primære trends der påvirker din forretning direkte. Den samlede adresserbare markedsstørrelse estimeres til...</p>
-                            <p>Konkurrenceintensiteten i din niche er moderat, hvilket giver plads til differentiering gennem focused positioning. De mest succesfulde aktører i din sektor har typisk...</p>
-                        </div>
-                    </div>
-                    <div style={{ position: 'absolute', bottom: 16, left: 0, right: 0, textAlign: 'center' }}>
-                        <span style={{ fontSize: 13, color: 'var(--accent)', fontWeight: 600 }}>Inkluderet i din analyse ↑</span>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
     // ── LOADING ──
     if (phase === 'loading') {
         return (
@@ -857,7 +795,7 @@ function App() {
             <div className="results-container fade-in-up">
                 <div className="results-header">
                     <h1>Din virksomhedsanalyse</h1>
-                    <p>Skræddersyet analyse baseret på dine 35 svar — genereret af {selectedTier === 'premium' ? 'Claude Opus' : 'Claude Sonnet'}.</p>
+                    <p>Gratis smagsprøve baseret på dine svar. Få den fulde rapport med markedsanalyse, konkurrentvurdering og handlingsplan.</p>
                 </div>
 
                 {/* Profile label */}
@@ -911,6 +849,46 @@ function App() {
                         <div className="result-content" dangerouslySetInnerHTML={{ __html: (r.overall_rating || '').replace(/\n/g, '<br/>') }}></div>
                     </div>
                 )}
+
+                {/* Paywall — full report */}
+                <div className="cta-box">
+                    <h3>Få den fulde analyse</h3>
+                    <p>Din gratis vurdering er kun begyndelsen. Den fulde rapport indeholder 10 dybdegående sektioner med konkret, handlingsrettet rådgivning.</p>
+                    <div className="cta-features">
+                        <span className="cta-feature">Markedsanalyse</span>
+                        <span className="cta-feature">Konkurrentvurdering</span>
+                        <span className="cta-feature">Forretningsmodel</span>
+                        <span className="cta-feature">Vækststrategi</span>
+                        <span className="cta-feature">Risikovurdering</span>
+                        <span className="cta-feature">30/60/90-dages plan</span>
+                        <span className="cta-feature">PDF-download</span>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, maxWidth: 420, margin: '0 auto 16px' }}>
+                        <button className="cta-btn standard" onClick={function() { handleCheckout('standard'); }}>
+                            Standard — 89 kr
+                            <div style={{ fontSize: 11, fontWeight: 400, opacity: 0.8, marginTop: 2 }}>Claude Sonnet</div>
+                        </button>
+                        <button className="cta-btn premium" onClick={function() { handleCheckout('premium'); }}>
+                            Premium — 149 kr
+                            <div style={{ fontSize: 11, fontWeight: 400, opacity: 0.8, marginTop: 2 }}>Claude Opus</div>
+                        </button>
+                    </div>
+                    <p className="cta-note">Engangskøb. Ingen abonnement. Analysen genereres med det samme efter betaling.</p>
+                </div>
+
+                {/* Blurred preview */}
+                <div className="result-card" style={{ position: 'relative' }}>
+                    <h3>Markedsanalyse</h3>
+                    <div className="blurred" style={{ minHeight: 120 }}>
+                        <div className="result-content">
+                            <p>Dit marked viser tegn på stærk vækst inden for de seneste 24 måneder. Baseret på din branche og positionering identificerer vi tre primære trends der påvirker din forretning direkte. Den samlede adresserbare markedsstørrelse estimeres til...</p>
+                            <p>Konkurrenceintensiteten i din niche er moderat, hvilket giver plads til differentiering gennem focused positioning. De mest succesfulde aktører i din sektor har typisk...</p>
+                        </div>
+                    </div>
+                    <div style={{ position: 'absolute', bottom: 16, left: 0, right: 0, textAlign: 'center' }}>
+                        <span style={{ fontSize: 13, color: 'var(--accent)', fontWeight: 600 }}>Inkluderet i den fulde rapport ↑</span>
+                    </div>
+                </div>
 
                 {/* Save prompt for anonymous */}
                 <div id="hb-save-prompt-virksomhed"></div>
