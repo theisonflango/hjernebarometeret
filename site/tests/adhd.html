@@ -39,6 +39,7 @@
 <script src="../shared/auth.js"></script>
 <script src="../shared/coupon.js"></script>
 <script src="../shared/payment.js"></script>
+<script src="../shared/analytics.js"></script>
 <script src="../shared/normdata.js"></script>
 <script src="../shared/profilecard.js"></script>
 <script type="text/babel">
@@ -413,7 +414,7 @@ function DomainBar({ label, pct, color }) {
   );
 }
 
-function Results({ profile, birthYear, answers }) {
+function Results({ profile, birthYear, answers, testStartId, testStartedAt, itemTimerRef }) {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (window.HB_PAY) {
@@ -427,6 +428,15 @@ function Results({ profile, birthYear, answers }) {
           id: q.id, part: q.part, domain: q.domain, text: q.da, chosen: answers[q.id] ?? null
         }))
       };
+      data.test_version = 'v1.1';
+      data.metadata = window.HB_ANALYTICS ? HB_ANALYTICS.buildMetadata(testStartedAt, 'da') : {};
+      data.demographics = window.HB_ANALYTICS ? HB_ANALYTICS.buildDemographics(birthYear, null) : null;
+      if (itemTimerRef.current && data.answers) {
+        data.answers = HB_ANALYTICS.enrichAnswersWithTiming(data.answers, itemTimerRef.current);
+      }
+      if (window.HB_ANALYTICS && testStartId) {
+        HB_ANALYTICS.updateTestStart(testStartId, { completed: true, last_item_index: 18 });
+      }
       HB_PAY.saveResults('adhd', data);
       HB_PAY.renderSavePrompt('hb-save-prompt-adhd', 'adhd');
     }
@@ -559,14 +569,24 @@ function App() {
   const [currentQ, setCurrentQ] = useState(0);
   const [answers, setAnswers] = useState({});
   const [profile, setProfile] = useState(null);
+  const [testStartId, setTestStartId] = useState(null);
+  const [testStartedAt, setTestStartedAt] = useState(null);
+  const itemTimerRef = useRef(null);
 
   const handleStart = (by) => {
     setBirthYear(by);
     setPhase("test");
     window.scrollTo({ top: 0 });
+    if (window.HB_ANALYTICS) {
+      HB_ANALYTICS.logTestStart('adhd', 'v1.1').then(function(r) {
+        if (r) { setTestStartId(r.startId); setTestStartedAt(r.startedAt); }
+      });
+      itemTimerRef.current = HB_ANALYTICS.createItemTimer();
+    }
   };
 
   const handleSelect = (val) => {
+    if (itemTimerRef.current) itemTimerRef.current.mark(String(ASRS_ITEMS[currentQ].id));
     setAnswers(prev => ({ ...prev, [ASRS_ITEMS[currentQ].id]: val }));
   };
 
@@ -620,7 +640,7 @@ function App() {
       setPhase("results");
     }
   });
-  if (phase === "results") return React.createElement(Results, { profile, birthYear, answers });
+  if (phase === "results") return React.createElement(Results, { profile, birthYear, answers, testStartId, testStartedAt, itemTimerRef });
   return null;
 }
 

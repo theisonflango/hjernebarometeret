@@ -36,6 +36,7 @@ button{font-family:inherit;cursor:pointer}a{font-family:inherit;text-decoration:
 <script src="../shared/payment.js"></script>
 <script src="../shared/normdata.js"></script>
 <script src="../shared/profilecard.js"></script>
+<script src="../shared/analytics.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
@@ -188,6 +189,7 @@ const ANum=({target})=>{const[c,setC]=useState(0);useEffect(()=>{let s=0;const s
 function App(){
   const[lang,setLang]=useState("da");const[page,setPage]=useState("home");const[cQ,setCQ]=useState(0);const[ans,setAns]=useState({});const[sTime,setSTime]=useState(null);const[elapsed,setElapsed]=useState(0);const[res,setRes]=useState(null);const[showI,setShowI]=useState(true);const[anim,setAnim]=useState(false);const[payLoading,setPayLoading]=useState(false);const tRef=useRef(null);
   const[birthYear,setBirthYear]=useState("");const[underAgeAck,setUnderAgeAck]=useState(false);
+  const[testStartId,setTestStartId]=useState(null);const[testStartedAt,setTestStartedAt]=useState(null);const itemTimer=useRef(null);
   const t=T[lang];const qs=useMemo(()=>makeQ(lang),[lang]);
   // Handle return from Stripe payment
   useEffect(()=>{
@@ -204,9 +206,9 @@ function App(){
   const fmt=s=>`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
   const go=p=>{setPage(p);window.scrollTo(0,0);};
   const goTest=()=>{setCQ(0);setAns({});setRes(null);setShowI(true);setAnim(false);setBirthYear("");setUnderAgeAck(false);go("test");};
-  const begin=()=>{setShowI(false);setSTime(Date.now());setElapsed(0);};
-  const pick=i=>setAns({...ans,[cQ]:i});
-  const done=()=>{clearInterval(tRef.current);const r=calcIQ(ans,qs,Math.floor((Date.now()-sTime)/1000));r.answers=qs.map((q,i)=>({q:i,text:q.q,chosen:ans[i]!=null?q.o[ans[i]]:null,chosenIdx:ans[i],correct:q.o[q.c],correctIdx:q.c,category:q.cat}));if(birthYear){const by=parseInt(birthYear);const age=getAgeFromBirthYear(by);r.birth_year=by;r.age=age;r.age_group=getAgeGroup(age);}setRes(r);if(window.HB_PAY)HB_PAY.saveResults('iq',r);setAnim(true);go("results");setTimeout(()=>setAnim(false),2800);};
+  const begin=()=>{setShowI(false);setSTime(Date.now());setElapsed(0);if(window.HB_ANALYTICS){HB_ANALYTICS.logTestStart('iq','v1.0').then(r=>{if(r){setTestStartId(r.startId);setTestStartedAt(r.startedAt);}});itemTimer.current=HB_ANALYTICS.createItemTimer();}};
+  const pick=i=>{if(itemTimer.current)itemTimer.current.mark(String(cQ));setAns({...ans,[cQ]:i});};
+  const done=()=>{clearInterval(tRef.current);const r=calcIQ(ans,qs,Math.floor((Date.now()-sTime)/1000));r.answers=qs.map((q,i)=>({q:i,text:q.q,chosen:ans[i]!=null?q.o[ans[i]]:null,chosenIdx:ans[i],correct:q.o[q.c],correctIdx:q.c,category:q.cat}));if(birthYear){const by=parseInt(birthYear);const age=getAgeFromBirthYear(by);r.birth_year=by;r.age=age;r.age_group=getAgeGroup(age);}setRes(r);r.test_version='v1.0';r.metadata=window.HB_ANALYTICS?HB_ANALYTICS.buildMetadata(testStartedAt,lang):{};r.demographics=window.HB_ANALYTICS?HB_ANALYTICS.buildDemographics(birthYear,null):null;if(itemTimer.current&&r.answers){r.answers=window.HB_ANALYTICS.enrichAnswersWithTiming(r.answers,itemTimer.current);}if(window.HB_ANALYTICS&&testStartId){HB_ANALYTICS.updateTestStart(testStartId,{completed:true,last_item_index:qs.length});}if(window.HB_PAY)HB_PAY.saveResults('iq',r);setAnim(true);go("results");setTimeout(()=>setAnim(false),2800);};
   const buyReport=(productType)=>{
     if(window.HB_AUTH&&HB_AUTH.isAdmin()){go("paid");return;}
     HB_PAY.saveResults('iq',res);

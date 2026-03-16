@@ -797,6 +797,7 @@ body {
 <script src="../shared/payment.js"></script>
 <script src="../shared/normdata.js"></script>
 <script src="../shared/profilecard.js"></script>
+<script src="../shared/analytics.js"></script>
 
 <script>
 // ═══════════════════════════════════════════
@@ -878,6 +879,9 @@ let answers = {};
 let currentQ = 0;
 let shuffledItems = [];
 let selectedBirthYear = null;
+var _testStartId = null;
+var _testStartedAt = null;
+var _itemTimer = null;
 
 // ── Birth year helpers ──
 function getAgeFromBirthYear(by) {
@@ -956,6 +960,12 @@ function startTest() {
   shuffledItems = [...pssItems, ...burnoutItems];
   currentQ = 0;
   answers = {};
+  if (window.HB_ANALYTICS) {
+    HB_ANALYTICS.logTestStart('stress', 'v1.0').then(function(r) {
+      if (r) { _testStartId = r.startId; _testStartedAt = r.startedAt; }
+    });
+    _itemTimer = HB_ANALYTICS.createItemTimer();
+  }
   showScreen('questionScreen');
   renderQuestion();
 }
@@ -1013,6 +1023,7 @@ function renderQuestion() {
 
 function selectAnswer(itemId, val) {
   answers[itemId] = val;
+  if (_itemTimer) _itemTimer.mark(String(itemId));
   document.querySelectorAll('.likert-option').forEach(function(opt, i) {
     opt.classList.toggle('selected', i === val - 1);
   });
@@ -1140,7 +1151,13 @@ function calculateAndShowResults() {
   var answersArr = items.map(function(item) { return { id: item.id, text: item[lang === 'en' ? 'en' : 'da'], domain: item.domain, scale: item.scale, reverse: item.reverse, chosen: answers[item.id] || null }; });
   var birthAge = selectedBirthYear ? getAgeFromBirthYear(selectedBirthYear) : null;
   var birthAgeGroup = birthAge !== null ? getAgeGroup(birthAge) : null;
-  if (window.HB_PAY) HB_PAY.saveResults('stress', { pssTotal, pssPct, helpPct, effPct, exhPct, cynPct, accPct, level, burnoutProfile, answers: answersArr, birth_year: selectedBirthYear, age: birthAge, age_group: birthAgeGroup });
+  var _resultData = { pssTotal: pssTotal, pssPct: pssPct, helpPct: helpPct, effPct: effPct, exhPct: exhPct, cynPct: cynPct, accPct: accPct, level: level, burnoutProfile: burnoutProfile, answers: answersArr, birth_year: selectedBirthYear, age: birthAge, age_group: birthAgeGroup };
+  _resultData.test_version = 'v1.0';
+  _resultData.metadata = window.HB_ANALYTICS ? HB_ANALYTICS.buildMetadata(_testStartedAt, lang === 'en' ? 'en' : 'da') : {};
+  _resultData.demographics = window.HB_ANALYTICS ? HB_ANALYTICS.buildDemographics(selectedBirthYear, null) : null;
+  if (_itemTimer && _resultData.answers) { _resultData.answers = HB_ANALYTICS.enrichAnswersWithTiming(_resultData.answers, _itemTimer); }
+  if (window.HB_ANALYTICS && _testStartId) { HB_ANALYTICS.updateTestStart(_testStartId, { completed: true, last_item_index: items.length }); }
+  if (window.HB_PAY) HB_PAY.saveResults('stress', _resultData);
 
   // Subscale data
   var subscales = [

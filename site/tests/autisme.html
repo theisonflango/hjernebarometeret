@@ -46,6 +46,7 @@ button{font-family:inherit;cursor:pointer}
 <script src="../shared/auth.js"></script>
 <script src="../shared/coupon.js"></script>
 <script src="../shared/payment.js"></script>
+<script src="../shared/analytics.js"></script>
 <script src="../shared/normdata.js"></script>
 <script src="../shared/profilecard.js"></script>
 <script type="text/babel">
@@ -159,10 +160,22 @@ function AutismeTest() {
   const [anim, setAnim] = useState("in");
   const [birthYear, setBirthYear] = useState("");
   const [underAgeAck, setUnderAgeAck] = useState(false);
+  const [testStartId, setTestStartId] = useState(null);
+  const [testStartedAt, setTestStartedAt] = useState(null);
+  const itemTimerRef = useRef(null);
   const ans = Object.keys(answers).length;
   const prog = (ans / 50) * 100;
 
-  function hA(id, v) { setAnswers(p => ({ ...p, [id]: v })); if (cQ < 49) { setAnim("out"); setTimeout(() => { setCQ(p => p + 1); setAnim("in"); }, 200); } }
+  useEffect(() => {
+    if (phase === "test" && !testStartId && window.HB_ANALYTICS) {
+      HB_ANALYTICS.logTestStart('autisme', 'v1.0').then(r => {
+        if (r) { setTestStartId(r.startId); setTestStartedAt(r.startedAt); }
+      });
+      itemTimerRef.current = HB_ANALYTICS.createItemTimer();
+    }
+  }, [phase]);
+
+  function hA(id, v) { if (itemTimerRef.current) itemTimerRef.current.mark(String(id)); setAnswers(p => ({ ...p, [id]: v })); if (cQ < 49) { setAnim("out"); setTimeout(() => { setCQ(p => p + 1); setAnim("in"); }, 200); } }
   function gB() { if (cQ > 0) { setAnim("out"); setTimeout(() => { setCQ(p => p - 1); setAnim("in"); }, 200); } }
   function calc() { let t = 0; const d = { social: 0, switching: 0, detail: 0, communication: 0, imagination: 0 }; questions.forEach(q => { const s = scoreQ(q, answers[q.id]); t += s; d[q.domain] += s; }); return { t, d }; }
 
@@ -260,6 +273,11 @@ function AutismeTest() {
       const answersArr = questions.map(q => ({ id: q.id, text: q.text, domain: q.domain, reverse: q.reverse, chosen: answers[q.id] || null, scored: scoreQ(q, answers[q.id]) }));
       const saveData = { t: total, d: ds, category: cat, categoryLabel: catLabel, answers: answersArr };
       if (birthYear) { const by = parseInt(birthYear); const age = getAgeFromBirthYear(by); saveData.birth_year = by; saveData.age = age; saveData.age_group = getAgeGroup(age); }
+      saveData.test_version = 'v1.0';
+      saveData.metadata = window.HB_ANALYTICS ? HB_ANALYTICS.buildMetadata(testStartedAt, 'da') : {};
+      saveData.demographics = window.HB_ANALYTICS ? HB_ANALYTICS.buildDemographics(birthYear, null) : null;
+      if (itemTimerRef.current && saveData.answers) { saveData.answers = HB_ANALYTICS.enrichAnswersWithTiming(saveData.answers, itemTimerRef.current); }
+      if (window.HB_ANALYTICS && testStartId) { HB_ANALYTICS.updateTestStart(testStartId, { completed: true, last_item_index: 50 }); }
       if (window.HB_PAY) {
         HB_PAY.saveResults('autisme', saveData);
         setTimeout(() => HB_PAY.renderSavePrompt('hb-save-prompt-autisme', 'autisme'), 0);

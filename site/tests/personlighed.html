@@ -652,6 +652,7 @@ body {
 <script src="../shared/auth.js"></script>
 <script src="../shared/coupon.js"></script>
 <script src="../shared/payment.js"></script>
+<script src="../shared/analytics.js"></script>
 <script src="../shared/normdata.js"></script>
 <script src="../shared/profilecard.js"></script>
 
@@ -951,6 +952,9 @@ const PROFILE_TYPES = {
 let shuffledItems = [];
 let answers = {};
 let currentQuestion = -1;
+var _testStartId = null;
+var _testStartedAt = null;
+var _itemTimer = null;
 
 // ═══════════════════════════════════════════
 //  SHUFFLE (Fisher-Yates)
@@ -1047,6 +1051,12 @@ function startTest() {
   shuffledItems = shuffle(ITEMS.map((item, i) => ({ ...item, origIdx: i })));
   answers = {};
   currentQuestion = 0;
+  if (window.HB_ANALYTICS) {
+    HB_ANALYTICS.logTestStart('personlighed', 'v1.0').then(function(r) {
+      if (r) { _testStartId = r.startId; _testStartedAt = r.startedAt; }
+    });
+    _itemTimer = HB_ANALYTICS.createItemTimer();
+  }
   showScreen('questionScreen');
   renderQuestion(0);
 }
@@ -1086,6 +1096,7 @@ function renderQuestion(idx) {
 
 function selectAnswer(origIdx, value) {
   answers[origIdx] = value;
+  if (_itemTimer) _itemTimer.mark(String(currentQuestion));
   document.querySelectorAll('.likert-option').forEach((btn, i) => {
     btn.classList.toggle('selected', i === value - 1);
   });
@@ -1170,6 +1181,11 @@ async function showResults() {
     resultData.age = age;
     resultData.age_group = getAgeGroup(age);
   }
+  resultData.test_version = 'v1.0';
+  resultData.metadata = window.HB_ANALYTICS ? HB_ANALYTICS.buildMetadata(_testStartedAt, lang) : {};
+  resultData.demographics = window.HB_ANALYTICS ? HB_ANALYTICS.buildDemographics(selectedBirthYear, null) : null;
+  if (_itemTimer && resultData.answers) { resultData.answers = HB_ANALYTICS.enrichAnswersWithTiming(resultData.answers, _itemTimer); }
+  if (window.HB_ANALYTICS && _testStartId) { HB_ANALYTICS.updateTestStart(_testStartId, { completed: true, last_item_index: ITEMS.length }); }
   if (window.HB_PAY) HB_PAY.saveResults('personlighed', resultData);
 
   // Check access while "calculating" animation plays

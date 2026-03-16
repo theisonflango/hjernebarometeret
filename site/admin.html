@@ -353,6 +353,154 @@
         }
         .pagination button:hover:not(:disabled) { background: var(--bg); border-color: var(--text-3); }
         .pagination button:disabled { opacity: .4; cursor: not-allowed; }
+
+        /* ── Test Analytics ──────────────────── */
+        .ta-topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem; }
+        .ta-period { display:flex; background:var(--bg); border-radius:8px; overflow:hidden; border:1px solid var(--border); }
+        .ta-period button { padding:.4rem .85rem; font-size:.8rem; font-weight:600; color:var(--text-3); border:none; background:none; cursor:pointer; transition:all .15s; font-family:var(--sans); }
+        .ta-period button:hover { color:var(--text-2); }
+        .ta-period button.active { background:var(--accent); color:#fff; }
+        .ta-stat-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; margin-bottom:1.5rem; }
+        .ta-stat-card { background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:1.1rem 1.25rem; }
+        .ta-sc-label { font-size:.7rem; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--text-3); margin-bottom:.35rem; }
+        .ta-sc-value { font-family:var(--serif); font-size:1.75rem; font-weight:700; letter-spacing:-.03em; }
+        .ta-sc-sub { font-size:.75rem; color:var(--text-3); margin-top:.15rem; }
+        .ta-sc-trend { font-weight:700; }
+        .ta-sc-trend.up { color:#2c5f4b; }
+        .ta-sc-trend.down { color:#c2553a; }
+
+        .ta-ov-table { width:100%; border-collapse:collapse; font-size:.85rem; }
+        .ta-ov-table th { text-align:left; padding:.65rem .85rem; font-weight:700; color:var(--text-3); font-size:.7rem; text-transform:uppercase; letter-spacing:.05em; border-bottom:1px solid var(--border); background:var(--bg); white-space:nowrap; cursor:pointer; user-select:none; }
+        .ta-ov-table th:hover { color:var(--text-2); }
+        .ta-ov-table td { padding:.7rem .85rem; border-bottom:1px solid var(--border); vertical-align:middle; white-space:nowrap; }
+        .ta-ov-table tbody tr { cursor:pointer; transition:background .12s; }
+        .ta-ov-table tbody tr:hover td { background:var(--accent-light); }
+        .ta-ov-table tbody tr.ta-expanded td { background:#e8f0ec; }
+        .ta-ov-table tbody tr:last-child td { border-bottom:none; }
+
+        .ta-test-cell { display:flex; align-items:center; gap:8px; }
+        .ta-test-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+        .ta-test-label { font-weight:600; color:var(--text); }
+        .ta-test-ver { font-size:.7rem; color:var(--text-4); margin-left:3px; }
+        .ta-badge-live { font-size:.6rem; font-weight:700; padding:2px 6px; border-radius:4px; background:#e8f0ec; color:#2c5f4b; text-transform:uppercase; letter-spacing:.04em; margin-left:4px; }
+        .ta-metric-main { font-weight:700; color:var(--text); font-size:.9rem; }
+        .ta-metric-sub { font-size:.7rem; color:var(--text-3); }
+        .ta-completion-bar { width:48px; height:4px; background:var(--border); border-radius:3px; overflow:hidden; margin-top:3px; }
+        .ta-completion-fill { height:100%; border-radius:3px; }
+
+        .ta-severity-row { display:flex; gap:2px; align-items:center; }
+        .ta-sev { height:16px; border-radius:3px; font-size:.55rem; font-weight:700; display:flex; align-items:center; justify-content:center; color:#fff; min-width:16px; padding:0 2px; }
+        .ta-sev-low { background:#2c5f4b; }
+        .ta-sev-mod { background:#b8860b; }
+        .ta-sev-high { background:#c2553a; }
+        .ta-conv { font-weight:700; color:#2c5f4b; }
+        .ta-revenue { font-weight:700; color:#8b6b00; }
+        .ta-red-flag { font-weight:700; }
+        .ta-red-flag.has { color:#c2553a; }
+        .ta-red-flag.none { color:var(--text-4); }
+
+        .ta-expand-arrow { width:14px; height:14px; stroke:var(--text-4); stroke-width:2; fill:none; transition:transform .2s; vertical-align:middle; }
+        .ta-expanded .ta-expand-arrow { transform:rotate(90deg); stroke:var(--accent); }
+
+        /* Drilldown */
+        .ta-drilldown { background:var(--bg); border-top:2px solid var(--accent); animation:fadeUp .25s ease; }
+        .ta-dd-header { display:flex; align-items:center; justify-content:space-between; padding:.85rem 1.25rem; border-bottom:1px solid var(--border); }
+        .ta-dd-title { font-family:var(--serif); font-size:1rem; font-weight:600; display:flex; align-items:center; gap:8px; }
+        .ta-dd-close { width:26px; height:26px; border-radius:6px; border:1px solid var(--border); background:var(--bg-card); cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--text-3); font-size:.75rem; transition:all .15s; }
+        .ta-dd-close:hover { background:var(--bg); color:var(--text); }
+
+        .ta-tabs { display:flex; gap:0; padding:0 1.25rem; border-bottom:1px solid var(--border); background:var(--bg-card); }
+        .ta-tab { padding:.7rem 1rem; font-size:.8rem; font-weight:600; color:var(--text-3); border:none; background:none; cursor:pointer; position:relative; transition:color .15s; white-space:nowrap; font-family:var(--sans); }
+        .ta-tab:hover { color:var(--text-2); }
+        .ta-tab.active { color:var(--accent); }
+        .ta-tab.active::after { content:''; position:absolute; bottom:-1px; left:0; right:0; height:2px; background:var(--accent); border-radius:2px 2px 0 0; }
+        .ta-tab-badge { margin-left:5px; font-size:.65rem; font-weight:700; padding:1px 5px; border-radius:4px; background:var(--bg); color:var(--text-3); }
+        .ta-tab.active .ta-tab-badge { background:var(--accent-light); color:var(--accent); }
+        .ta-tab-content { padding:1.25rem; display:none; }
+        .ta-tab-content.active { display:block; }
+
+        /* Svardata table */
+        .ta-data-table { width:100%; border-collapse:collapse; background:var(--bg-card); border-radius:10px; overflow:hidden; border:1px solid var(--border); font-size:.8rem; }
+        .ta-data-table thead th { padding:.55rem .7rem; font-size:.65rem; font-weight:700; color:var(--text-3); text-transform:uppercase; letter-spacing:.05em; text-align:left; border-bottom:1px solid var(--border); background:var(--bg); }
+        .ta-data-table tbody tr { border-bottom:1px solid var(--border); transition:background .1s; }
+        .ta-data-table tbody tr:hover { background:var(--bg-warm); }
+        .ta-data-table tbody tr:last-child { border-bottom:none; }
+        .ta-data-table tbody td { padding:.55rem .7rem; }
+
+        .ta-score-badge { padding:2px 7px; border-radius:4px; font-size:.72rem; font-weight:700; display:inline-block; }
+        .ta-score-badge.green { background:#e8f0ec; color:#2c5f4b; }
+        .ta-score-badge.yellow { background:#faf5eb; color:#8b6b00; }
+        .ta-score-badge.orange { background:#fbe9e7; color:#c2553a; }
+        .ta-score-badge.red { background:#fce4ec; color:#8b2020; }
+        .ta-time-warn { color:#c2553a; font-weight:600; }
+        .ta-btn-view { padding:3px 8px; font-size:.7rem; font-weight:600; background:var(--bg); color:var(--text-3); border:1px solid var(--border); border-radius:5px; cursor:pointer; transition:all .12s; font-family:var(--sans); }
+        .ta-btn-view:hover { background:var(--accent); color:#fff; border-color:var(--accent); }
+
+        /* Filters */
+        .ta-filters { display:flex; gap:8px; margin-bottom:1rem; flex-wrap:wrap; align-items:center; }
+        .ta-filter { padding:4px 10px; font-size:.72rem; font-weight:600; background:var(--bg-card); border:1px solid var(--border); border-radius:6px; color:var(--text-3); cursor:pointer; transition:all .15s; font-family:var(--sans); }
+        .ta-filter:hover { border-color:var(--text-4); color:var(--text-2); }
+        .ta-filter.active { border-color:var(--accent); color:var(--accent); background:var(--accent-light); }
+
+        /* Normdata heatmap */
+        .ta-heatmap { display:grid; grid-template-columns:auto repeat(2,1fr); gap:3px; }
+        .ta-hm-header { font-size:.65rem; font-weight:700; color:var(--text-3); text-align:center; padding:4px 8px; }
+        .ta-hm-label { font-size:.7rem; color:var(--text-2); padding:4px 8px; display:flex; align-items:center; }
+        .ta-hm-cell { padding:5px 8px; border-radius:4px; text-align:center; font-size:.72rem; font-weight:700; }
+        .ta-hm-red { background:#fce4ec; color:#c2553a; }
+        .ta-hm-yellow { background:#faf5eb; color:#8b6b00; }
+        .ta-hm-green { background:#e8f0ec; color:#2c5f4b; }
+
+        /* Item rows */
+        .ta-item-row { display:grid; grid-template-columns:45px 1fr 70px 70px 90px 65px 55px; align-items:center; gap:10px; padding:.65rem 1rem; background:var(--bg-card); border:1px solid var(--border); border-radius:8px; margin-bottom:6px; transition:all .15s; }
+        .ta-item-row:hover { border-color:var(--text-4); }
+        .ta-item-row.flagged { border-color:#c2553a80; background:#fce4ec40; }
+        .ta-item-id { font-size:.72rem; font-weight:700; color:var(--text-3); font-family:monospace; }
+        .ta-item-text { font-size:.78rem; color:var(--text-2); line-height:1.35; }
+        .ta-needs-review { font-size:.6rem; font-weight:700; color:#c2553a; background:#fce4ec; padding:2px 6px; border-radius:4px; text-transform:uppercase; letter-spacing:.04em; }
+
+        /* Funnel */
+        .ta-funnel-step { display:flex; align-items:center; gap:12px; margin-bottom:4px; }
+        .ta-funnel-label { width:100px; font-size:.78rem; font-weight:600; color:var(--text-2); text-align:right; flex-shrink:0; }
+        .ta-funnel-bar { height:32px; border-radius:6px; display:flex; align-items:center; padding:0 12px; }
+        .ta-funnel-bar span { font-size:.8rem; font-weight:700; color:#fff; white-space:nowrap; }
+        .ta-funnel-pct { width:50px; font-size:.8rem; font-weight:700; color:var(--text-3); text-align:right; flex-shrink:0; }
+        .ta-funnel-drop { font-size:.72rem; color:#c2553a; text-align:center; padding:2px 0 2px 112px; }
+
+        /* Report feedback */
+        .ta-feedback-item { display:flex; gap:12px; padding:.85rem 1rem; background:var(--bg-card); border:1px solid var(--border); border-radius:10px; margin-bottom:8px; }
+        .ta-fi-stars { font-size:.8rem; letter-spacing:1px; }
+        .ta-fi-date { font-size:.65rem; color:var(--text-3); }
+        .ta-fi-comment { font-size:.8rem; color:var(--text-2); line-height:1.5; }
+        .ta-fi-meta { font-size:.65rem; color:var(--text-3); margin-top:3px; }
+
+        /* Report stat row */
+        .ta-report-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1rem; margin-bottom:1.25rem; }
+        .ta-report-stat { background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:1rem; }
+        .ta-rs-label { font-size:.65rem; font-weight:700; color:var(--text-3); text-transform:uppercase; letter-spacing:.05em; margin-bottom:.3rem; }
+        .ta-rs-value { font-size:1.5rem; font-weight:700; font-family:var(--serif); }
+        .ta-rs-sub { font-size:.7rem; color:var(--text-3); margin-top:.15rem; }
+
+        /* Norm grid */
+        .ta-norm-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; }
+        @media (max-width: 900px) { .ta-norm-grid { grid-template-columns:1fr; } }
+        .ta-norm-card { background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:1.25rem; }
+        .ta-norm-card h3 { font-family:var(--serif); font-size:.9rem; font-weight:600; margin-bottom:.85rem; }
+
+        /* Red flag banner */
+        .ta-rfb { margin-bottom:1.5rem; padding:.85rem 1.25rem; background:#fce4ec; border:1px solid #c2553a40; border-radius:10px; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+        .ta-rfb-title { font-size:.85rem; font-weight:700; color:#c2553a; }
+        .ta-rfb-detail { font-size:.78rem; color:var(--text-2); }
+        .ta-rfb-chips { display:flex; gap:6px; flex-wrap:wrap; }
+        .ta-rfb-chip { display:flex; align-items:center; gap:4px; padding:3px 8px; background:var(--bg-card); border:1px solid var(--border); border-radius:5px; font-size:.7rem; color:var(--text-2); font-weight:600; }
+        .ta-rfb-chip .count { color:#c2553a; font-weight:700; }
+
+        /* Answer modal */
+        .ta-answer-item { display:flex; gap:8px; padding:.5rem 0; border-bottom:1px solid var(--border); font-size:.8rem; }
+        .ta-answer-item:last-child { border-bottom:none; }
+        .ta-answer-id { font-weight:700; color:var(--text-3); font-family:monospace; min-width:35px; }
+        .ta-answer-val { font-weight:600; }
+        .ta-answer-ms { font-size:.72rem; color:var(--text-3); margin-left:auto; }
     </style>
 </head>
 <body>
@@ -409,6 +557,7 @@
         download: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{width:14,height:14,display:'inline',verticalAlign:'middle',marginRight:4}}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
         settings: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
         email: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>,
+        analytics: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>,
     };
 
     // ══════════════════════════════════════════════════════
@@ -1550,6 +1699,657 @@
     }
 
     // ══════════════════════════════════════════════════════
+    // TEST ANALYTICS PAGE
+    // ══════════════════════════════════════════════════════
+    const TA_TEST_CONFIG = {
+        iq:           { label: 'IQ (CogniQ)',          color: '#6b4c9a', version: 'v1.0', scoreKey: 'iq',       maxScore: 160, severityFn: s => s >= 130 ? 'crit' : s >= 115 ? 'high' : s >= 85 ? 'mod' : 'low' },
+        adhd:         { label: 'ADHD-screening',        color: '#2e6b9e', version: 'v1.1', scoreKey: 'totalPct', maxScore: 100, severityFn: s => s >= 70 ? 'crit' : s >= 50 ? 'high' : s >= 30 ? 'mod' : 'low' },
+        autisme:      { label: 'Autisme (AQ-50)',       color: '#3a7d5e', version: 'v1.0', scoreKey: 't',        maxScore: 50,  severityFn: s => s >= 32 ? 'crit' : s >= 26 ? 'high' : s >= 16 ? 'mod' : 'low' },
+        personlighed: { label: 'Personlighed (Big Five)',color:'#b8860b', version: 'v1.0', scoreKey: null,       maxScore: null,severityFn: () => null },
+        stress:       { label: 'Stress/Udbrændthed',    color: '#c2553a', version: 'v1.0', scoreKey: 'pssTotal', maxScore: 40,  severityFn: s => s >= 27 ? 'crit' : s >= 21 ? 'high' : s >= 14 ? 'mod' : 'low' },
+        eq:           { label: 'EQ (SSEIT)',            color: '#7a6b3a', version: 'v1.0', scoreKey: 'total',    maxScore: 165, severityFn: s => s >= 130 ? 'low' : s >= 100 ? 'mod' : 'high' },
+        karriere:     { label: 'Karriere (RIASEC)',     color: '#5a7b4a', version: 'v1.0', scoreKey: null,       maxScore: null,severityFn: () => null },
+    };
+
+    function AnalyticsPage() {
+        const [period, setPeriod] = useState(30);
+        const [loading, setLoading] = useState(true);
+        const [testData, setTestData] = useState({});
+        const [expanded, setExpanded] = useState(null);
+        const [ddTab, setDdTab] = useState('svardata');
+        const [responses, setResponses] = useState([]);
+        const [starts, setStarts] = useState([]);
+        const [orders, setOrders] = useState([]);
+        const [reportFb, setReportFb] = useState([]);
+        const [viewAnswer, setViewAnswer] = useState(null);
+
+        // Fetch all data
+        useEffect(() => {
+            fetchData();
+        }, [period]);
+
+        async function fetchData() {
+            setLoading(true);
+            try {
+                const sb = getSB();
+                const since = period === 0 ? '1970-01-01' : new Date(Date.now() - period * 86400000).toISOString();
+
+                // Parallel queries
+                const [resResults, resStarts, resOrders, resAccess, resFeedback] = await Promise.all([
+                    sb.from('test_results').select('*').gte('completed_at', since).order('completed_at', { ascending: false }).limit(2000),
+                    sb.from('test_starts').select('*').gte('started_at', since).order('started_at', { ascending: false }).limit(2000),
+                    sb.from('orders').select('*').gte('created_at', since).eq('status', 'completed').order('created_at', { ascending: false }),
+                    sb.from('report_access').select('*').gte('granted_at', since),
+                    sb.from('report_feedback').select('*').order('created_at', { ascending: false }).limit(500),
+                ]);
+
+                const results = resResults.data || [];
+                const startsArr = resStarts.data || [];
+                const ordersArr = resOrders.data || [];
+                const accessArr = resAccess.data || [];
+                const feedbackArr = resFeedback.data || [];
+
+                setResponses(results);
+                setStarts(startsArr);
+                setOrders(ordersArr);
+                setReportFb(feedbackArr);
+
+                // Build per-test aggregates
+                const tests = {};
+                for (const key of Object.keys(TA_TEST_CONFIG)) {
+                    const cfg = TA_TEST_CONFIG[key];
+                    const tr = results.filter(r => r.test_type === key);
+                    const ts = startsArr.filter(s => s.test_type === key);
+                    const ra = accessArr.filter(a => a.test_type === key);
+                    const rf = feedbackArr.filter(f => f.test_type === key);
+                    const ord = ordersArr.filter(o => o.test_type === key);
+
+                    const scores = cfg.scoreKey ? tr.map(r => {
+                        const rd = r.result_data;
+                        return rd ? (typeof rd[cfg.scoreKey] === 'number' ? rd[cfg.scoreKey] : parseFloat(rd[cfg.scoreKey])) : null;
+                    }).filter(s => s !== null && !isNaN(s)) : [];
+
+                    const mean = scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : null;
+                    const sd = scores.length > 1 ? Math.sqrt(scores.reduce((a, s) => a + Math.pow(s - mean, 2), 0) / (scores.length - 1)) : null;
+
+                    const severities = { low: 0, mod: 0, high: 0, crit: 0 };
+                    if (cfg.severityFn && scores.length) {
+                        scores.forEach(s => {
+                            const sev = cfg.severityFn(s);
+                            if (sev && severities[sev] !== undefined) severities[sev]++;
+                        });
+                    }
+
+                    const completed = ts.filter(s => s.completed).length;
+                    const started = ts.length || tr.length;
+                    const completionRate = started ? Math.round((tr.length / Math.max(started, tr.length)) * 100) : 0;
+
+                    const revenue = ord.reduce((s, o) => s + (o.amount_dkk || 0), 0);
+                    const convRate = tr.length ? (ra.length / tr.length * 100) : 0;
+                    const avgRating = rf.length ? rf.reduce((s, f) => s + f.rating, 0) / rf.length : null;
+
+                    // Durations
+                    const durations = tr.map(r => r.result_data?.metadata?.duration_seconds).filter(d => d && d > 0);
+                    const avgDuration = durations.length ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length) : null;
+
+                    // Red flags (high severity in last 7 days)
+                    const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
+                    const recentResults = results.filter(r => r.test_type === key && r.completed_at > weekAgo);
+                    const redFlags = cfg.scoreKey ? recentResults.filter(r => {
+                        const s = r.result_data?.[cfg.scoreKey];
+                        return s !== null && s !== undefined && (cfg.severityFn(s) === 'crit' || cfg.severityFn(s) === 'high');
+                    }).length : 0;
+
+                    tests[key] = {
+                        results: tr, starts: ts, access: ra, feedback: rf, orders: ord,
+                        scores, mean, sd, severities,
+                        completionRate, revenue, convRate, avgRating, avgDuration, redFlags,
+                        count: tr.length, startCount: started,
+                        thisWeek: tr.filter(r => r.completed_at > weekAgo).length,
+                    };
+                }
+                setTestData(tests);
+            } catch (err) {
+                console.error('Analytics fetch error:', err);
+            }
+            setLoading(false);
+        }
+
+        // Period labels
+        const periodOpts = [{ v: 7, l: '7d' }, { v: 30, l: '30d' }, { v: 90, l: '90d' }, { v: 0, l: 'Alt' }];
+
+        // Totals
+        const totalCompleted = Object.values(testData).reduce((s, t) => s + t.count, 0);
+        const totalStarts = Object.values(testData).reduce((s, t) => s + t.startCount, 0);
+        const totalCompletionRate = totalStarts ? Math.round(totalCompleted / totalStarts * 100) : 0;
+        const totalReportsSold = Object.values(testData).reduce((s, t) => s + t.access.length, 0);
+        const totalRevenue = Object.values(testData).reduce((s, t) => s + t.revenue, 0);
+        const allFeedback = reportFb;
+        const totalAvgRating = allFeedback.length ? (allFeedback.reduce((s, f) => s + f.rating, 0) / allFeedback.length).toFixed(1) : '—';
+        const totalRedFlags = Object.values(testData).reduce((s, t) => s + t.redFlags, 0);
+
+        function toggleRow(key) {
+            if (expanded === key) { setExpanded(null); } else { setExpanded(key); setDdTab('svardata'); }
+        }
+
+        function fmtDuration(sec) {
+            if (!sec) return '—';
+            return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
+        }
+
+        function getScoreBadgeClass(testType, score) {
+            const cfg = TA_TEST_CONFIG[testType];
+            if (!cfg || !cfg.severityFn) return '';
+            const sev = cfg.severityFn(score);
+            if (sev === 'crit') return 'red';
+            if (sev === 'high') return 'orange';
+            if (sev === 'mod') return 'yellow';
+            return 'green';
+        }
+
+        function getSeverityLabel(testType, score) {
+            const cfg = TA_TEST_CONFIG[testType];
+            if (!cfg || !cfg.severityFn) return '—';
+            const sev = cfg.severityFn(score);
+            return sev === 'crit' ? 'Kritisk' : sev === 'high' ? 'Høj' : sev === 'mod' ? 'Moderat' : 'Lav';
+        }
+
+        function getMainScore(result) {
+            const cfg = TA_TEST_CONFIG[result.test_type];
+            if (!cfg || !cfg.scoreKey || !result.result_data) return null;
+            return result.result_data[cfg.scoreKey];
+        }
+
+        // ── Drill-down: svardata for expanded test ──
+        function renderSvardata() {
+            const tt = expanded;
+            const items = (testData[tt]?.results || []).slice(0, 50);
+            return (
+                <div>
+                    <table className="ta-data-table">
+                        <thead><tr>
+                            <th>Dato</th><th>Bruger</th><th>Score</th><th>Severity</th>
+                            <th>Tid</th><th>Device</th><th>Version</th><th></th>
+                        </tr></thead>
+                        <tbody>
+                            {items.map(r => {
+                                const score = getMainScore(r);
+                                const dur = r.result_data?.metadata?.duration_seconds;
+                                const device = r.result_data?.metadata?.device;
+                                const ver = r.result_data?.test_version || '—';
+                                const isSpeedrun = dur && dur < 120;
+                                return (
+                                    <tr key={r.id}>
+                                        <td>{fmtDateTime(r.completed_at)}</td>
+                                        <td style={{ fontWeight: r.user_id ? 500 : 400, color: r.user_id ? 'var(--text)' : 'var(--text-3)' }}>
+                                            {r.user_id ? '👤' : 'Anonym'} {r.anonymous_token ? <span style={{ fontSize: '.65rem', color: 'var(--text-4)' }}>{r.anonymous_token.slice(0, 5)}</span> : ''}
+                                        </td>
+                                        <td>{score !== null && score !== undefined ? <span className={`ta-score-badge ${getScoreBadgeClass(tt, score)}`}>{typeof score === 'number' ? Math.round(score) : score}</span> : '—'}</td>
+                                        <td>{score !== null && score !== undefined ? <span className={`ta-score-badge ${getScoreBadgeClass(tt, score)}`}>{getSeverityLabel(tt, score)}</span> : '—'}</td>
+                                        <td className={isSpeedrun ? 'ta-time-warn' : ''}>{fmtDuration(dur)} {isSpeedrun ? '⚡' : ''}</td>
+                                        <td>{device === 'mobile' ? '📱' : device === 'tablet' ? '📱' : device === 'desktop' ? '💻' : '—'}</td>
+                                        <td style={{ fontSize: '.72rem', color: 'var(--text-3)' }}>{ver}</td>
+                                        <td><button className="ta-btn-view" onClick={e => { e.stopPropagation(); setViewAnswer(r); }}>Se svar</button></td>
+                                    </tr>
+                                );
+                            })}
+                            {items.length === 0 && <tr><td colSpan="8" style={{ textAlign: 'center', color: 'var(--text-3)', padding: '2rem' }}>Ingen data i perioden</td></tr>}
+                        </tbody>
+                    </table>
+                </div>
+            );
+        }
+
+        // ── Drill-down: item-analyse ──
+        function renderItems() {
+            const tt = expanded;
+            const results = testData[tt]?.results || [];
+            if (!results.length) return <p style={{ color: 'var(--text-3)', fontSize: '.85rem' }}>Ingen data</p>;
+
+            // Compute per-item stats from answers
+            const itemStats = {};
+            const totalScores = [];
+            results.forEach(r => {
+                const answers = r.result_data?.answers;
+                const score = getMainScore(r);
+                if (score !== null) totalScores.push(score);
+                if (!answers || !Array.isArray(answers)) return;
+                answers.forEach(a => {
+                    const id = a.item_id || a.id || a.q;
+                    const key = String(id);
+                    if (!itemStats[key]) itemStats[key] = { values: [], times: [], text: a.text || '', count: 0 };
+                    const val = a.chosen ?? a.value ?? a.chosenIdx;
+                    if (val !== null && val !== undefined) {
+                        itemStats[key].values.push(typeof val === 'number' ? val : parseInt(val));
+                        itemStats[key].count++;
+                    }
+                    if (a.ms) itemStats[key].times.push(a.ms);
+                });
+            });
+
+            const itemKeys = Object.keys(itemStats).sort((a, b) => {
+                const na = parseInt(a.replace(/\D/g, '')), nb = parseInt(b.replace(/\D/g, ''));
+                return (isNaN(na) ? 999 : na) - (isNaN(nb) ? 999 : nb);
+            });
+
+            return (
+                <div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '45px 1fr 70px 65px 55px', gap: '10px', padding: '0 1rem .5rem', fontSize: '.65rem', fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em' }}>
+                        <span>ID</span><span>Spørgsmål</span><span style={{ textAlign: 'center' }}>Gns.</span><span style={{ textAlign: 'center' }}>Gns. tid</span><span style={{ textAlign: 'center' }}>N</span>
+                    </div>
+                    {itemKeys.slice(0, 40).map(key => {
+                        const st = itemStats[key];
+                        const avg = st.values.length ? (st.values.reduce((a, b) => a + b, 0) / st.values.length).toFixed(2) : '—';
+                        const avgMs = st.times.length ? (st.times.reduce((a, b) => a + b, 0) / st.times.length / 1000).toFixed(1) + 's' : '—';
+                        return (
+                            <div key={key} style={{ display: 'grid', gridTemplateColumns: '45px 1fr 70px 65px 55px', alignItems: 'center', gap: '10px', padding: '.55rem 1rem', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px', marginBottom: '4px' }}>
+                                <div className="ta-item-id">{key.startsWith('q') ? key : 'q' + key}</div>
+                                <div className="ta-item-text" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{st.text || '—'}</div>
+                                <div style={{ textAlign: 'center', fontWeight: 700, fontSize: '.85rem' }}>{avg}</div>
+                                <div style={{ textAlign: 'center', fontSize: '.78rem', color: 'var(--text-3)' }}>{avgMs}</div>
+                                <div style={{ textAlign: 'center', fontSize: '.78rem', color: 'var(--text-3)' }}>{st.count}</div>
+                            </div>
+                        );
+                    })}
+                </div>
+            );
+        }
+
+        // ── Drill-down: normdata ──
+        function renderNormdata() {
+            const tt = expanded;
+            const results = testData[tt]?.results || [];
+            const ageGroups = ['13-15', '16-17', '18-24', '25-34', '35-44', '45-54', '55-64', '65+'];
+            const genders = ['male', 'female'];
+
+            // Build heatmap counts
+            const counts = {};
+            ageGroups.forEach(ag => { counts[ag] = { male: 0, female: 0, unknown: 0 }; });
+            results.forEach(r => {
+                const demo = r.result_data?.demographics;
+                const ag = demo?.age_group || r.result_data?.age_group;
+                const g = demo?.gender || 'unknown';
+                if (ag && counts[ag]) {
+                    counts[ag][g === 'male' ? 'male' : g === 'female' ? 'female' : 'unknown']++;
+                }
+            });
+
+            function hmClass(n) { return n >= 100 ? 'ta-hm-green' : n >= 30 ? 'ta-hm-yellow' : 'ta-hm-red'; }
+
+            return (
+                <div className="ta-norm-grid">
+                    <div className="ta-norm-card">
+                        <h3>Normdata-dækning ({TA_TEST_CONFIG[tt]?.label})</h3>
+                        <div style={{ fontSize: '.72rem', color: 'var(--text-3)', marginBottom: '.75rem' }}>
+                            Celler med &lt; 30 (rød) har utilstrækkelig data til percentilberegning
+                        </div>
+                        <div className="ta-heatmap">
+                            <div className="ta-hm-header"></div><div className="ta-hm-header">♂ Mand</div><div className="ta-hm-header">♀ Kvinde</div>
+                            {ageGroups.map(ag => (
+                                <React.Fragment key={ag}>
+                                    <div className="ta-hm-label">{ag}</div>
+                                    <div className={`ta-hm-cell ${hmClass(counts[ag]?.male || 0)}`}>{counts[ag]?.male || 0}</div>
+                                    <div className={`ta-hm-cell ${hmClass(counts[ag]?.female || 0)}`}>{counts[ag]?.female || 0}</div>
+                                </React.Fragment>
+                            ))}
+                        </div>
+                        <div style={{ display: 'flex', gap: '10px', marginTop: '.75rem', fontSize: '.65rem' }}>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><span style={{ width: 8, height: 8, borderRadius: 2, background: '#fce4ec', display: 'inline-block' }}></span><span style={{ color: 'var(--text-3)' }}>&lt; 30</span></span>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><span style={{ width: 8, height: 8, borderRadius: 2, background: '#faf5eb', display: 'inline-block' }}></span><span style={{ color: 'var(--text-3)' }}>30-100</span></span>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><span style={{ width: 8, height: 8, borderRadius: 2, background: '#e8f0ec', display: 'inline-block' }}></span><span style={{ color: 'var(--text-3)' }}>&gt; 100</span></span>
+                        </div>
+                    </div>
+                    <div className="ta-norm-card">
+                        <h3>Statistik</h3>
+                        <div style={{ fontSize: '.85rem', lineHeight: 2 }}>
+                            <div><strong>N:</strong> {testData[tt]?.count || 0}</div>
+                            <div><strong>Gennemsnit:</strong> {testData[tt]?.mean ? testData[tt].mean.toFixed(1) : '—'}</div>
+                            <div><strong>SD:</strong> {testData[tt]?.sd ? testData[tt].sd.toFixed(1) : '—'}</div>
+                            <div><strong>Outliers flagget:</strong> {(testData[tt]?.results || []).filter(r => r.outlier_flags && r.outlier_flags.length > 0).length}</div>
+                            <div><strong>Ekskluderet fra norms:</strong> {(testData[tt]?.results || []).filter(r => r.excluded_from_norms).length}</div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // ── Drill-down: rapporter & feedback ──
+        function renderRapporter() {
+            const tt = expanded;
+            const td = testData[tt] || {};
+            const fb = td.feedback || [];
+            const sortedFb = [...fb].sort((a, b) => a.rating - b.rating);
+
+            return (
+                <div>
+                    <div className="ta-report-stats">
+                        <div className="ta-report-stat">
+                            <div className="ta-rs-label">Solgte rapporter</div>
+                            <div className="ta-rs-value">{td.access?.length || 0}</div>
+                        </div>
+                        <div className="ta-report-stat">
+                            <div className="ta-rs-label">Konvertering</div>
+                            <div className="ta-rs-value">{td.convRate ? td.convRate.toFixed(1) + '%' : '—'}</div>
+                        </div>
+                        <div className="ta-report-stat">
+                            <div className="ta-rs-label">Revenue</div>
+                            <div className="ta-rs-value" style={{ color: '#8b6b00' }}>{fmtNumber(td.revenue || 0)} kr</div>
+                        </div>
+                        <div className="ta-report-stat">
+                            <div className="ta-rs-label">Gns. rating</div>
+                            <div className="ta-rs-value" style={{ color: '#b8860b' }}>{td.avgRating ? td.avgRating.toFixed(1) + ' ★' : '—'}</div>
+                            <div className="ta-rs-sub">{fb.length} ratings</div>
+                        </div>
+                    </div>
+                    {sortedFb.length > 0 && (
+                        <div>
+                            <div style={{ fontSize: '.78rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: '.6rem' }}>Seneste feedback (laveste først)</div>
+                            {sortedFb.slice(0, 10).map(f => (
+                                <div className="ta-feedback-item" key={f.id}>
+                                    <div style={{ flexShrink: 0, textAlign: 'center' }}>
+                                        <div className="ta-fi-stars" style={{ color: f.rating <= 2 ? '#c2553a' : f.rating <= 3 ? '#b8860b' : '#2c5f4b' }}>
+                                            {'★'.repeat(f.rating) + '☆'.repeat(5 - f.rating)}
+                                        </div>
+                                        <div className="ta-fi-date">{fmtDate(f.created_at)}</div>
+                                    </div>
+                                    <div>
+                                        <div className="ta-fi-comment">{f.comment || <em style={{ color: 'var(--text-4)' }}>Ingen kommentar</em>}</div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                    {sortedFb.length === 0 && <p style={{ color: 'var(--text-3)', fontSize: '.85rem' }}>Ingen feedback endnu</p>}
+                </div>
+            );
+        }
+
+        // ── Drill-down: funnel ──
+        function renderFunnel() {
+            const tt = expanded;
+            const td = testData[tt] || {};
+            const started = td.startCount || 0;
+            const completed = td.count || 0;
+            const reportsSold = td.access?.length || 0;
+
+            const steps = [
+                { label: 'Startede', n: started, pct: 100, color: TA_TEST_CONFIG[tt]?.color || '#2c5f4b' },
+                { label: 'Gennemførte', n: completed, pct: started ? Math.round(completed / started * 100) : 0, color: TA_TEST_CONFIG[tt]?.color || '#2c5f4b' },
+                { label: 'Købte rapport', n: reportsSold, pct: started ? Math.round(reportsSold / started * 100) : 0, color: '#2c5f4b' },
+            ];
+
+            // Device breakdown
+            const mobileStarts = td.starts?.filter(s => s.user_agent && /mobile|iphone|android/i.test(s.user_agent)) || [];
+            const desktopStarts = td.starts?.filter(s => s.user_agent && !/mobile|iphone|android/i.test(s.user_agent)) || [];
+            const mobileCompleted = mobileStarts.filter(s => s.completed).length;
+            const desktopCompleted = desktopStarts.filter(s => s.completed).length;
+
+            return (
+                <div>
+                    <div style={{ fontSize: '.78rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: '1rem' }}>{TA_TEST_CONFIG[tt]?.label} — brugerflow (seneste {period || 'alle'} dage)</div>
+                    {steps.map((step, i) => (
+                        <React.Fragment key={i}>
+                            <div className="ta-funnel-step">
+                                <div className="ta-funnel-label">{step.label}</div>
+                                <div style={{ flex: 1 }}>
+                                    <div className="ta-funnel-bar" style={{ width: Math.max(step.pct, 3) + '%', background: `linear-gradient(90deg, ${step.color}, ${step.color}88)` }}>
+                                        <span>{fmtNumber(step.n)}</span>
+                                    </div>
+                                </div>
+                                <div className="ta-funnel-pct">{step.pct}%</div>
+                            </div>
+                            {i < steps.length - 1 && <div className="ta-funnel-drop">↓ {100 - steps[i + 1].pct}% drop</div>}
+                        </React.Fragment>
+                    ))}
+
+                    <div style={{ marginTop: '1.5rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                        <div className="ta-norm-card">
+                            <h3>Completion per device</h3>
+                            <div style={{ display: 'flex', gap: '1.5rem' }}>
+                                <div>
+                                    <div style={{ fontSize: '1.25rem', fontWeight: 700 }}>{mobileStarts.length ? Math.round(mobileCompleted / mobileStarts.length * 100) : 0}%</div>
+                                    <div style={{ fontSize: '.72rem', color: 'var(--text-3)' }}>📱 Mobil (n={mobileStarts.length})</div>
+                                </div>
+                                <div>
+                                    <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#2c5f4b' }}>{desktopStarts.length ? Math.round(desktopCompleted / desktopStarts.length * 100) : 0}%</div>
+                                    <div style={{ fontSize: '.72rem', color: 'var(--text-3)' }}>💻 Desktop (n={desktopStarts.length})</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="ta-norm-card">
+                            <h3>Top referrers</h3>
+                            {(() => {
+                                const refs = {};
+                                (td.starts || []).forEach(s => {
+                                    const r = s.referrer ? new URL(s.referrer).hostname.replace('www.', '') : 'direkte';
+                                    if (!refs[r]) refs[r] = { total: 0, completed: 0 };
+                                    refs[r].total++;
+                                    if (s.completed) refs[r].completed++;
+                                });
+                                const sorted = Object.entries(refs).sort((a, b) => b[1].total - a[1].total).slice(0, 5);
+                                if (!sorted.length) return <span style={{ fontSize: '.8rem', color: 'var(--text-3)' }}>Ingen referrer-data</span>;
+                                return sorted.map(([host, data]) => (
+                                    <div key={host} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '.8rem', padding: '.15rem 0' }}>
+                                        <span style={{ color: 'var(--text-2)' }}>{host}</span>
+                                        <span style={{ fontWeight: 600 }}>{data.total} <span style={{ color: 'var(--text-4)', fontWeight: 400 }}>({data.total ? Math.round(data.completed / data.total * 100) : 0}%)</span></span>
+                                    </div>
+                                ));
+                            })()}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // ── Answer detail modal ──
+        function renderAnswerModal() {
+            if (!viewAnswer) return null;
+            const r = viewAnswer;
+            const answers = r.result_data?.answers || [];
+            const meta = r.result_data?.metadata;
+            return (
+                <div className="admin-modal-overlay" onClick={() => setViewAnswer(null)}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 600 }}>
+                        <div className="admin-modal-header">
+                            <h3>Svardetaljer — {TA_TEST_CONFIG[r.test_type]?.label || r.test_type}</h3>
+                            <button className="admin-modal-close" onClick={() => setViewAnswer(null)}>{Icons.close}</button>
+                        </div>
+                        <div className="admin-modal-body">
+                            {meta && (
+                                <div style={{ marginBottom: '1rem', display: 'flex', gap: '1rem', flexWrap: 'wrap', fontSize: '.78rem', color: 'var(--text-3)' }}>
+                                    {meta.device && <span>📱 {meta.device}</span>}
+                                    {meta.language && <span>🌐 {meta.language}</span>}
+                                    {meta.duration_seconds && <span>⏱ {fmtDuration(meta.duration_seconds)}</span>}
+                                    {r.result_data?.test_version && <span>📋 {r.result_data.test_version}</span>}
+                                </div>
+                            )}
+                            {answers.map((a, i) => {
+                                const id = a.item_id || a.id || a.q || i;
+                                const val = a.chosen ?? a.value ?? a.chosenIdx;
+                                return (
+                                    <div className="ta-answer-item" key={i}>
+                                        <div className="ta-answer-id">{String(id).startsWith('q') ? id : 'q' + id}</div>
+                                        <div style={{ flex: 1 }}>
+                                            <span className="ta-answer-val">{val !== null && val !== undefined ? val : '—'}</span>
+                                            {a.text && <span style={{ marginLeft: 8, color: 'var(--text-3)', fontSize: '.75rem' }}>{a.text.slice(0, 80)}{a.text.length > 80 ? '…' : ''}</span>}
+                                        </div>
+                                        <div className="ta-answer-ms">{a.ms ? (a.ms / 1000).toFixed(1) + 's' : ''}</div>
+                                    </div>
+                                );
+                            })}
+                            {answers.length === 0 && <p style={{ color: 'var(--text-3)' }}>Ingen svardata</p>}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        if (loading) {
+            return (
+                <div>
+                    <div className="admin-page-header"><h1 className="admin-page-title">Test Analytics</h1></div>
+                    <div className="admin-loading"><div className="admin-spinner"></div>Henter data...</div>
+                </div>
+            );
+        }
+
+        return (
+            <div>
+                {/* Header */}
+                <div className="ta-topbar">
+                    <div><h1 className="admin-page-title">Test Analytics</h1><div className="admin-page-subtitle">Overblik over alle tests, svardata og konvertering</div></div>
+                    <div className="ta-period">
+                        {periodOpts.map(p => (
+                            <button key={p.v} className={period === p.v ? 'active' : ''} onClick={() => setPeriod(p.v)}>{p.l}</button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Red flag banner */}
+                {totalRedFlags > 0 && (
+                    <div className="ta-rfb">
+                        <span style={{ fontSize: '1.2rem' }}>⚠️</span>
+                        <div style={{ flex: 1 }}>
+                            <div className="ta-rfb-title">{totalRedFlags} kliniske red flags denne uge</div>
+                            <div className="ta-rfb-detail">Scores over klinisk cutoff fordelt på tests</div>
+                        </div>
+                        <div className="ta-rfb-chips">
+                            {Object.entries(testData).filter(([, t]) => t.redFlags > 0).map(([key, t]) => (
+                                <div className="ta-rfb-chip" key={key}><span className="count">{t.redFlags}</span> {TA_TEST_CONFIG[key]?.label?.split(' ')[0]}</div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Stat cards */}
+                <div className="ta-stat-cards">
+                    <div className="ta-stat-card">
+                        <div className="ta-sc-label">Tests gennemført</div>
+                        <div className="ta-sc-value">{fmtNumber(totalCompleted)}</div>
+                    </div>
+                    <div className="ta-stat-card">
+                        <div className="ta-sc-label">Gennemførelsesrate</div>
+                        <div className="ta-sc-value">{totalCompletionRate}%</div>
+                    </div>
+                    <div className="ta-stat-card">
+                        <div className="ta-sc-label">Rapporter solgt</div>
+                        <div className="ta-sc-value">{fmtNumber(totalReportsSold)}</div>
+                    </div>
+                    <div className="ta-stat-card">
+                        <div className="ta-sc-label">Revenue</div>
+                        <div className="ta-sc-value">{fmtNumber(totalRevenue)} <span style={{ fontSize: '.85rem', fontWeight: 500 }}>kr</span></div>
+                    </div>
+                    <div className="ta-stat-card">
+                        <div className="ta-sc-label">Rapport-rating</div>
+                        <div className="ta-sc-value">{totalAvgRating} <span style={{ fontSize: '.85rem' }}>★</span></div>
+                        <div className="ta-sc-sub">{allFeedback.length} ratings</div>
+                    </div>
+                </div>
+
+                {/* Overview table */}
+                <div className="admin-panel">
+                    <div className="admin-panel-header">
+                        <span className="admin-panel-title">Tests — overblik</span>
+                    </div>
+                    <table className="ta-ov-table">
+                        <thead><tr>
+                            <th style={{ width: 30 }}></th>
+                            <th>Test</th><th>Gennemf.</th><th>Completion</th>
+                            <th>Gns. score</th><th>Severity</th>
+                            <th>Konvert.</th><th>Revenue</th><th>Rating</th><th>Red flags</th>
+                        </tr></thead>
+                        <tbody>
+                            {Object.entries(TA_TEST_CONFIG).map(([key, cfg]) => {
+                                const td2 = testData[key] || {};
+                                const isExp = expanded === key;
+                                return (
+                                    <React.Fragment key={key}>
+                                        <tr className={isExp ? 'ta-expanded' : ''} onClick={() => toggleRow(key)}>
+                                            <td><svg className="ta-expand-arrow" viewBox="0 0 16 16"><polyline points="6 4 10 8 6 12"/></svg></td>
+                                            <td>
+                                                <div className="ta-test-cell">
+                                                    <div className="ta-test-dot" style={{ background: cfg.color }}></div>
+                                                    <div>
+                                                        <span className="ta-test-label">{cfg.label}</span>
+                                                        <span className="ta-test-ver">{cfg.version}</span>
+                                                        <span className="ta-badge-live">Live</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div className="ta-metric-main">{fmtNumber(td2.count || 0)}</div>
+                                                <div className="ta-metric-sub">+{td2.thisWeek || 0} denne uge</div>
+                                            </td>
+                                            <td>
+                                                <div style={{ fontWeight: 600, fontSize: '.85rem', color: (td2.completionRate || 0) >= 75 ? '#2c5f4b' : (td2.completionRate || 0) >= 60 ? '#b8860b' : '#c2553a' }}>{td2.completionRate || 0}%</div>
+                                                <div className="ta-completion-bar"><div className="ta-completion-fill" style={{ width: (td2.completionRate || 0) + '%', background: (td2.completionRate || 0) >= 75 ? '#2c5f4b' : (td2.completionRate || 0) >= 60 ? '#b8860b' : '#c2553a' }}></div></div>
+                                            </td>
+                                            <td>
+                                                {td2.mean ? <><div className="ta-metric-main">{td2.mean.toFixed(1)}</div><div className="ta-metric-sub">SD: {td2.sd ? td2.sd.toFixed(1) : '—'}</div></> : <span style={{ color: 'var(--text-4)' }}>—</span>}
+                                            </td>
+                                            <td>
+                                                {cfg.scoreKey && td2.scores?.length ? (
+                                                    <div className="ta-severity-row">
+                                                        {['low', 'mod', 'high', 'crit'].map(s => {
+                                                            const pct = td2.scores.length ? Math.round(td2.severities[s] / td2.scores.length * 100) : 0;
+                                                            if (pct === 0) return null;
+                                                            return <div key={s} className={`ta-sev ta-sev-${s}`} style={{ width: Math.max(pct * 0.6, 14) + 'px' }}>{pct}%</div>;
+                                                        })}
+                                                    </div>
+                                                ) : <span style={{ fontSize: '.72rem', color: 'var(--text-4)' }}>N/A</span>}
+                                            </td>
+                                            <td><span className="ta-conv">{td2.convRate ? td2.convRate.toFixed(1) + '%' : '—'}</span></td>
+                                            <td><span className="ta-revenue">{td2.revenue ? fmtNumber(td2.revenue) + ' kr' : '—'}</span></td>
+                                            <td>
+                                                {td2.avgRating ? <><span style={{ color: '#b8860b' }}>★ {td2.avgRating.toFixed(1)}</span><div className="ta-metric-sub">{td2.feedback?.length || 0} stk</div></> : <span style={{ color: 'var(--text-4)' }}>—</span>}
+                                            </td>
+                                            <td><span className={`ta-red-flag ${td2.redFlags > 0 ? 'has' : 'none'}`}>{td2.redFlags > 0 ? td2.redFlags : '—'}</span></td>
+                                        </tr>
+                                        {isExp && (
+                                            <tr><td colSpan="10" style={{ padding: 0 }}>
+                                                <div className="ta-drilldown">
+                                                    <div className="ta-dd-header">
+                                                        <div className="ta-dd-title">
+                                                            <div className="ta-test-dot" style={{ background: cfg.color, width: 10, height: 10 }}></div>
+                                                            {cfg.label} — detaljeret analyse
+                                                        </div>
+                                                        <button className="ta-dd-close" onClick={e => { e.stopPropagation(); setExpanded(null); }}>✕</button>
+                                                    </div>
+                                                    <div className="ta-tabs">
+                                                        {[
+                                                            { id: 'svardata', label: 'Svardata', badge: td2.count },
+                                                            { id: 'items', label: 'Item-analyse' },
+                                                            { id: 'normdata', label: 'Normdata' },
+                                                            { id: 'rapporter', label: 'Rapporter', badge: td2.access?.length },
+                                                            { id: 'funnel', label: 'Funnel & drop-off' },
+                                                        ].map(tab => (
+                                                            <button key={tab.id} className={`ta-tab ${ddTab === tab.id ? 'active' : ''}`} onClick={e => { e.stopPropagation(); setDdTab(tab.id); }}>
+                                                                {tab.label} {tab.badge !== undefined ? <span className="ta-tab-badge">{tab.badge}</span> : ''}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                    <div className={`ta-tab-content ${ddTab === 'svardata' ? 'active' : ''}`}>{ddTab === 'svardata' && renderSvardata()}</div>
+                                                    <div className={`ta-tab-content ${ddTab === 'items' ? 'active' : ''}`}>{ddTab === 'items' && renderItems()}</div>
+                                                    <div className={`ta-tab-content ${ddTab === 'normdata' ? 'active' : ''}`}>{ddTab === 'normdata' && renderNormdata()}</div>
+                                                    <div className={`ta-tab-content ${ddTab === 'rapporter' ? 'active' : ''}`}>{ddTab === 'rapporter' && renderRapporter()}</div>
+                                                    <div className={`ta-tab-content ${ddTab === 'funnel' ? 'active' : ''}`}>{ddTab === 'funnel' && renderFunnel()}</div>
+                                                </div>
+                                            </td></tr>
+                                        )}
+                                    </React.Fragment>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* Answer modal */}
+                {renderAnswerModal()}
+            </div>
+        );
+    }
+
+    // ══════════════════════════════════════════════════════
     // MAIN APP
     // ══════════════════════════════════════════════════════
     function AdminApp() {
@@ -1592,6 +2392,7 @@
             { id: 'users', icon: Icons.users, label: 'Brugere' },
             { id: 'anonymous', icon: Icons.anonymous, label: 'Anonyme' },
             { id: 'coupons', icon: Icons.coupons, label: 'Kuponer' },
+            { id: 'analytics', icon: Icons.analytics, label: 'Test Analytics' },
             { id: 'settings', icon: Icons.settings, label: 'Indstillinger' },
         ];
 
@@ -1631,6 +2432,7 @@
                     {activePage === 'users' && <UsersPage onSelectUser={setSelectedUserId} />}
                     {activePage === 'anonymous' && <AnonymousPage />}
                     {activePage === 'coupons' && <CouponsPage />}
+                    {activePage === 'analytics' && <AnalyticsPage />}
                     {activePage === 'settings' && <SettingsPage />}
                 </main>
 
