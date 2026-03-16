@@ -452,18 +452,31 @@
             setLoading(true);
             try {
                 const sb = getSB();
-                const { data, error: authErr } = await sb.auth.signInWithPassword({ email, password });
+                const { error: authErr } = await sb.auth.signInWithPassword({ email, password });
                 if (authErr) throw authErr;
 
-                // Strict admin check
-                const { data: profile } = await sb.from('user_profiles').select('plan').eq('id', data.user.id).single();
-                if (profile?.plan !== 'admin') {
+                // Wait for HB_AUTH to load the profile via hb-auth-change event
+                // The useEffect listener above will call onAuth if plan === admin
+                await new Promise((resolve) => {
+                    let resolved = false;
+                    const done = () => { if (!resolved) { resolved = true; resolve(); } };
+                    const handler = () => { done(); window.removeEventListener('hb-auth-change', handler); };
+                    window.addEventListener('hb-auth-change', handler);
+                    // Also check if HB_AUTH already updated (race condition)
+                    const poll = setInterval(() => {
+                        if (window.HB_AUTH?.plan && window.HB_AUTH.plan !== 'free') { clearInterval(poll); done(); }
+                    }, 200);
+                    // Timeout after 10s
+                    setTimeout(() => { clearInterval(poll); done(); }, 10000);
+                });
+
+                if (window.HB_AUTH.plan !== 'admin') {
                     setError('Kun administratorer har adgang til dette panel.');
                     await sb.auth.signOut();
                     setLoading(false);
                     return;
                 }
-                onAuth(data.user);
+                onAuth(window.HB_AUTH.user);
             } catch (err) {
                 setError(err.message || 'Login fejlede');
                 setLoading(false);

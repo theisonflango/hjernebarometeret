@@ -175,31 +175,50 @@
     btn.textContent = _isSignup ? 'Opret konto' : 'Log ind';
   }
 
+  function _withTimeout(promise, ms) {
+    return Promise.race([
+      promise,
+      new Promise(function(_, reject) { setTimeout(function() { reject(new Error('timeout')); }, ms); })
+    ]);
+  }
+
   async function _loadProfile(user) {
     _user = user;
     if (!user) { _plan = 'free'; _credits = 0; return; }
 
-    var { data } = await sb.from('user_profiles').select('plan, report_credits, display_name').eq('id', user.id).maybeSingle();
-    if (data) {
-      _plan = data.plan || 'free';
-      _credits = data.report_credits || 0;
-    } else {
-      // Profile doesn't exist yet — create it (e.g. user confirmed email and returned)
-      var wcCredits = 0;
-      try {
-        var { data: wcCfg } = await sb.from('site_config').select('value').eq('key', 'welcome_credits').maybeSingle();
-        if (wcCfg) wcCredits = parseInt(wcCfg.value) || 0;
-      } catch(e) {}
+    try {
+      var { data } = await _withTimeout(
+        sb.from('user_profiles').select('plan, report_credits, display_name').eq('id', user.id).maybeSingle(),
+        8000
+      );
+      if (data) {
+        _plan = data.plan || 'free';
+        _credits = data.report_credits || 0;
+      } else {
+        // Profile doesn't exist yet — create it
+        var wcCredits = 0;
+        try {
+          var { data: wcCfg } = await _withTimeout(
+            sb.from('site_config').select('value').eq('key', 'welcome_credits').maybeSingle(),
+            5000
+          );
+          if (wcCfg) wcCredits = parseInt(wcCfg.value) || 0;
+        } catch(e) {}
+        _plan = 'free';
+        _credits = wcCredits;
+        try {
+          await _withTimeout(
+            sb.from('user_profiles').insert({
+              id: user.id, email: user.email, plan: 'free', report_credits: wcCredits
+            }),
+            5000
+          );
+        } catch(e) { /* Ignore duplicate insert or timeout */ }
+      }
+    } catch(e) {
+      console.warn('HB_AUTH: _loadProfile failed/timeout, using defaults', e.message);
       _plan = 'free';
-      _credits = wcCredits;
-      try {
-        await sb.from('user_profiles').insert({
-          id: user.id,
-          email: user.email,
-          plan: 'free',
-          report_credits: wcCredits
-        });
-      } catch(e) { /* Ignore duplicate insert errors */ }
+      _credits = 0;
     }
   }
 
