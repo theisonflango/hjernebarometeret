@@ -295,13 +295,15 @@
     _callbacks = [];
   }
 
-  sb.auth.onAuthStateChange(async function(event, session) {
+  sb.auth.onAuthStateChange(function(event, session) {
+    // IMPORTANT: Do NOT await inside this callback — Supabase holds a navigator lock
+    // that deadlocks if we make async Supabase calls while it's held.
     if (event === 'INITIAL_SESSION') {
-      // First callback — replaces _init()
       if (session && session.user) {
-        await _loadProfile(session.user);
+        _loadProfile(session.user).then(function() { _markReady(); });
+      } else {
+        _markReady();
       }
-      _markReady();
     } else if (event === 'SIGNED_OUT') {
       _user = null;
       _plan = 'free';
@@ -309,18 +311,16 @@
       _updateNav();
       window.dispatchEvent(new CustomEvent('hb-auth-change', { detail: { user: null, plan: 'free' } }));
     } else if (event === 'SIGNED_IN' && session && session.user) {
-      await _loadProfile(session.user);
-      _updateNav();
-      window.dispatchEvent(new CustomEvent('hb-auth-change', { detail: { user: _user, plan: _plan } }));
-      // Clean hash fragment from URL after email confirmation
-      if (window.location.hash && window.location.hash.includes('access_token')) {
-        window.history.replaceState({}, '', window.location.pathname + window.location.search);
-      }
-    } else if (event === 'TOKEN_REFRESHED' && session && session.user) {
-      // Session refreshed — update profile if needed
-      if (!_user) {
-        await _loadProfile(session.user);
+      _loadProfile(session.user).then(function() {
         _updateNav();
+        window.dispatchEvent(new CustomEvent('hb-auth-change', { detail: { user: _user, plan: _plan } }));
+        if (window.location.hash && window.location.hash.includes('access_token')) {
+          window.history.replaceState({}, '', window.location.pathname + window.location.search);
+        }
+      });
+    } else if (event === 'TOKEN_REFRESHED' && session && session.user) {
+      if (!_user) {
+        _loadProfile(session.user).then(function() { _updateNav(); });
       }
     }
   });
