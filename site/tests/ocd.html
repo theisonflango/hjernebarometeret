@@ -1,0 +1,1505 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Gratis OCD-screening baseret på OCI-R (Foa et al., 2002). 18 spørgsmål, 6 dimensioner. Se dit niveau af tvangsprægede symptomer.">
+<title>OCD-screening — Hjernebarometeret.dk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,500&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/styles.css">
+<style>
+:root {
+  --bg: #faf9f7;
+  --bg-card: #fff;
+  --bg-card-hover: rgba(0,0,0,.02);
+  --bg-warm: #f5f2ee;
+  --bg-dark: #1c1b1a;
+  --text: #1c1b1a;
+  --text-2: #5a5650;
+  --text-3: #8a857e;
+  --text-4: #b5b0a8;
+  --text-dim: #5a5650;
+  --text-muted: #8a857e;
+  --border: #e8e5e0;
+  --border-2: #d5d0c9;
+  --accent: #8b5c7a;
+  --accent-glow: rgba(139,92,122,0.08);
+  --accent-dim: #7a4d6a;
+  --green: #5cb85c;
+  --yellow: #e8c547;
+  --orange: #e8873c;
+  --red: #d9534f;
+  --dim-washing: #5b9bd5;
+  --dim-checking: #e85d7a;
+  --dim-ordering: #5cb85c;
+  --dim-obsessing: #e8873c;
+  --dim-hoarding: #7b68ee;
+  --dim-neutralizing: #3cb7a0;
+  --radius: 12px;
+  --radius-lg: 20px;
+  --serif: 'Source Serif 4', Georgia, serif;
+  --sans: 'Figtree', system-ui, sans-serif;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  padding-top: 64px;
+}
+
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* ── LANG TOGGLE ── */
+.lang-toggle {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  background: transparent;
+  border: 1px solid var(--border);
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.lang-toggle:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── PROGRESS BAR ── */
+.progress-wrap {
+  position: sticky;
+  top: 64px;
+  z-index: 99;
+  background: var(--bg);
+  padding: 12px 0 8px;
+}
+.progress-bar-bg {
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-dim), var(--accent));
+  border-radius: 2px;
+  transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  width: 0%;
+}
+.progress-text {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 6px;
+  text-align: right;
+}
+
+/* ── SCREENS ── */
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* ── INTRO ── */
+.intro {
+  padding: 60px 0 80px;
+  text-align: center;
+  position: relative;
+}
+.intro-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  padding: 4px 14px;
+  border-radius: 20px;
+  margin-bottom: 28px;
+  font-weight: 600;
+}
+.intro h1 {
+  font-family: var(--serif);
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  margin-bottom: 18px;
+}
+.intro h1 em {
+  font-style: italic;
+  color: var(--accent);
+}
+.intro p.lead {
+  font-size: 1.05rem;
+  color: var(--text-dim);
+  max-width: 520px;
+  margin: 0 auto 36px;
+}
+.intro-meta {
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+}
+.intro-meta span {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+.intro-meta span strong {
+  color: var(--text-dim);
+  font-weight: 500;
+}
+.btn-start {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 14px 36px;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.25s;
+  font-family: inherit;
+}
+.btn-start:hover {
+  background: #9a6b89;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 30px rgba(139,92,122,0.25);
+}
+.intro-science {
+  margin-top: 60px;
+  text-align: left;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+}
+.intro-science h3 {
+  font-family: var(--serif);
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+.intro-science p {
+  font-size: 0.88rem;
+  color: var(--text-dim);
+  line-height: 1.7;
+}
+
+/* ── DIMENSION PREVIEW ── */
+.dim-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  margin-top: 32px;
+}
+.dim-preview {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  text-align: center;
+}
+.dim-dot-preview {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  margin: 0 auto 8px;
+}
+.dim-preview h4 { font-size: 0.82rem; font-weight: 600; margin-bottom: 3px; }
+.dim-preview p { font-size: 0.72rem; color: var(--text-muted); }
+
+/* ── QUESTION ── */
+.question-screen { padding: 40px 0 100px; }
+.q-number {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 16px;
+}
+.q-text {
+  font-family: var(--serif);
+  font-size: clamp(1.2rem, 3.5vw, 1.55rem);
+  font-weight: 500;
+  line-height: 1.4;
+  margin-bottom: 36px;
+  letter-spacing: -0.01em;
+  min-height: 80px;
+}
+.likert {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.likert-option {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+  font-size: 0.92rem;
+  color: var(--text);
+  text-align: left;
+  width: 100%;
+}
+.likert-option:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent);
+}
+.likert-option.selected {
+  background: var(--accent-glow);
+  border-color: var(--accent);
+}
+.likert-dot {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--text-muted);
+  flex-shrink: 0;
+  transition: all 0.2s;
+  position: relative;
+}
+.likert-option.selected .likert-dot {
+  border-color: var(--accent);
+  background: var(--accent);
+  box-shadow: inset 0 0 0 3px var(--bg-card);
+}
+.q-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 32px;
+  gap: 12px;
+}
+.btn-nav {
+  padding: 10px 22px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-dim);
+  transition: all 0.2s;
+}
+.btn-nav:hover:not(:disabled) { border-color: var(--text-dim); color: var(--text); }
+.btn-nav:disabled { opacity: 0.3; cursor: default; }
+.btn-nav.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.btn-nav.primary:hover:not(:disabled) { background: #9a6b89; }
+.btn-nav.primary:disabled { opacity: 0.4; }
+.keyboard-hint {
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 20px;
+}
+.keyboard-hint kbd {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.68rem;
+}
+
+/* ── CALCULATING ── */
+.calculating-screen {
+  padding: 120px 0;
+  text-align: center;
+}
+.calc-spinner {
+  width: 48px; height: 48px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 24px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.calc-steps {
+  max-width: 260px;
+  margin: 24px auto 0;
+  text-align: left;
+}
+.calc-step {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  transition: color 0.3s;
+}
+.calc-step.active { color: var(--accent); }
+.calc-step.done { color: var(--green); }
+.calc-step-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--text-muted); flex-shrink: 0;
+  transition: background 0.3s;
+}
+.calc-step.active .calc-step-dot { background: var(--accent); animation: pulse 1s infinite; }
+.calc-step.done .calc-step-dot { background: var(--green); }
+@keyframes pulse { 0%,100%{opacity:.4} 50%{opacity:1} }
+
+/* ── RESULTS ── */
+.results-screen { padding: 40px 0 80px; }
+.results-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.level-badge {
+  display: inline-block;
+  padding: 5px 16px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 14px;
+}
+.results-header h2 {
+  font-family: var(--serif);
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin-bottom: 8px;
+}
+.results-header p {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  max-width: 500px;
+  margin: 0 auto;
+  line-height: 1.65;
+}
+
+/* Score circle */
+.score-display { text-align: center; margin: 24px 0 32px; }
+.score-circle {
+  width: 130px; height: 130px;
+  border-radius: 50%;
+  margin: 0 auto 12px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  border: 3px solid;
+}
+.score-num {
+  font-family: var(--serif);
+  font-size: 2.4rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.score-max { font-size: 0.82rem; color: var(--text-muted); }
+
+/* Dual score boxes */
+.dual-scores {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 16px 0 24px;
+}
+.dual-score-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  text-align: center;
+}
+.dual-score-box .ds-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+.dual-score-box .ds-value {
+  font-family: var(--serif);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+.dual-score-box .ds-note {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* Interpretation */
+.score-interpretation {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin: 0 0 32px;
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  line-height: 1.7;
+  text-align: center;
+}
+
+/* Red flag */
+.red-flag {
+  background: #fdf2f2;
+  border: 1px solid #e8a0a0;
+  border-radius: var(--radius);
+  padding: 20px;
+  margin: 16px 0 24px;
+  text-align: left;
+}
+.red-flag p {
+  font-size: 0.88rem;
+  color: #8b2020;
+  line-height: 1.65;
+}
+.red-flag p strong { font-weight: 700; }
+.red-flag a {
+  color: #8b2020;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Radar */
+.radar-section {
+  margin: 32px 0;
+  text-align: center;
+}
+.radar-section h3 {
+  font-family: var(--serif);
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.radar-section .subtitle {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+/* Subscale cards */
+.subscale-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 32px 0;
+}
+.subscale-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.subscale-card:hover { border-color: var(--border-2); }
+.subscale-card.hoarding-card { border-left: 3px solid var(--dim-hoarding); }
+.sc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.sc-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sc-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.sc-score {
+  font-family: var(--serif);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+.sc-bar {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+.sc-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 1s ease;
+}
+.sc-level {
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.sc-desc {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  line-height: 1.65;
+  max-height: 0;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+.subscale-card.expanded .sc-desc {
+  max-height: 600px;
+  padding-top: 12px;
+}
+
+/* Hoarding separator */
+.hoarding-separator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0 8px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.hoarding-separator::before,
+.hoarding-separator::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* Paywall */
+.paywall-card {
+  background: linear-gradient(135deg, #f8f6f3 0%, #faf9f7 100%);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-lg);
+  padding: 32px 24px;
+  text-align: center;
+  margin: 48px 0 32px;
+  position: relative;
+  overflow: hidden;
+}
+.paywall-card::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: radial-gradient(circle at center, rgba(139,92,122,0.04) 0%, transparent 60%);
+  pointer-events: none;
+}
+.paywall-card h3 {
+  font-family: var(--serif);
+  font-size: 1.3rem;
+  margin-bottom: 10px;
+  font-weight: 600;
+  position: relative;
+}
+.paywall-card > p {
+  color: var(--text-dim);
+  font-size: 0.88rem;
+  margin-bottom: 20px;
+  position: relative;
+}
+.price-tag {
+  font-family: var(--serif);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 4px;
+  position: relative;
+}
+.price-tag small {
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--text-dim);
+}
+.compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 24px 0;
+  font-size: 0.82rem;
+  position: relative;
+}
+.compare-table th {
+  text-align: left;
+  padding: 10px 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+  border-bottom: 1px solid var(--border);
+}
+.compare-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  color: var(--text-dim);
+}
+.compare-table td:nth-child(2),
+.compare-table td:nth-child(3) { text-align: center; }
+.compare-table th:nth-child(2),
+.compare-table th:nth-child(3) { text-align: center; }
+.check { color: var(--accent); font-weight: 600; }
+.cross { color: var(--text-muted); }
+.btn-buy {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 13px 32px;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.25s;
+  position: relative;
+}
+.btn-buy:hover {
+  background: #9a6b89;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 30px rgba(139,92,122,0.25);
+}
+.btn-sub-alt {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 0.82rem;
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: inherit;
+  position: relative;
+}
+
+/* Cross-sell */
+.cross-sell {
+  margin-top: 48px;
+  text-align: center;
+}
+.cross-sell h3 {
+  font-family: var(--serif);
+  font-size: 1.1rem;
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+.cross-sell-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+.cross-sell-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 16px;
+  text-decoration: none;
+  color: var(--text);
+  transition: all 0.2s;
+  display: block;
+}
+.cross-sell-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+.cross-sell-card .emoji { font-size: 1.5rem; margin-bottom: 8px; }
+.cross-sell-card .name { font-weight: 600; font-size: 0.88rem; margin-bottom: 4px; }
+.cross-sell-card .sub { font-size: 0.76rem; color: var(--text-muted); }
+
+/* Disclaimer */
+.footer-disc {
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  padding: 24px 0 16px;
+  line-height: 1.7;
+}
+
+/* Animations */
+@keyframes fadeUp {
+  from { opacity:0; transform: translateY(16px); }
+  to { opacity:1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp 0.5s ease forwards; }
+
+@media (max-width: 600px) {
+  .dim-grid { grid-template-columns: 1fr 1fr; }
+  .cross-sell-grid { grid-template-columns: 1fr; }
+  .dual-scores { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .intro { padding: 40px 0 60px; }
+  .intro-meta { gap: 16px; }
+  .subscale-card { padding: 18px; }
+  .paywall-card { padding: 24px 18px; }
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div id="site-nav" data-test-mode="true"></div>
+
+<!-- ═══════ INTRO ═══════ -->
+<div id="introScreen" class="screen active">
+  <div class="container intro">
+    <button class="lang-toggle" onclick="toggleLang()" id="langBtn" style="position:absolute;top:20px;right:20px;">EN 🇬🇧</button>
+    <div class="intro-badge" data-da="OCD-screening" data-en="OCD Screening">OCD-screening</div>
+    <h1 data-da="Tvangstanker og <em>tvangshandlinger</em>" data-en="Obsessive thoughts and <em>compulsions</em>">Tvangstanker og <em>tvangshandlinger</em></h1>
+    <p class="lead" data-da="En videnskabelig screening af tvangsprægede symptomer baseret på OCI-R — et af de mest validerede instrumenter til vurdering af OCD-symptomer." data-en="A scientific screening of obsessive-compulsive symptoms based on OCI-R — one of the most validated instruments for assessing OCD symptoms.">En videnskabelig screening af tvangsprægede symptomer baseret på OCI-R — et af de mest validerede instrumenter til vurdering af OCD-symptomer.</p>
+    <div class="intro-meta">
+      <span><strong>18</strong> <span data-da="spørgsmål" data-en="questions">spørgsmål</span></span>
+      <span><strong>3-5</strong> <span data-da="minutter" data-en="minutes">minutter</span></span>
+      <span><strong>6</strong> <span data-da="dimensioner" data-en="dimensions">dimensioner</span></span>
+      <span><strong data-da="Gratis" data-en="Free">Gratis</strong> <span data-da="resultat" data-en="result">resultat</span></span>
+    </div>
+    <div style="margin:0 auto 24px;max-width:320px;text-align:left;">
+      <label style="display:block;font-weight:600;font-size:0.9rem;margin-bottom:6px;color:var(--text);" data-da="Fødselsår" data-en="Birth year">Fødselsår</label>
+      <p style="font-size:0.78rem;color:var(--text-muted);margin-bottom:10px;line-height:1.5;" data-da="Bruges til at tilpasse din rapport" data-en="Used to customize your report">Bruges til at tilpasse din rapport</p>
+      <select id="birthYearSelect" style="width:100%;padding:12px 16px;font-size:0.95rem;border:1px solid var(--border);border-radius:8px;background:var(--bg-card);color:var(--text);font-family:inherit;cursor:pointer;">
+        <option value="" data-da="Vælg fødselsår..." data-en="Select birth year...">Vælg fødselsår...</option>
+      </select>
+    </div>
+    <div id="underAgeWarning" style="display:none;background:#fef9e7;border:1px solid #f0d567;border-radius:var(--radius);padding:20px;margin:0 auto 20px;max-width:520px;text-align:left;">
+      <p style="font-weight:600;font-size:0.9rem;color:#856404;margin-bottom:8px;">⚠️ Aldersadvarsel</p>
+      <p style="font-size:0.85rem;color:#856404;line-height:1.6;margin-bottom:16px;">OCI-R er primært valideret for voksne. Resultater for unge under 16 bør tolkes med forbehold.</p>
+      <button onclick="forceStart()" style="background:var(--accent);color:#fff;font-weight:500;font-size:0.88rem;padding:10px 22px;border:1px solid var(--accent);border-radius:8px;cursor:pointer;font-family:inherit;">Jeg forstår — start testen</button>
+    </div>
+    <button class="btn-start" onclick="startTest()">
+      <span data-da="Start testen" data-en="Start test">Start testen</span> →
+    </button>
+    <div class="intro-science">
+      <h3 data-da="🔬 Videnskabeligt grundlag" data-en="🔬 Scientific foundation">🔬 Videnskabeligt grundlag</h3>
+      <p data-da="Testen er baseret på <strong>Obsessive-Compulsive Inventory-Revised (OCI-R)</strong> af Foa et al. (2002) — et af de mest anvendte og validerede selvrapporteringsinstrumenter til vurdering af tvangsprægede symptomer. OCI-R måler 6 dimensioner af OCD og har vist fremragende psykometriske egenskaber på tværs af kliniske og ikke-kliniske populationer (Abramowitz & Deacon, 2006; Wootton et al., 2015)." data-en="This test is based on the <strong>Obsessive-Compulsive Inventory-Revised (OCI-R)</strong> by Foa et al. (2002) — one of the most widely used and validated self-report instruments for assessing obsessive-compulsive symptoms. The OCI-R measures 6 dimensions of OCD and has shown excellent psychometric properties across clinical and non-clinical populations.">Testen er baseret på <strong>Obsessive-Compulsive Inventory-Revised (OCI-R)</strong> af Foa et al. (2002) — et af de mest anvendte og validerede selvrapporteringsinstrumenter til vurdering af tvangsprægede symptomer. OCI-R måler 6 dimensioner af OCD og har vist fremragende psykometriske egenskaber på tværs af kliniske og ikke-kliniske populationer (Abramowitz & Deacon, 2006; Wootton et al., 2015).</p>
+      <div class="dim-grid">
+        <div class="dim-preview">
+          <div class="dim-dot-preview" style="background:var(--dim-washing)"></div>
+          <h4 data-da="Vask" data-en="Washing">Vask</h4>
+          <p data-da="Kontamineringsangst" data-en="Contamination fear">Kontamineringsangst</p>
+        </div>
+        <div class="dim-preview">
+          <div class="dim-dot-preview" style="background:var(--dim-checking)"></div>
+          <h4 data-da="Tjek" data-en="Checking">Tjek</h4>
+          <p data-da="Gentagen kontrol" data-en="Repeated checking">Gentagen kontrol</p>
+        </div>
+        <div class="dim-preview">
+          <div class="dim-dot-preview" style="background:var(--dim-ordering)"></div>
+          <h4 data-da="Orden" data-en="Ordering">Orden</h4>
+          <p data-da="Symmetri og præcision" data-en="Symmetry and precision">Symmetri og præcision</p>
+        </div>
+        <div class="dim-preview">
+          <div class="dim-dot-preview" style="background:var(--dim-obsessing)"></div>
+          <h4 data-da="Obsessioner" data-en="Obsessing">Obsessioner</h4>
+          <p data-da="Påtrængende tanker" data-en="Intrusive thoughts">Påtrængende tanker</p>
+        </div>
+        <div class="dim-preview">
+          <div class="dim-dot-preview" style="background:var(--dim-hoarding)"></div>
+          <h4 data-da="Hamstring" data-en="Hoarding">Hamstring</h4>
+          <p data-da="Vanskelighed ved at kassere" data-en="Difficulty discarding">Vanskelighed ved at kassere</p>
+        </div>
+        <div class="dim-preview">
+          <div class="dim-dot-preview" style="background:var(--dim-neutralizing)"></div>
+          <h4 data-da="Neutralisering" data-en="Neutralizing">Neutralisering</h4>
+          <p data-da="Tælleritualer og tal" data-en="Counting rituals">Tælleritualer og tal</p>
+        </div>
+      </div>
+    </div>
+    <p style="text-align:center;font-size:0.78rem;color:var(--text-muted);margin-top:28px;line-height:1.6;" data-da="Denne test er ikke et diagnostisk værktøj og erstatter ikke en klinisk vurdering. Alle mennesker oplever lejlighedsvis påtrængende tanker — det er helt normalt." data-en="This test is not a diagnostic tool and does not replace clinical evaluation. Everyone experiences intrusive thoughts occasionally — that is completely normal.">Denne test er ikke et diagnostisk værktøj og erstatter ikke en klinisk vurdering. Alle mennesker oplever lejlighedsvis påtrængende tanker — det er helt normalt.</p>
+  </div>
+</div>
+
+<!-- ═══════ QUESTION ═══════ -->
+<div id="questionScreen" class="screen">
+  <div class="container">
+    <div class="progress-wrap">
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-text" id="progressText">1 / 18</div>
+    </div>
+    <div class="question-screen">
+      <div class="q-number" id="qNumber"></div>
+      <div class="q-text" id="qText"></div>
+      <div class="likert" id="likertOptions"></div>
+      <div class="q-nav">
+        <button class="btn-nav" id="btnPrev" onclick="prevQuestion()" data-da="← Tilbage" data-en="← Back">← Tilbage</button>
+        <button class="btn-nav primary" id="btnNext" onclick="nextQuestion()" disabled data-da="Næste →" data-en="Next →">Næste →</button>
+      </div>
+      <div class="keyboard-hint" data-da="<kbd>1</kbd>–<kbd>5</kbd> vælg · <kbd>Enter</kbd> næste · <kbd>←</kbd> tilbage" data-en="<kbd>1</kbd>–<kbd>5</kbd> select · <kbd>Enter</kbd> next · <kbd>←</kbd> back">
+        <kbd>1</kbd>–<kbd>5</kbd> vælg · <kbd>Enter</kbd> næste · <kbd>←</kbd> tilbage
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ CALCULATING ═══════ -->
+<div id="calcScreen" class="screen">
+  <div class="container calculating-screen">
+    <div class="calc-spinner"></div>
+    <p data-da="Analyserer dine svar..." data-en="Analyzing your answers...">Analyserer dine svar...</p>
+    <div class="calc-steps">
+      <div class="calc-step" id="step1"><div class="calc-step-dot"></div><span data-da="Scorer OCI-R dimensioner" data-en="Scoring OCI-R dimensions">Scorer OCI-R dimensioner</span></div>
+      <div class="calc-step" id="step2"><div class="calc-step-dot"></div><span data-da="Beregner symptomprofil" data-en="Computing symptom profile">Beregner symptomprofil</span></div>
+      <div class="calc-step" id="step3"><div class="calc-step-dot"></div><span data-da="Sammenligner med normdata" data-en="Comparing to norms">Sammenligner med normdata</span></div>
+      <div class="calc-step" id="step4"><div class="calc-step-dot"></div><span data-da="Genererer din profil" data-en="Generating your profile">Genererer din profil</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ RESULTS ═══════ -->
+<div id="resultsScreen" class="screen">
+  <div class="container results-screen" id="resultsContainer"></div>
+</div>
+
+<div id="site-footer"></div>
+
+<script src="../shared/nav.js"></script>
+<script src="../shared/footer.js"></script>
+<script src="../shared/auth.js"></script>
+<script src="../shared/coupon.js"></script>
+<script src="../shared/payment.js"></script>
+<script src="../shared/normdata.js"></script>
+<script src="../shared/profilecard.js"></script>
+
+<script>
+// ═══════════════════════════════════════════
+//  LANGUAGE
+// ═══════════════════════════════════════════
+var lang = 'da';
+
+function toggleLang() {
+  lang = lang === 'da' ? 'en' : 'da';
+  document.getElementById('langBtn').textContent = lang === 'da' ? 'EN 🇬🇧' : 'DA 🇩🇰';
+  document.querySelectorAll('[data-da]').forEach(function(el) {
+    el.innerHTML = el.getAttribute('data-' + lang);
+  });
+  if (currentQ >= 0 && document.getElementById('questionScreen').classList.contains('active')) {
+    renderQuestion();
+  }
+}
+function t(da, en) { return lang === 'da' ? da : en; }
+
+// ═══════════════════════════════════════════
+//  OCI-R ITEMS (Foa et al., 2002)
+// ═══════════════════════════════════════════
+// Instruktion: "Følgende udsagn handler om oplevelser som mange mennesker har i hverdagen.
+// Angiv hvor meget den oplevelse har GENERET eller PLAGET dig i løbet af DEN SENESTE MÅNED."
+// Scoring: Slet ikke (0), Lidt (1), Moderat (2), Meget (3), Ekstremt (4)
+
+var items = [
+  { id:1,  da:"Jeg har samlet så mange ting at de er i vejen.", en:"I have saved up so many things that they get in the way.", subscale:"hoarding" },
+  { id:2,  da:"Jeg tjekker ting oftere end nødvendigt.", en:"I check things more often than necessary.", subscale:"checking" },
+  { id:3,  da:"Jeg bliver urolig hvis ting ikke er arrangeret ordentligt.", en:"I get upset if objects are not arranged properly.", subscale:"ordering" },
+  { id:4,  da:"Jeg føler mig tvunget til at tælle mens jeg gør ting.", en:"I feel compelled to count while I am doing things.", subscale:"neutralizing" },
+  { id:5,  da:"Jeg har svært ved at røre ved ting når jeg ved de er blevet rørt af fremmede eller bestemte personer.", en:"I find it difficult to touch an object when I know it has been touched by strangers or certain people.", subscale:"washing" },
+  { id:6,  da:"Jeg har svært ved at kontrollere mine egne tanker.", en:"I find it difficult to control my own thoughts.", subscale:"obsessing" },
+  { id:7,  da:"Jeg samler på ting jeg ikke har brug for.", en:"I collect things I don't need.", subscale:"hoarding" },
+  { id:8,  da:"Jeg tjekker gentagne gange døre, vinduer, skuffer osv.", en:"I repeatedly check doors, windows, drawers, etc.", subscale:"checking" },
+  { id:9,  da:"Jeg bliver urolig hvis andre ændrer den måde jeg har arrangeret ting på.", en:"I get upset if others change the way I have arranged things.", subscale:"ordering" },
+  { id:10, da:"Jeg føler at jeg er nødt til at gentage bestemte tal.", en:"I feel I have to repeat certain numbers.", subscale:"neutralizing" },
+  { id:11, da:"Jeg er sommetider nødt til at vaske eller rense mig selv fordi jeg føler mig forurenet.", en:"I sometimes have to wash or clean myself simply because I feel contaminated.", subscale:"washing" },
+  { id:12, da:"Jeg bliver generet af ubehagelige tanker der trænger sig ind i mit sind mod min vilje.", en:"I am upset by unpleasant thoughts that come into my mind against my will.", subscale:"obsessing" },
+  { id:13, da:"Jeg undgår at smide ting ud fordi jeg er bange for at jeg kan få brug for dem senere.", en:"I avoid throwing things away because I am afraid I might need them later.", subscale:"hoarding" },
+  { id:14, da:"Jeg tjekker gentagne gange gas, vandhaner og lyskontakter efter jeg har slukket dem.", en:"I repeatedly check gas and water taps and light switches after turning them off.", subscale:"checking" },
+  { id:15, da:"Jeg har brug for at ting er arrangeret på en bestemt måde.", en:"I need things to be arranged in a particular way.", subscale:"ordering" },
+  { id:16, da:"Jeg føler at der er gode og dårlige tal.", en:"I feel that there are good and bad numbers.", subscale:"neutralizing" },
+  { id:17, da:"Jeg vasker mine hænder oftere og længere end nødvendigt.", en:"I wash my hands more often and longer than necessary.", subscale:"washing" },
+  { id:18, da:"Jeg får ofte ubehagelige tanker og har svært ved at slippe af med dem.", en:"I frequently get nasty thoughts and have difficulty in getting rid of them.", subscale:"obsessing" }
+];
+
+var likertLabels = {
+  da: ["Slet ikke","Lidt","Moderat","Meget","Ekstremt"],
+  en: ["Not at all","A little","Moderately","A lot","Extremely"]
+};
+
+// ═══════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════
+var answers = {};
+var currentQ = 0;
+var shuffledItems = [];
+var selectedBirthYear = null;
+
+// ── Birth year helpers ──
+function getAgeFromBirthYear(by) {
+  var now = new Date();
+  return now.getFullYear() - by - (now.getMonth() < 6 ? 1 : 0);
+}
+function getAgeGroup(age) {
+  if (age < 16) return "13-15";
+  if (age < 18) return "16-17";
+  if (age < 25) return "18-24";
+  if (age < 35) return "25-34";
+  if (age < 45) return "35-44";
+  if (age < 55) return "45-54";
+  if (age < 65) return "55-64";
+  return "65+";
+}
+
+// Populate birth year dropdown
+(function() {
+  var sel = document.getElementById('birthYearSelect');
+  if (!sel) return;
+  var currentYear = new Date().getFullYear();
+  for (var y = currentYear - 10; y >= currentYear - 90; y--) {
+    var opt = document.createElement('option');
+    opt.value = y;
+    opt.textContent = y;
+    sel.appendChild(opt);
+  }
+  sel.addEventListener('change', function() {
+    var warning = document.getElementById('underAgeWarning');
+    var startBtn = document.querySelector('.btn-start');
+    if (sel.value) {
+      selectedBirthYear = parseInt(sel.value);
+      var age = getAgeFromBirthYear(selectedBirthYear);
+      if (age < 13) {
+        warning.querySelector('p:nth-child(2)').textContent = 'Denne test er beregnet til personer fra 13 år. Du kan desværre ikke tage testen.';
+        warning.querySelector('button').style.display = 'none';
+        warning.style.display = 'block';
+        startBtn.style.display = 'none';
+      } else if (age < 16) {
+        warning.querySelector('p:nth-child(2)').textContent = 'OCI-R er primært valideret for voksne. Resultater for unge under 16 bør tolkes med forbehold.';
+        warning.querySelector('button').style.display = '';
+        warning.style.display = 'block';
+        startBtn.style.display = 'none';
+      } else {
+        warning.style.display = 'none';
+        startBtn.style.display = '';
+      }
+    } else {
+      selectedBirthYear = null;
+      warning.style.display = 'none';
+      startBtn.style.display = '';
+    }
+  });
+})();
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function startTest() {
+  if (!selectedBirthYear) {
+    var sel = document.getElementById('birthYearSelect');
+    sel.style.borderColor = 'var(--red)';
+    sel.focus();
+    setTimeout(function() { sel.style.borderColor = 'var(--border)'; }, 2000);
+    return;
+  }
+  // Shuffle items
+  shuffledItems = items.slice();
+  for (var i = shuffledItems.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = shuffledItems[i];
+    shuffledItems[i] = shuffledItems[j];
+    shuffledItems[j] = tmp;
+  }
+  currentQ = 0;
+  answers = {};
+  showScreen('questionScreen');
+  renderQuestion();
+}
+
+function forceStart() {
+  document.getElementById('underAgeWarning').style.display = 'none';
+  document.querySelector('.btn-start').style.display = '';
+  shuffledItems = items.slice();
+  for (var i = shuffledItems.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = shuffledItems[i];
+    shuffledItems[i] = shuffledItems[j];
+    shuffledItems[j] = tmp;
+  }
+  currentQ = 0;
+  answers = {};
+  showScreen('questionScreen');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  var item = shuffledItems[currentQ];
+  var total = shuffledItems.length;
+  var pct = (currentQ / total) * 100;
+
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = (currentQ + 1) + ' / ' + total;
+  document.getElementById('qNumber').textContent = t('Spørgsmål ', 'Question ') + (currentQ + 1);
+  document.getElementById('qText').textContent = item[lang];
+
+  var labels = likertLabels[lang];
+  var container = document.getElementById('likertOptions');
+  container.innerHTML = '';
+  labels.forEach(function(label, i) {
+    var btn = document.createElement('button');
+    btn.className = 'likert-option' + (answers[item.id] === i ? ' selected' : '');
+    btn.innerHTML = '<div class="likert-dot"></div>' + label;
+    btn.onclick = function() { selectAnswer(item.id, i); };
+    container.appendChild(btn);
+  });
+
+  document.getElementById('btnNext').disabled = answers[item.id] === undefined;
+  var btnNextEl = document.getElementById('btnNext');
+  if (currentQ === total - 1) {
+    btnNextEl.textContent = t('Se resultat →', 'See result →');
+  } else {
+    btnNextEl.innerHTML = btnNextEl.getAttribute('data-' + lang);
+  }
+}
+
+function selectAnswer(itemId, val) {
+  answers[itemId] = val;
+  document.querySelectorAll('.likert-option').forEach(function(opt, i) {
+    opt.classList.toggle('selected', i === val);
+  });
+  document.getElementById('btnNext').disabled = false;
+}
+
+function nextQuestion() {
+  if (document.getElementById('btnNext').disabled) return;
+  if (currentQ < shuffledItems.length - 1) {
+    currentQ++;
+    renderQuestion();
+  } else {
+    showLoading();
+  }
+}
+
+function prevQuestion() {
+  if (currentQ > 0) {
+    currentQ--;
+    renderQuestion();
+  }
+}
+
+// Keyboard
+document.addEventListener('keydown', function(e) {
+  if (!document.getElementById('questionScreen').classList.contains('active')) return;
+  if (e.key >= '1' && e.key <= '5') {
+    selectAnswer(shuffledItems[currentQ].id, parseInt(e.key) - 1);
+  }
+  if (e.key === 'Enter') nextQuestion();
+  if (e.key === 'ArrowLeft') prevQuestion();
+});
+
+// ═══════════════════════════════════════════
+//  LOADING ANIMATION
+// ═══════════════════════════════════════════
+function showLoading() {
+  showScreen('calcScreen');
+  var steps = ['step1','step2','step3','step4'];
+  steps.forEach(function(s, i) {
+    setTimeout(function() {
+      document.getElementById(s).classList.add('active');
+      if (i > 0) { document.getElementById(steps[i-1]).classList.remove('active'); document.getElementById(steps[i-1]).classList.add('done'); }
+    }, i * 700);
+  });
+  setTimeout(function() {
+    document.getElementById('step4').classList.remove('active');
+    document.getElementById('step4').classList.add('done');
+    calculateAndShowResults();
+  }, 3200);
+}
+
+// ═══════════════════════════════════════════
+//  SCORING
+// ═══════════════════════════════════════════
+function calculateAndShowResults() {
+  // All items score 0-4 directly (no reverse scoring)
+  var totalScore = 0;
+  var subscaleScores = { washing: 0, checking: 0, ordering: 0, obsessing: 0, hoarding: 0, neutralizing: 0 };
+
+  items.forEach(function(item) {
+    var val = answers[item.id] !== undefined ? answers[item.id] : 0;
+    totalScore += val;
+    subscaleScores[item.subscale] += val;
+  });
+
+  // OCD score = total minus hoarding (15 items, 0-60)
+  var ocdScore = totalScore - subscaleScores.hoarding;
+  var hoardingScore = subscaleScores.hoarding;
+
+  // Severity level
+  var severity, severityLabel, levelColor, levelBg;
+  if (totalScore <= 10) {
+    severity = 'minimal';
+    severityLabel = t('Minimalt', 'Minimal');
+    levelColor = 'var(--green)';
+    levelBg = 'rgba(92,184,92,0.1)';
+  } else if (totalScore <= 20) {
+    severity = 'mild';
+    severityLabel = t('Mildt', 'Mild');
+    levelColor = 'var(--yellow)';
+    levelBg = 'rgba(232,197,71,0.1)';
+  } else if (totalScore <= 30) {
+    severity = 'moderate';
+    severityLabel = t('Moderat', 'Moderate');
+    levelColor = 'var(--orange)';
+    levelBg = 'rgba(232,135,60,0.1)';
+  } else if (totalScore <= 45) {
+    severity = 'significant';
+    severityLabel = t('Betydeligt', 'Significant');
+    levelColor = 'var(--red)';
+    levelBg = 'rgba(217,83,79,0.1)';
+  } else {
+    severity = 'severe';
+    severityLabel = t('Alvorligt', 'Severe');
+    levelColor = 'var(--red)';
+    levelBg = 'rgba(217,83,79,0.15)';
+  }
+
+  // Profile type
+  var maxSub = 0;
+  var dominantSubs = [];
+  var subKeys = ['washing','checking','ordering','obsessing','neutralizing'];
+  subKeys.forEach(function(k) {
+    if (subscaleScores[k] > maxSub) maxSub = subscaleScores[k];
+  });
+  if (maxSub > 0) {
+    subKeys.forEach(function(k) {
+      if (subscaleScores[k] === maxSub) dominantSubs.push(k);
+    });
+  }
+  // Also check hoarding separately
+  var hoardingDominant = hoardingScore > maxSub && hoardingScore > 0;
+
+  var profileLabels = {
+    washing: t('Kontamineringsprofil', 'Contamination Profile'),
+    checking: t('Ansvarsprofil', 'Responsibility Profile'),
+    ordering: t('Symmetriprofil', 'Symmetry Profile'),
+    obsessing: t('Tankeprofil (Pure O)', 'Thought Profile (Pure O)'),
+    neutralizing: t('Ritualprofil', 'Ritual Profile')
+  };
+
+  var profileLabel;
+  if (totalScore <= 10) {
+    profileLabel = t('Ingen klinisk profil', 'No clinical profile');
+  } else if (hoardingDominant) {
+    profileLabel = t('Hamstringsprofil', 'Hoarding Profile');
+  } else if (dominantSubs.length === 1) {
+    profileLabel = profileLabels[dominantSubs[0]];
+  } else if (dominantSubs.length >= 2) {
+    profileLabel = t('Kombineret profil', 'Combined Profile');
+  } else {
+    profileLabel = t('Uspecifik profil', 'Unspecified Profile');
+  }
+
+  // Severity description
+  var severityDesc;
+  if (totalScore <= 10) severityDesc = t('Dine svar tyder på at tvangsprægede tanker og handlinger ikke fylder nævneværdigt i din hverdag. De fleste mennesker oplever lejlighedsvis lignende tanker — det er helt normalt.','Your answers suggest that obsessive thoughts and compulsive behaviors do not significantly affect your daily life. Most people occasionally experience similar thoughts — this is completely normal.');
+  else if (totalScore <= 20) severityDesc = t('Du oplever et vist niveau af tvangsprægede tanker eller handlinger, men det ligger inden for normalområdet. Vær opmærksom på om mønstrene tiltager over tid.','You experience some level of obsessive thoughts or compulsive behaviors, but it falls within the normal range. Be aware of whether patterns increase over time.');
+  else if (totalScore <= 30) severityDesc = t('Dine svar indikerer et niveau af tvangsprægede symptomer der kan påvirke din hverdag. Dette scoreniveau anbefaler vi at du taler med en læge eller psykolog om.','Your answers indicate a level of obsessive-compulsive symptoms that may affect your daily life. We recommend discussing this score level with a doctor or psychologist.');
+  else if (totalScore <= 45) severityDesc = t('Du oplever tydeligt forhøjede OCD-symptomer der sandsynligvis påvirker din dagligdag, relationer og/eller arbejde mærkbart. Professionel vurdering anbefales.','You experience clearly elevated OCD symptoms that likely noticeably affect your daily life, relationships and/or work. Professional evaluation is recommended.');
+  else severityDesc = t('Dine svar tyder på kraftige tvangsprægede symptomer. Vi anbefaler at du kontakter din læge snarest med henblik på udredning og behandling.','Your answers suggest severe obsessive-compulsive symptoms. We recommend contacting your doctor as soon as possible for assessment and treatment.');
+
+  // Subscale interpretations
+  function getSubLevel(score) {
+    if (score <= 2) return { level: t('Lav','Low'), color: 'var(--green)', severity: 'low' };
+    if (score <= 5) return { level: t('Moderat','Moderate'), color: 'var(--yellow)', severity: 'moderate' };
+    if (score <= 8) return { level: t('Forhøjet','Elevated'), color: 'var(--orange)', severity: 'elevated' };
+    return { level: t('Høj','High'), color: 'var(--red)', severity: 'high' };
+  }
+
+  var subInterpretations = {
+    washing: {
+      low: t('Du oplever sjældent eller aldrig ubehag ved kontakt med ting andre har rørt, og du vasker ikke dine hænder mere end hvad der er hygiejnisk naturligt.','You rarely or never experience discomfort touching things others have touched, and you don\'t wash your hands more than is hygienically natural.'),
+      moderate: t('Du oplever indimellem et vist ubehag ved berøring af ting andre har rørt, eller en trang til at vaske hænder der går lidt ud over det nødvendige. Det kan komme i perioder og er ofte forbundet med stress.','You occasionally experience some discomfort touching things others have touched, or an urge to wash hands beyond what\'s necessary. This can come in periods and is often linked to stress.'),
+      elevated: t('Kontamineringsbekymringer fylder mærkbart i din hverdag. Du bruger sandsynligvis en del tid på vaske- eller rengøringsritualer, og du undgår måske situationer eller steder der føles "urene". Det kan påvirke din bevægelsesfrihed og sociale deltagelse.','Contamination concerns noticeably fill your daily life. You likely spend considerable time on washing or cleaning rituals and may avoid situations or places that feel "unclean". This can affect your freedom of movement and social participation.'),
+      high: t('Du oplever kraftige kontamineringsbekymringer der sandsynligvis dominerer store dele af din dag. Vaskeritualer kan tage lang tid og forhindre dig i at deltage i normale aktiviteter. Vi anbefaler at du søger professionel hjælp — kontaminations-OCD responderer godt på behandling, særligt ERP.','You experience strong contamination concerns that likely dominate large parts of your day. Washing rituals may take a long time and prevent you from participating in normal activities. We recommend seeking professional help — contamination OCD responds well to treatment, especially ERP.')
+    },
+    checking: {
+      low: t('Du tjekker ting i et normalt omfang. De fleste mennesker dobbelttjekker lejlighedsvis en lås eller et komfur — det er helt almindeligt.','You check things to a normal extent. Most people occasionally double-check a lock or stove — this is completely normal.'),
+      moderate: t('Du tjekker ting oftere end de fleste. Du vender måske om for at tjekke noget du allerede har tjekket, eller bruger ekstra tid på at sikre dig at alt er slukket/lukket.','You check things more often than most. You may turn back to check something you\'ve already checked, or spend extra time ensuring everything is switched off/locked.'),
+      elevated: t('Tjek-ritualer fylder mærkbart. Du bruger sandsynligvis en del tid på at kontrollere låse, apparater, vandhaner eller lignende — ofte gentagne gange. Du kan opleve at du "ved" tingene er i orden, men følelsen af usikkerhed driver dig til at tjekke igen.','Checking rituals are noticeable. You likely spend considerable time checking locks, appliances, taps or similar — often repeatedly. You may find that you "know" things are fine, but the feeling of uncertainty drives you to check again.'),
+      high: t('Du oplever markante tjek-ritualer der sandsynligvis påvirker din dagligdag væsentligt. Det kan tage lang tid at forlade hjemmet, og usikkerheden om hvorvidt du har tjekket ordentligt kan forfølge dig. Professionel hjælp anbefales.','You experience significant checking rituals that likely substantially affect your daily life. It may take a long time to leave home, and uncertainty about whether you\'ve checked properly may follow you. Professional help is recommended.')
+    },
+    ordering: {
+      low: t('Du har et afslappet forhold til orden og symmetri. Det generer dig ikke nævneværdigt hvis ting ikke står på bestemte pladser.','You have a relaxed relationship with order and symmetry. It doesn\'t bother you noticeably if things aren\'t in specific places.'),
+      moderate: t('Du foretrækker at ting er ordnede og på deres plads, og du kan blive lidt irriteret når andre ændrer din orden. Det er en præference der deles af mange, og er sjældent problematisk.','You prefer things to be orderly and in their place, and you may get slightly irritated when others change your arrangements. This is a preference shared by many and is rarely problematic.'),
+      elevated: t('Behovet for orden og symmetri kan føles som en tvang. Du bruger sandsynligvis tid på at arrangere ting "rigtigt" og kan opleve ubehag eller uro når orden forstyrres.','The need for order and symmetry may feel like a compulsion. You likely spend time arranging things "correctly" and may experience discomfort or unease when order is disturbed.'),
+      high: t('Du oplever markant tvangspræget ordensbehov der sandsynligvis påvirker din hverdag væsentligt. Ordensritualer kan optage betragtelig tid, og forstyrrelsen af din orden kan udløse stærk angst eller ubehag.','You experience significant compulsive need for order that likely substantially affects your daily life. Ordering rituals may take considerable time, and disruption to your order may trigger strong anxiety or discomfort.')
+    },
+    obsessing: {
+      low: t('Du oplever sjældent påtrængende tanker der er svære at kontrollere. Alle mennesker har lejlighedsvis uønskede tanker — det er en normal hjernefunktion.','You rarely experience intrusive thoughts that are difficult to control. Everyone occasionally has unwanted thoughts — this is a normal brain function.'),
+      moderate: t('Du oplever indimellem ubehagelige tanker der dukker op uønsket og kan være svære at slippe af med. Det er vigtigt at vide at indholdet af påtrængende tanker ikke siger noget om hvem du er som person.','You occasionally experience unpleasant thoughts that appear unwanted and can be difficult to get rid of. It\'s important to know that the content of intrusive thoughts says nothing about who you are as a person.'),
+      elevated: t('Uønskede, påtrængende tanker fylder mærkbart i din hverdag. Du bruger sandsynligvis energi på at forsøge at undertrykke eller neutralisere tankerne, hvilket paradoksalt nok ofte forstærker dem.','Unwanted, intrusive thoughts noticeably fill your daily life. You likely spend energy trying to suppress or neutralize the thoughts, which paradoxically often strengthens them.'),
+      high: t('Du oplever kraftige, påtrængende tanker der sandsynligvis optager en stor del af din dag og forårsager betydelig lidelse. Jo mere en tanke generer dig, jo mere sandsynligt er det at den er OCD — ikke virkelighed. Professionel hjælp anbefales.','You experience strong, intrusive thoughts that likely occupy a large part of your day and cause significant distress. The more a thought bothers you, the more likely it is OCD — not reality. Professional help is recommended.')
+    },
+    hoarding: {
+      low: t('Du har et normalt forhold til dine ejendele og har ikke problemer med at smide ting ud der ikke længere er nødvendige.','You have a normal relationship with your possessions and have no problems discarding things that are no longer necessary.'),
+      moderate: t('Du har en vis tendens til at beholde ting "for en sikkerheds skyld" og kan finde det ubehageligt at smide ting ud. Det er en meget udbredt oplevelse, og er sjældent problematisk.','You have some tendency to keep things "just in case" and may find it uncomfortable to discard things. This is a very common experience and is rarely problematic.'),
+      elevated: t('Du har sandsynligvis en del ejendele du ikke bruger, men har svært ved at skille dig af med. Bemærk: hamstring er i DSM-5 klassificeret som en selvstændig tilstand, adskilt fra OCD.','You likely have a number of possessions you don\'t use but find it difficult to part with. Note: hoarding is classified in DSM-5 as a separate condition from OCD.'),
+      high: t('Du oplever markante hamstrings-symptomer der sandsynligvis påvirker dit hjem og din dagligdag. Professionel hjælp anbefales — CBT specifikt rettet mod hamstring har vist sig effektiv.','You experience significant hoarding symptoms that likely affect your home and daily life. Professional help is recommended — CBT specifically targeting hoarding has proven effective.')
+    },
+    neutralizing: {
+      low: t('Du oplever ikke nævneværdige tvangshandlinger forbundet med tælling, tal eller ritualer.','You don\'t experience notable compulsive behaviors related to counting, numbers or rituals.'),
+      moderate: t('Du har en vis tendens til at tillægge bestemte tal eller handlinger særlig betydning, eller du oplever indimellem en trang til at tælle eller gentage handlinger. Mange mennesker har milde versioner af dette.','You have some tendency to attribute special significance to certain numbers or actions, or you occasionally experience an urge to count or repeat actions. Many people have mild versions of this.'),
+      elevated: t('Tælle- og neutraliseringsritualer fylder mærkbart. Du bruger sandsynligvis tid på at udføre mentale eller fysiske ritualer for at "ophæve" ubehag eller forebygge frygtede konsekvenser.','Counting and neutralizing rituals are noticeable. You likely spend time performing mental or physical rituals to "cancel out" discomfort or prevent feared consequences.'),
+      high: t('Du oplever markante neutraliseringsritualer der sandsynligvis tager en del tid og energi. Ritualer kan være svære at modstå og forstyrre dine daglige aktiviteter. Professionel hjælp anbefales.','You experience significant neutralizing rituals that likely take considerable time and energy. Rituals may be hard to resist and disrupt your daily activities. Professional help is recommended.')
+    }
+  };
+
+  // Save results
+  var birthAge = selectedBirthYear ? getAgeFromBirthYear(selectedBirthYear) : null;
+  var birthAgeGroup = birthAge !== null ? getAgeGroup(birthAge) : null;
+  var answersArr = items.map(function(item) { return answers[item.id] !== undefined ? answers[item.id] : 0; });
+
+  var resultData = {
+    answers: answersArr,
+    total_score: totalScore,
+    ocd_score: ocdScore,
+    hoarding_score: hoardingScore,
+    subscales: subscaleScores,
+    severity: severity,
+    profile: profileLabel,
+    birth_year: selectedBirthYear,
+    age: birthAge,
+    age_group: birthAgeGroup
+  };
+
+  if (window.HB_PAY) HB_PAY.saveResults('ocd', resultData);
+
+  // Build subscale data for display
+  var subscaleOrder = ['washing','checking','ordering','obsessing','neutralizing','hoarding'];
+  var subscaleNames = {
+    washing: t('Vask (Washing)','Washing'),
+    checking: t('Tjek (Checking)','Checking'),
+    ordering: t('Orden (Ordering)','Ordering'),
+    obsessing: t('Obsessioner (Obsessing)','Obsessing'),
+    neutralizing: t('Neutralisering (Neutralizing)','Neutralizing'),
+    hoarding: t('Hamstring (Hoarding)','Hoarding')
+  };
+  var subscaleColors = {
+    washing: 'var(--dim-washing)',
+    checking: 'var(--dim-checking)',
+    ordering: 'var(--dim-ordering)',
+    obsessing: 'var(--dim-obsessing)',
+    neutralizing: 'var(--dim-neutralizing)',
+    hoarding: 'var(--dim-hoarding)'
+  };
+
+  // Build radar SVG
+  var radarDims = subscaleOrder.map(function(k) {
+    return { label: subscaleNames[k].split(' (')[0].split(' ')[0], pct: Math.round((subscaleScores[k] / 12) * 100), color: subscaleColors[k] };
+  });
+  var radarSvg = buildRadar(radarDims);
+
+  // Build results HTML
+  var html = '' +
+    '<div class="results-header fade-up">' +
+      '<div class="level-badge" style="background:' + levelBg + ';color:' + levelColor + '">' + severityLabel + '</div>' +
+      '<h2>' + profileLabel + '</h2>' +
+      '<p>' + severityDesc + '</p>' +
+    '</div>' +
+    '<div class="score-display fade-up">' +
+      '<div class="score-circle" style="border-color:' + levelColor + ';background:' + levelBg + '">' +
+        '<div class="score-num" style="color:' + levelColor + '">' + totalScore + '</div>' +
+        '<div class="score-max">/ 72</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="dual-scores fade-up">' +
+      '<div class="dual-score-box">' +
+        '<div class="ds-label">' + t('OCD-score (ekskl. hamstring)','OCD score (excl. hoarding)') + '</div>' +
+        '<div class="ds-value" style="color:' + (ocdScore >= 21 ? 'var(--red)' : ocdScore >= 11 ? 'var(--orange)' : 'var(--green)') + '">' + ocdScore + '<span style="font-size:0.7em;color:var(--text-muted)"> / 60</span></div>' +
+        '<div class="ds-note">' + t('Cutoff: ≥ 21','Cutoff: ≥ 21') + '</div>' +
+      '</div>' +
+      '<div class="dual-score-box">' +
+        '<div class="ds-label">' + t('Hamstring (separat)','Hoarding (separate)') + '</div>' +
+        '<div class="ds-value" style="color:' + (hoardingScore >= 6 ? 'var(--orange)' : 'var(--green)') + '">' + hoardingScore + '<span style="font-size:0.7em;color:var(--text-muted)"> / 12</span></div>' +
+        '<div class="ds-note">' + t('DSM-5: selvstændig diagnose','DSM-5: separate diagnosis') + '</div>' +
+      '</div>' +
+    '</div>';
+
+  // Red flag warnings
+  if (totalScore >= 31) {
+    html += '<div class="red-flag fade-up">' +
+      '<p><strong>' + t('⚠️ Dine svar indikerer betydeligt forhøjede tvangsprægede symptomer.','⚠️ Your answers indicate significantly elevated obsessive-compulsive symptoms.') + '</strong></p>' +
+      '<p>' + t('OCD er en velbehandlelig tilstand. Vi anbefaler at du kontakter din læge eller en psykolog. Du kan også kontakte:','OCD is a very treatable condition. We recommend contacting your doctor or a psychologist. You can also contact:') + '</p>' +
+      '<p>• <a href="https://ocd-foreningen.dk" target="_blank">OCD-foreningen</a> — ' + t('rådgivning og netværk','counseling and network') + '<br>' +
+      '• <a href="https://angstforeningen.dk" target="_blank">Angstforeningen</a> — ' + t('OCD hører under angstspektret','OCD falls under the anxiety spectrum') + '<br>' +
+      '• ' + t('Psykiatrilinjen: 1899 333 999','Psychiatry line: 1899 333 999') + '</p>' +
+    '</div>';
+  } else if (totalScore >= 21) {
+    html += '<div class="red-flag fade-up">' +
+      '<p><strong>' + t('⚠️ Dine svar indikerer et niveau af tvangsprægede symptomer der anbefaler professionel vurdering.','⚠️ Your answers indicate a level of obsessive-compulsive symptoms that warrants professional evaluation.') + '</strong></p>' +
+      '<p>' + t('OCD er en velbehandlelig tilstand — kontakt din læge eller en psykolog for at tale om dine oplevelser.','OCD is a very treatable condition — contact your doctor or a psychologist to discuss your experiences.') + '</p>' +
+    '</div>';
+  }
+
+  html += '<div class="score-interpretation fade-up">' +
+    t('Gennemsnit for OCD-patienter: 28.0 (SD = 13.5). Gennemsnit for ikke-klinisk population: ca. 18.8 (SD = 11.1). Klinisk cutoff: ≥ 21 (Foa et al., 2002).',
+      'Average for OCD patients: 28.0 (SD = 13.5). Average for non-clinical population: approx. 18.8 (SD = 11.1). Clinical cutoff: ≥ 21 (Foa et al., 2002).') +
+  '</div>';
+
+  // Radar
+  html += '<div class="radar-section fade-up">' +
+    '<h3>' + t('Din OCD-profil','Your OCD Profile') + '</h3>' +
+    '<p class="subtitle">' + t('6 dimensioner · Klik på en dimension for detaljer','6 dimensions · Click a dimension for details') + '</p>' +
+    radarSvg +
+  '</div>';
+
+  // Subscale cards — OCD subscales first, then hoarding separated
+  html += '<div class="subscale-cards">';
+
+  ['washing','checking','ordering','obsessing','neutralizing'].forEach(function(key) {
+    var sl = getSubLevel(subscaleScores[key]);
+    var interpKey = sl.severity;
+    var desc = subInterpretations[key][interpKey];
+    html += '<div class="subscale-card fade-up" onclick="this.classList.toggle(\'expanded\')">' +
+      '<div class="sc-header">' +
+        '<div class="sc-name"><div class="sc-dot" style="background:' + subscaleColors[key] + '"></div>' + subscaleNames[key] + '</div>' +
+        '<div class="sc-score">' + subscaleScores[key] + '/12</div>' +
+      '</div>' +
+      '<div class="sc-bar"><div class="sc-fill" style="width:' + Math.round((subscaleScores[key]/12)*100) + '%;background:' + subscaleColors[key] + '"></div></div>' +
+      '<div class="sc-level" style="color:' + sl.color + '">' + sl.level + '</div>' +
+      '<div class="sc-desc">' + desc + '</div>' +
+    '</div>';
+  });
+
+  // Hoarding separator
+  html += '<div class="hoarding-separator">' + t('Hamstring — separat i DSM-5','Hoarding — separate in DSM-5') + '</div>';
+
+  var hlvl = getSubLevel(hoardingScore);
+  var hdesc = subInterpretations.hoarding[hlvl.severity];
+  html += '<div class="subscale-card hoarding-card fade-up" onclick="this.classList.toggle(\'expanded\')">' +
+    '<div class="sc-header">' +
+      '<div class="sc-name"><div class="sc-dot" style="background:var(--dim-hoarding)"></div>' + subscaleNames.hoarding + '</div>' +
+      '<div class="sc-score">' + hoardingScore + '/12</div>' +
+    '</div>' +
+    '<div class="sc-bar"><div class="sc-fill" style="width:' + Math.round((hoardingScore/12)*100) + '%;background:var(--dim-hoarding)"></div></div>' +
+    '<div class="sc-level" style="color:' + hlvl.color + '">' + hlvl.level + '</div>' +
+    '<div class="sc-desc">' + hdesc + '</div>' +
+  '</div>';
+
+  html += '</div>';
+
+  // Paywall
+  html += '<div class="paywall-card fade-up">' +
+    '<h3>' + t('Få din fulde OCD-rapport','Get your full OCD report') + '</h3>' +
+    '<p>' + t('Dybdegående analyse med behandlingsguide, handlingsplan og læge-sektion','In-depth analysis with treatment guide, action plan and doctor section') + '</p>' +
+    '<div class="price-tag">49 kr <small>' + t('engangskøb','one-time') + '</small></div>' +
+    '<table class="compare-table"><thead><tr>' +
+      '<th>' + t('Indhold','Content') + '</th>' +
+      '<th>' + t('Gratis','Free') + '</th>' +
+      '<th>' + t('Rapport','Report') + '</th>' +
+    '</tr></thead><tbody>' +
+      '<tr><td>' + t('Totalscore + niveau','Total score + level') + '</td><td class="check">✓</td><td class="check">✓</td></tr>' +
+      '<tr><td>' + t('OCD vs. hamstring opsplitning','OCD vs. hoarding split') + '</td><td class="check">✓</td><td class="check">✓</td></tr>' +
+      '<tr><td>' + t('Radar-diagram (6 dimensioner)','Radar diagram (6 dimensions)') + '</td><td class="check">✓</td><td class="check">✓</td></tr>' +
+      '<tr><td>' + t('Profiltype-label','Profile type label') + '</td><td class="check">✓</td><td class="check">✓</td></tr>' +
+      '<tr><td>' + t('Kort dimensionsfortolkning','Brief dimension interpretation') + '</td><td class="check">✓</td><td class="check">✓</td></tr>' +
+      '<tr><td>' + t('Fuld dybdeanalyse pr. dimension','Full depth analysis per dimension') + '</td><td class="cross">—</td><td class="check">✓</td></tr>' +
+      '<tr><td>' + t('Hverdagseksempler','Everyday examples') + '</td><td class="cross">—</td><td class="check">✓</td></tr>' +
+      '<tr><td>' + t('Kognitiv model / forklaring','Cognitive model / explanation') + '</td><td class="cross">—</td><td class="check">✓</td></tr>' +
+      '<tr><td>' + t('Komorbiditets-notat','Comorbidity note') + '</td><td class="cross">—</td><td class="check">✓</td></tr>' +
+      '<tr><td>' + t('Styrker & udfordringer','Strengths & challenges') + '</td><td class="cross">—</td><td class="check">✓</td></tr>' +
+      '<tr><td>' + t('Handlingsplan (dag/uge/måned)','Action plan (day/week/month)') + '</td><td class="cross">—</td><td class="check">✓</td></tr>' +
+      '<tr><td>' + t('Behandlingsguide (ERP, SSRI)','Treatment guide (ERP, SSRI)') + '</td><td class="cross">—</td><td class="check">✓</td></tr>' +
+      '<tr><td>' + t('Til din læge (PDF-sektion)','For your doctor (PDF section)') + '</td><td class="cross">—</td><td class="check">✓</td></tr>' +
+      '<tr><td>' + t('Danske ressourcer','Danish resources') + '</td><td class="cross">—</td><td class="check">✓</td></tr>' +
+    '</tbody></table>' +
+    '<button class="btn-buy" onclick="HB_PAY.checkout(\'single\',\'ocd\')">' + t('Køb rapport — 49 kr','Buy report — 49 kr') + '</button>' +
+    '<br><button class="btn-sub-alt" onclick="HB_PAY.checkout(\'unlimited\',\'ocd\')">' + t('Eller: Ubegrænset adgang — 89 kr/md','Or: Unlimited access — 89 kr/mo') + '</button>' +
+  '</div>';
+
+  // Save prompt
+  html += '<div id="hb-save-prompt-ocd"></div>';
+
+  // Cross-sell
+  html += '<div class="cross-sell fade-up">' +
+    '<h3>' + t('Relaterede tests','Related tests') + '</h3>' +
+    '<div class="cross-sell-grid">' +
+      '<a href="/tests/stress.html" class="cross-sell-card"><div class="emoji">🔥</div><div class="name">' + t('Stress & udbrændthed','Stress & Burnout') + '</div><div class="sub">' + t('OCD og stress forstærker ofte hinanden','OCD and stress often reinforce each other') + '</div></a>' +
+      '<a href="/tests/adhd.html" class="cross-sell-card"><div class="emoji">⚡</div><div class="name">' + t('ADHD-screening','ADHD Screening') + '</div><div class="sub">' + t('Ca. 30% med OCD har også ADHD','About 30% with OCD also have ADHD') + '</div></a>' +
+      '<a href="/tests/personlighed.html" class="cross-sell-card"><div class="emoji">🌟</div><div class="name">' + t('Personlighedstest','Personality Test') + '</div><div class="sub">' + t('Neuroticisme og perfektionisme','Neuroticism and perfectionism') + '</div></a>' +
+    '</div>' +
+  '</div>';
+
+  // Retake
+  html += '<div style="text-align:center;margin:40px 0"><button class="btn-start" onclick="location.reload()">' +
+    t('Tag testen igen →','Take the test again →') + '</button></div>';
+
+  // Disclaimer
+  html += '<div class="footer-disc">OCI-R · Foa, Huppert, Leiberg, Langner, Kichic, Hajcak & Salkovskis (2002) · Psychological Assessment, 14(4), 485-496.' +
+    '<br>' + t('Denne test er ikke et diagnostisk værktøj. Søg professionel hjælp ved vedvarende symptomer. Alle mennesker oplever lejlighedsvis påtrængende tanker — det er helt normalt.','This test is not a diagnostic tool. Seek professional help for persistent symptoms. Everyone occasionally experiences intrusive thoughts — this is completely normal.') + '</div>';
+
+  document.getElementById('resultsContainer').innerHTML = html;
+  showScreen('resultsScreen');
+
+  // Save to database
+  if (window.HB_PAY) HB_PAY.renderSavePrompt('hb-save-prompt-ocd', 'ocd');
+}
+
+// ═══════════════════════════════════════════
+//  RADAR SVG
+// ═══════════════════════════════════════════
+function buildRadar(dims) {
+  var cx = 180, cy = 170, R = 120;
+  var n = dims.length;
+  var angleStep = (Math.PI * 2) / n;
+  var startAngle = -Math.PI / 2;
+
+  var svg = '<div style="display:flex;justify-content:center;overflow:visible"><svg width="360" height="360" viewBox="0 0 360 360">';
+
+  // Grid rings
+  for (var r = 1; r <= 4; r++) {
+    var radius = (R / 4) * r;
+    var points = [];
+    for (var i = 0; i < n; i++) {
+      var a = startAngle + i * angleStep;
+      points.push((cx + radius * Math.cos(a)).toFixed(1) + ',' + (cy + radius * Math.sin(a)).toFixed(1));
+    }
+    svg += '<polygon points="' + points.join(' ') + '" fill="none" stroke="var(--border)" stroke-width="1" opacity="' + (r === 4 ? 0.6 : 0.3) + '"/>';
+  }
+
+  // Axis lines
+  for (var j = 0; j < n; j++) {
+    var a2 = startAngle + j * angleStep;
+    svg += '<line x1="' + cx + '" y1="' + cy + '" x2="' + (cx + R * Math.cos(a2)).toFixed(1) + '" y2="' + (cy + R * Math.sin(a2)).toFixed(1) + '" stroke="var(--border)" stroke-width="1" opacity="0.3"/>';
+  }
+
+  // Data polygon
+  var dataPoints = [];
+  for (var k = 0; k < n; k++) {
+    var a3 = startAngle + k * angleStep;
+    var rd = (dims[k].pct / 100) * R;
+    dataPoints.push((cx + rd * Math.cos(a3)).toFixed(1) + ',' + (cy + rd * Math.sin(a3)).toFixed(1));
+  }
+  svg += '<polygon points="' + dataPoints.join(' ') + '" fill="rgba(139,92,122,0.1)" stroke="var(--accent)" stroke-width="2"/>';
+
+  // Data points + labels
+  for (var m = 0; m < n; m++) {
+    var a4 = startAngle + m * angleStep;
+    var rd2 = (dims[m].pct / 100) * R;
+    var px = cx + rd2 * Math.cos(a4);
+    var py = cy + rd2 * Math.sin(a4);
+    svg += '<circle cx="' + px.toFixed(1) + '" cy="' + py.toFixed(1) + '" r="5" fill="var(--accent)" stroke="var(--bg)" stroke-width="2"/>';
+
+    var lx = cx + (R + 28) * Math.cos(a4);
+    var ly = cy + (R + 28) * Math.sin(a4);
+    var anchor = lx < cx - 10 ? 'end' : lx > cx + 10 ? 'start' : 'middle';
+    svg += '<text x="' + lx.toFixed(1) + '" y="' + ly.toFixed(1) + '" text-anchor="' + anchor + '" fill="var(--text-3)" font-size="11" font-family="Figtree,sans-serif">' + dims[m].label + '</text>';
+    svg += '<text x="' + lx.toFixed(1) + '" y="' + (ly + 15).toFixed(1) + '" text-anchor="' + anchor + '" fill="var(--accent)" font-size="13" font-weight="700" font-family="Source Serif 4,serif">' + dims[m].pct + '%</text>';
+  }
+
+  svg += '</svg></div>';
+  return svg;
+}
+</script>
+</body>
+</html>

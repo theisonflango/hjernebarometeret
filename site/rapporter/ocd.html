@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Din OCD-Rapport — Hjernebarometeret</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,500&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+:root {
+  --bg:#faf9f7; --bg-card:#fff; --bg-warm:#f5f2ee; --bg-dark:#1c1b1a;
+  --text:#1c1b1a; --text-2:#5a5650; --text-3:#8a857e; --text-4:#b5b0a8;
+  --border:#e8e5e0; --border-2:#d5d0c9;
+  --accent:#8b5c7a; --accent-light:rgba(139,92,122,0.08);
+  --green:#3B9979; --yellow:#D4920B; --orange:#e67e22; --red:#C0392B;
+  --serif:'Source Serif 4',Georgia,serif; --sans:'Figtree',system-ui,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased;padding-top:64px}
+.report{max-width:760px;margin:0 auto;padding:20px}
+.report section{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:32px;margin-bottom:20px}
+.report h2{font-family:var(--serif);font-size:22px;font-weight:600;letter-spacing:-.03em;margin-bottom:16px}
+.report h3{font-family:var(--serif);font-size:17px;font-weight:600;margin-bottom:10px}
+.cover{background:var(--bg-dark)!important;color:#faf9f7!important;border:none!important;text-align:center;padding:48px 32px!important;border-radius:16px!important}
+.cover .logo{font-family:var(--serif);font-size:14px;letter-spacing:2px;text-transform:uppercase;opacity:.5;margin-bottom:24px}
+.cover h1{font-family:var(--serif);font-size:clamp(28px,5vw,38px);font-weight:600;letter-spacing:-.03em;margin-bottom:8px}
+.cover .profile-label{font-size:20px;font-weight:600;margin:16px 0 8px}
+.cover .date{font-size:13px;opacity:.4;margin-top:16px}
+.cover .disclaimer{font-size:11px;opacity:.35;margin-top:16px;line-height:1.5}
+.summary-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:16px 0}
+@media(max-width:600px){.summary-grid{grid-template-columns:1fr}}
+.summary-card{padding:16px;border-radius:12px;background:var(--bg-warm);text-align:center}
+.summary-card .num{font-family:var(--serif);font-size:28px;font-weight:700}
+.summary-card .lbl{font-size:12px;color:var(--text-3);margin-top:4px}
+.domain-block{margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border)}
+.domain-block:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.domain-header{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.domain-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.domain-name{font-family:var(--serif);font-size:16px;font-weight:600}
+.domain-score{margin-left:auto;font-family:var(--serif);font-size:20px;font-weight:700}
+.domain-bar{height:8px;border-radius:4px;background:var(--border);overflow:hidden}
+.domain-bar-fill{height:100%;border-radius:4px;transition:width 1s ease}
+.domain-level{font-size:12px;font-weight:600;margin-top:4px}
+.domain-desc{font-size:14px;color:var(--text-2);line-height:1.7;margin-top:8px}
+.domain-cognitive{font-size:13px;color:var(--text-3);line-height:1.6;margin-top:8px;padding:12px;background:var(--bg-warm);border-radius:8px}
+.radar-container{text-align:center;margin:16px 0}
+.radar-container svg{max-width:380px;width:100%}
+.sc-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:600px){.sc-grid{grid-template-columns:1fr}}
+.sc-card{padding:20px;border-radius:12px}
+.sc-card.strengths{background:rgba(59,153,121,0.06);border:1px solid rgba(59,153,121,0.2)}
+.sc-card.challenges{background:rgba(192,57,43,0.06);border:1px solid rgba(192,57,43,0.2)}
+.sc-item{padding:8px 0;border-bottom:1px solid rgba(0,0,0,.05);font-size:14px;line-height:1.6}
+.sc-item:last-child{border-bottom:none}
+.sc-item strong{display:block;margin-bottom:2px}
+.med-table{width:100%;border-collapse:collapse;font-size:13px;margin:16px 0}
+.med-table th{text-align:left;padding:10px 8px;border-bottom:2px solid var(--border-2);font-weight:600;font-size:12px;color:var(--text-3)}
+.med-table td{padding:10px 8px;border-bottom:1px solid var(--border);vertical-align:top}
+.med-table tr:last-child td{border-bottom:none}
+@media(max-width:600px){.med-table{font-size:11px}.med-table th,.med-table td{padding:8px 4px}}
+.action-grid{display:grid;gap:16px}
+.action-card{padding:20px;border-radius:12px;background:var(--bg-warm)}
+.action-card h4{font-family:var(--serif);font-size:15px;font-weight:600;margin-bottom:8px}
+.action-card ul{padding-left:18px;font-size:14px;color:var(--text-2)}
+.action-card li{margin-bottom:6px}
+.red-flag{padding:20px;border-radius:12px;background:rgba(192,57,43,0.06);border:1px solid rgba(192,57,43,0.2);margin-bottom:16px}
+.red-flag h4{color:var(--red);font-size:15px;margin-bottom:6px}
+.red-flag p{font-size:14px;color:var(--text-2);line-height:1.7}
+.dsm-note{padding:16px;border-radius:12px;background:rgba(123,104,238,0.06);border:1px solid rgba(123,104,238,0.2);margin:16px 0}
+.dsm-note h4{color:#7b68ee;font-size:14px;margin-bottom:6px}
+.dsm-note p{font-size:13px;color:var(--text-2);line-height:1.6}
+.therapy-card{padding:16px;border-radius:12px;background:var(--bg-warm);margin-bottom:12px}
+.therapy-card h4{font-size:14px;font-weight:600;margin-bottom:4px}
+.therapy-card .evidence{font-size:11px;color:var(--accent);font-weight:600;margin-bottom:6px}
+.therapy-card p{font-size:13px;color:var(--text-2);line-height:1.6}
+.resource-card{padding:14px;border-radius:10px;background:var(--bg-warm);margin-bottom:10px}
+.resource-card h4{font-size:14px;font-weight:600;margin-bottom:4px}
+.resource-card p{font-size:13px;color:var(--text-2);line-height:1.5}
+.resource-card a{color:var(--accent);text-decoration:underline}
+.pdf-btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:12px;background:var(--bg-dark);color:#fff;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:var(--sans)}
+.pdf-btn:hover{opacity:.9}
+.no-access{text-align:center;padding:80px 20px;max-width:500px;margin:0 auto}
+.no-access h1{font-family:var(--serif);font-size:28px;margin-bottom:12px}
+.no-access p{color:var(--text-2);margin-bottom:24px}
+.no-access .buy-btn{padding:14px 28px;border-radius:12px;background:var(--bg-dark);color:#fff;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:var(--sans)}
+.loading{text-align:center;padding:100px 20px}
+.loading .spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.doctor-section{background:var(--bg-warm)!important;border:2px solid var(--accent)!important}
+.doctor-section h2{color:var(--accent)}
+.hoarding-sep{display:flex;align-items:center;gap:12px;margin:20px 0 12px;font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.1em}
+.hoarding-sep::before,.hoarding-sep::after{content:'';flex:1;height:1px;background:var(--border)}
+@media print{body{padding-top:0}.sn-wrap,.sf-wrap,.pdf-actions,.no-print{display:none!important}.report section{break-inside:avoid;border:none;box-shadow:none}.cover{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style>
+</head>
+<body>
+<div id="site-nav" data-active="rapporter"></div>
+<div id="loading" class="loading"><div class="spinner"></div><p style="color:var(--text-3)">Indlæser din rapport...</p></div>
+<div id="no-access" class="no-access" style="display:none">
+  <h1>🔒 Rapport låst</h1>
+  <p>Køb adgang for at se din fulde OCD-rapport med behandlingsguide, handlingsplan og læge-sektion.</p>
+  <button class="buy-btn" onclick="if(window.HB_PAY)HB_PAY.checkout('single','ocd')">Køb rapport — 49 kr</button>
+  <p style="margin-top:12px"><button onclick="if(window.HB_PAY)HB_PAY.checkout('unlimited','ocd')" style="background:none;border:1.5px solid var(--accent);color:var(--accent);padding:10px 20px;border-radius:10px;font-size:13px;cursor:pointer;font-family:var(--sans)">Eller: Ubegrænset — 89 kr/md</button></p>
+  <p style="margin-top:24px;font-size:13px;color:var(--text-4)"><a href="/tests/ocd.html" style="color:var(--text-3)">← Tilbage til testen</a></p>
+</div>
+
+<div id="report" class="report" style="display:none">
+  <div class="pdf-actions no-print" style="text-align:right;margin-bottom:12px;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap"><button class="pdf-btn" onclick="downloadPDF()">📄 Download PDF</button></div>
+  <div id="report-content">
+
+  <section class="cover">
+    <div class="logo">☉ Hjernebarometeret</div>
+    <h1>Din OCD-Rapport</h1>
+    <p style="opacity:.6;font-size:14px">OCI-R (Foa et al., 2002) — 18 spørgsmål, 6 dimensioner</p>
+    <div class="profile-label" id="cover-profile" style="color:var(--accent)"></div>
+    <div class="date" id="cover-date"></div>
+    <div class="disclaimer">Denne rapport er ikke en klinisk diagnose. Den er baseret på OCI-R (Foa et al., 2002), et valideret screeningsinstrument for tvangsprægede symptomer.</div>
+  </section>
+
+  <section><h2>📋 Opsummering</h2><div id="red-flags"></div><p id="summary-text" style="font-size:15px;line-height:1.7;color:var(--text-2);margin-bottom:16px"></p><div class="summary-grid" id="summary-grid"></div><div id="top-findings" style="margin-top:16px"></div></section>
+
+  <section><h2>🕸️ Symptomprofil</h2><p style="font-size:13px;color:var(--text-3);margin-bottom:8px">Din profil på tværs af 6 OCI-R dimensioner. Hamstring rapporteres separat (DSM-5).</p><div class="radar-container" id="radar"></div></section>
+
+  <section><h2>📊 Dybdeanalyse pr. dimension</h2><p style="font-size:13px;color:var(--text-3);margin-bottom:20px">Detaljeret fortolkning af dine scores på hver OCD-subskala med klinisk baggrund og hverdagseksempler.</p><div id="dimensions-detail"></div></section>
+
+  <section id="comorbidity-section"><h2>🔗 Komorbiditeter</h2><p style="font-size:13px;color:var(--text-3);margin-bottom:16px">OCD optræder ofte sammen med andre tilstande. Baseret på din profil bør du være opmærksom på følgende.</p><div id="comorbidity-content"></div></section>
+
+  <section><h2>💎 Styrker & udfordringer</h2><div class="sc-grid" id="strengths-challenges"></div></section>
+
+  <section><h2>🎯 Personlig handlingsplan</h2><div class="action-grid" id="action-plan"></div></section>
+
+  <section><h2>💊 Behandlingsguide</h2><p style="font-size:13px;color:var(--text-3);margin-bottom:16px">Evidensbaseret information om behandlingsmuligheder for OCD.</p><div id="treatment-therapy"></div><h3 style="margin-top:20px">Medicin</h3><p style="font-size:13px;color:var(--text-3);margin-bottom:12px">SSRI kræver typisk højere doser ved OCD end ved depression. Effekt tager 4-8 uger.</p><div id="treatment-meds"></div><div id="treatment-notes" style="margin-top:16px"></div></section>
+
+  <section class="doctor-section"><h2>🩺 Til din læge</h2><p style="font-size:13px;color:var(--text-2);margin-bottom:16px">Tag denne sektion med til din læge.</p><div id="doctor-section"></div></section>
+
+  <section><h2>📚 Anbefalede ressourcer</h2><div id="resources"></div></section>
+
+  <section style="background:var(--bg-warm)">
+    <p style="font-size:12px;color:var(--text-3);line-height:1.7"><strong>Om denne rapport:</strong> Baseret på Obsessive-Compulsive Inventory-Revised (OCI-R; Foa et al., 2002). Rapporten er til personlig indsigt — den er <strong>ikke en klinisk diagnose</strong>. Kun en kvalificeret fagperson kan stille en OCD-diagnose.</p>
+    <p style="font-size:11px;color:var(--text-4);margin-top:12px">© Hjernebarometeret.dk</p>
+  </section>
+
+  </div>
+</div>
+<div id="site-footer"></div>
+<script src="../shared/nav.js"></script>
+<script src="../shared/footer.js"></script>
+<script src="../shared/auth.js"></script>
+<script src="../shared/coupon.js"></script>
+<script src="../shared/payment.js"></script>
+<script src="../shared/normdata.js"></script>
+<script src="../shared/profilecard.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════
+   OCD RAPPORT — Hjernebarometeret
+   ═══════════════════════════════════════════════════ */
+
+var SUB_META = {
+  washing:      { name:'Vask (Washing)',            color:'#5b9bd5', emoji:'🧼', items:'5, 11, 17' },
+  checking:     { name:'Tjek (Checking)',           color:'#e85d7a', emoji:'🔒', items:'2, 8, 14' },
+  ordering:     { name:'Orden (Ordering)',          color:'#5cb85c', emoji:'📐', items:'3, 9, 15' },
+  obsessing:    { name:'Obsessioner (Obsessing)',   color:'#e8873c', emoji:'💭', items:'6, 12, 18' },
+  neutralizing: { name:'Neutralisering (Neutralizing)', color:'#3cb7a0', emoji:'🔢', items:'4, 10, 16' },
+  hoarding:     { name:'Hamstring (Hoarding)',      color:'#7b68ee', emoji:'📦', items:'1, 7, 13' }
+};
+
+function getSubLevel(score) {
+  if (score <= 2) return { label:'Lav', color:'var(--green)' };
+  if (score <= 5) return { label:'Moderat', color:'var(--yellow)' };
+  if (score <= 8) return { label:'Forhøjet', color:'var(--orange)' };
+  return { label:'Høj', color:'var(--red)' };
+}
+
+// Full interpretations per dimension per level
+var INTERP = {
+  washing: {
+    low:'Du oplever sjældent eller aldrig ubehag ved kontakt med ting andre har rørt, og du vasker ikke dine hænder mere end hvad der er hygiejnisk naturligt. Kontamineringsbekymringer fylder ikke i din hverdag.',
+    moderate:'Du oplever indimellem et vist ubehag ved berøring af ting andre har rørt, eller en trang til at vaske hænder der går lidt ud over det nødvendige. Det kan komme i perioder og er ofte forbundet med stress. På dette niveau er adfærden ikke nødvendigvis problematisk, men det er værd at holde øje med om mønstret tiltager.',
+    elevated:'Kontamineringsbekymringer fylder mærkbart i din hverdag. Du bruger sandsynligvis en del tid på vaske- eller rengøringsritualer, og du undgår måske situationer eller steder der føles "urene". Det kan påvirke din bevægelsesfrihed og sociale deltagelse. Dette niveau af symptomer kan have gavn af professionel hjælp.',
+    high:'Du oplever kraftige kontamineringsbekymringer der sandsynligvis dominerer store dele af din dag. Vaskeritualer kan tage lang tid og forhindre dig i at deltage i normale aktiviteter. Din hud kan være påvirket af hyppig håndvask. Vi anbefaler at du søger professionel hjælp — kontaminations-OCD responderer godt på behandling, særligt Exposure and Response Prevention (ERP).'
+  },
+  checking: {
+    low:'Du tjekker ting i et normalt omfang. De fleste mennesker dobbelttjekker lejlighedsvis en lås eller et komfur — det er helt almindeligt og hensigtsmæssigt.',
+    moderate:'Du tjekker ting oftere end de fleste. Du vender måske om for at tjekke noget du allerede har tjekket, eller bruger ekstra tid på at sikre dig at alt er slukket/lukket. Det kan være tidskrævende men forstyrrer sandsynligvis kun din dagligdag i begrænset omfang.',
+    elevated:'Tjek-ritualer fylder mærkbart. Du bruger sandsynligvis en del tid på at kontrollere låse, apparater, vandhaner eller lignende — ofte gentagne gange i samme situation. Du kan opleve at du "ved" tingene er i orden, men følelsen af usikkerhed driver dig til at tjekke igen. Det kan forsinke dig og skabe frustration.',
+    high:'Du oplever markante tjek-ritualer der sandsynligvis påvirker din dagligdag væsentligt. Det kan tage lang tid at forlade hjemmet, og usikkerheden om hvorvidt du har tjekket ordentligt kan forfølge dig. Professionel hjælp anbefales — tjek-OCD responderer godt på ERP-behandling.'
+  },
+  ordering: {
+    low:'Du har et afslappet forhold til orden og symmetri. Det generer dig ikke nævneværdigt hvis ting ikke står på bestemte pladser.',
+    moderate:'Du foretrækker at ting er ordnede og på deres plads, og du kan blive lidt irriteret når andre ændrer din orden. Det er en præference der deles af mange, og på dette niveau er det sjældent problematisk — det kan endda være en styrke i arbejdssammenhænge der kræver struktur.',
+    elevated:'Behovet for orden og symmetri kan føles som en tvang. Du bruger sandsynligvis tid på at arrangere ting "rigtigt" og kan opleve ubehag eller uro når orden forstyrres. Det kan skabe konflikter med dem omkring dig og tage tid fra andre aktiviteter.',
+    high:'Du oplever markant tvangspræget ordensbehov der sandsynligvis påvirker din hverdag væsentligt. Ordensritualer kan optage betragtelig tid, og forstyrrelsen af din orden kan udløse stærk angst eller ubehag.'
+  },
+  obsessing: {
+    low:'Du oplever sjældent påtrængende tanker der er svære at kontrollere. Alle mennesker har lejlighedsvis uønskede tanker — det er en normal hjernefunktion.',
+    moderate:'Du oplever indimellem ubehagelige tanker der dukker op uønsket og kan være svære at slippe af med. Det er vigtigt at vide at indholdet af påtrængende tanker ikke siger noget om hvem du er som person — de er et produkt af din hjernes trusselssystem, ikke af dine ønsker.',
+    elevated:'Uønskede, påtrængende tanker fylder mærkbart i din hverdag. Du bruger sandsynligvis energi på at forsøge at undertrykke eller neutralisere tankerne, hvilket paradoksalt nok ofte forstærker dem. Du kan opleve skam eller angst forbundet med tankernes indhold.',
+    high:'Du oplever kraftige, påtrængende tanker der sandsynligvis optager en stor del af din dag og forårsager betydelig lidelse. Tankernes indhold kan føles forfærdeligt, men det er vigtigt at forstå: jo mere en tanke generer dig, jo mere sandsynligt er det at den er OCD — ikke virkelighed. Professionel hjælp anbefales.'
+  },
+  hoarding: {
+    low:'Du har et normalt forhold til dine ejendele og har ikke problemer med at smide ting ud der ikke længere er nødvendige.',
+    moderate:'Du har en vis tendens til at beholde ting "for en sikkerheds skyld" og kan finde det ubehageligt at smide ting ud. Det er en meget udbredt oplevelse, og på dette niveau er det sjældent problematisk.',
+    elevated:'Du har sandsynligvis en del ejendele du ikke bruger, men har svært ved at skille dig af med. Indsamling og opbevaring kan tage plads og skabe rod. Bemærk: hamstring er i DSM-5 klassificeret som en selvstændig tilstand, adskilt fra OCD.',
+    high:'Du oplever markante hamstrings-symptomer der sandsynligvis påvirker dit hjem og din dagligdag. Professionel hjælp anbefales — CBT specifikt rettet mod hamstring har vist sig effektiv.'
+  },
+  neutralizing: {
+    low:'Du oplever ikke nævneværdige tvangshandlinger forbundet med tælning, tal eller ritualer.',
+    moderate:'Du har en vis tendens til at tillægge bestemte tal eller handlinger særlig betydning, eller du oplever indimellem en trang til at tælle eller gentage handlinger. Mange mennesker har milde versioner af dette, og på dette niveau er det sjældent problematisk.',
+    elevated:'Tælle- og neutraliseringsritualer fylder mærkbart. Du bruger sandsynligvis tid på at udføre mentale eller fysiske ritualer for at "ophæve" ubehag eller forebygge frygtede konsekvenser. Omverdenen lægger måske ikke mærke til det, men ritualer kan optage betydelig mental energi.',
+    high:'Du oplever markante neutraliseringsritualer der sandsynligvis tager en del tid og energi. Ritualer kan være svære at modstå og forstyrre dine daglige aktiviteter. Professionel hjælp anbefales.'
+  }
+};
+
+var COGNITIVE_MODELS = {
+  washing: 'Kontaminations-OCD drives af et overaktivt disgust- og trusselssystem. Hjernen fejlagtigt vurderer normal berøring som farlig. Den tvangsprægede vask giver kortvarig lindring men forstærker frygten langvarigt — en cyklus ERP kan bryde.',
+  checking: 'Tjek-OCD drives af overdreven ansvarsfølelse og intolerance for usikkerhed. Tanken "hvad nu hvis jeg ikke låste?" udløser angst, og kontrollen giver kun kortvarig lindring. Hukommelsen for om man har tjekket forringes paradoksalt af gentagne tjek.',
+  ordering: 'Symmetri-OCD drives af en "not just right"-oplevelse (incompleteness) snarere end angst. Tingene skal "føles rigtige", og ritualerne ophører først når den rette fornemmelse opnås. Ofte forbundet med perfektionisme.',
+  obsessing: 'Rene obsessioner ("Pure O") involverer påtrængende tanker — ofte med voldeligt, seksuelt eller blasfemisk indhold. Personen er typisk forfærdet over tankerne, men forsøg på at undertrykke dem forstærker dem (den hvide bjørn-effekt). Mentale ritualer er den usynlige kompulsion.',
+  neutralizing: 'Neutraliseringsritualer drives af magisk tænkning og thought-action fusion (troen på at tanker kan forårsage begivenheder). Tælleritualer og "gode/dårlige tal" fungerer som mentale sikkerhedsventiler mod frygtede konsekvenser.',
+  hoarding: 'Hamstring drives af overdreven emotionel tilknytning til ejendele, vanskelighed ved informationsbehandling (beslutninger) og frygt for at miste noget nødvendigt. I DSM-5 er dette en selvstændig diagnose adskilt fra OCD.'
+};
+
+function init() {
+  if (!window.HB_PAY) { setTimeout(init, 100); return; }
+  HB_PAY.onReady(function() {
+    HB_PAY.hasAccess('ocd').then(function(hasAccess) {
+      document.getElementById('loading').style.display = 'none';
+      if (!hasAccess) {
+        document.getElementById('no-access').style.display = 'block';
+        return;
+      }
+      var scores = HB_PAY.loadResults('ocd');
+      if (!scores || !scores.subscales) {
+        document.getElementById('no-access').style.display = 'block';
+        document.querySelector('#no-access h1').textContent = '⚠️ Ingen resultater fundet';
+        document.querySelector('#no-access p').textContent = 'Tag OCD-testen først for at generere din rapport.';
+        return;
+      }
+      renderReport(scores);
+    });
+  });
+}
+init();
+
+function renderReport(s) {
+  var total = s.total_score;
+  var ocd = s.ocd_score;
+  var hoarding = s.hoarding_score;
+  var subs = s.subscales;
+  var severity = s.severity;
+  var profile = s.profile || 'Ukendt profil';
+
+  // Cover
+  document.getElementById('cover-profile').textContent = profile;
+  document.getElementById('cover-date').textContent = new Date().toLocaleDateString('da-DK', { year:'numeric', month:'long', day:'numeric' });
+
+  // Red flags
+  var rfHtml = '';
+  if (total >= 31) {
+    rfHtml = '<div class="red-flag"><h4>⚠️ Betydeligt forhøjede OCD-symptomer</h4><p>Din totalscore (' + total + '/72) er betydeligt over den kliniske cutoff (21). OCD er en velbehandlelig tilstand — vi anbefaler at du kontakter din læge eller en psykolog snarest. Du kan også kontakte <a href="https://ocd-foreningen.dk" target="_blank">OCD-foreningen</a> eller Psykiatrilinjen (1899 333 999).</p></div>';
+  } else if (total >= 21) {
+    rfHtml = '<div class="red-flag"><h4>⚠️ Forhøjede OCD-symptomer</h4><p>Din totalscore (' + total + '/72) er over den kliniske cutoff (21). Vi anbefaler at du taler med en læge eller psykolog om dine oplevelser. OCD er en velbehandlelig tilstand.</p></div>';
+  }
+  document.getElementById('red-flags').innerHTML = rfHtml;
+
+  // Summary text
+  var summaryTexts = {
+    minimal: 'Dine svar tyder på at tvangsprægede tanker og handlinger ikke fylder nævneværdigt i din hverdag. De fleste mennesker oplever lejlighedsvis lignende tanker — det er helt normalt.',
+    mild: 'Du oplever et vist niveau af tvangsprægede tanker eller handlinger, men det ligger inden for normalområdet. Vær opmærksom på om mønstrene tiltager over tid.',
+    moderate: 'Dine svar indikerer et niveau af tvangsprægede symptomer der kan påvirke din hverdag. Vi anbefaler at du overvejer at tale med en fagperson.',
+    significant: 'Du oplever tydeligt forhøjede OCD-symptomer der sandsynligvis påvirker din dagligdag, relationer og/eller arbejde mærkbart.',
+    severe: 'Dine svar tyder på kraftige tvangsprægede symptomer. Vi anbefaler at du kontakter din læge snarest med henblik på udredning og behandling.'
+  };
+  document.getElementById('summary-text').textContent = summaryTexts[severity] || '';
+
+  // Summary grid
+  var sevColors = { minimal:'var(--green)', mild:'var(--yellow)', moderate:'var(--orange)', significant:'var(--red)', severe:'var(--red)' };
+  var sevLabels = { minimal:'Minimalt', mild:'Mildt', moderate:'Moderat', significant:'Betydeligt', severe:'Alvorligt' };
+  document.getElementById('summary-grid').innerHTML =
+    '<div class="summary-card"><div class="num" style="color:' + (sevColors[severity]||'var(--text)') + '">' + total + '/72</div><div class="lbl">Totalscore</div></div>' +
+    '<div class="summary-card"><div class="num" style="color:' + (ocd >= 21 ? 'var(--red)' : ocd >= 11 ? 'var(--orange)' : 'var(--green)') + '">' + ocd + '/60</div><div class="lbl">OCD-score (ekskl. hamstring)</div></div>' +
+    '<div class="summary-card"><div class="num" style="color:' + (hoarding >= 6 ? 'var(--orange)' : 'var(--green)') + '">' + hoarding + '/12</div><div class="lbl">Hamstring (separat)</div></div>';
+
+  // Top findings
+  var findings = [];
+  var ocdSubs = ['washing','checking','ordering','obsessing','neutralizing'];
+  ocdSubs.forEach(function(k) { if (subs[k] >= 6) findings.push(SUB_META[k].emoji + ' ' + SUB_META[k].name.split(' (')[0] + ': forhøjet (' + subs[k] + '/12)'); });
+  if (hoarding >= 6) findings.push('📦 Hamstring: forhøjet (' + hoarding + '/12) — NB: separat diagnose i DSM-5');
+  if (findings.length === 0) findings.push('Ingen dimensioner er over forhøjet niveau.');
+  document.getElementById('top-findings').innerHTML = '<h3>Vigtigste fund</h3>' + findings.map(function(f) { return '<p style="font-size:14px;color:var(--text-2);margin-bottom:4px">' + f + '</p>'; }).join('');
+
+  // Radar
+  var radarDims = ['washing','checking','ordering','obsessing','neutralizing','hoarding'].map(function(k) {
+    return { label: SUB_META[k].name.split(' (')[0].split(' ')[0], pct: Math.round((subs[k]/12)*100), color: SUB_META[k].color };
+  });
+  document.getElementById('radar').innerHTML = buildRadar(radarDims);
+
+  // Dimension detail
+  var dimHtml = '';
+  ocdSubs.forEach(function(k) {
+    var sl = getSubLevel(subs[k]);
+    var levelKey = subs[k] <= 2 ? 'low' : subs[k] <= 5 ? 'moderate' : subs[k] <= 8 ? 'elevated' : 'high';
+    dimHtml += '<div class="domain-block">' +
+      '<div class="domain-header"><div class="domain-dot" style="background:' + SUB_META[k].color + '"></div><div class="domain-name">' + SUB_META[k].emoji + ' ' + SUB_META[k].name + '</div><div class="domain-score" style="color:' + sl.color + '">' + subs[k] + '/12</div></div>' +
+      '<div class="domain-bar"><div class="domain-bar-fill" style="width:' + Math.round((subs[k]/12)*100) + '%;background:' + SUB_META[k].color + '"></div></div>' +
+      '<div class="domain-level" style="color:' + sl.color + '">' + sl.label + ' · Items: ' + SUB_META[k].items + '</div>' +
+      '<div class="domain-desc">' + INTERP[k][levelKey] + '</div>' +
+      '<div class="domain-cognitive"><strong>Kognitiv model:</strong> ' + COGNITIVE_MODELS[k] + '</div>' +
+    '</div>';
+  });
+
+  dimHtml += '<div class="hoarding-sep">Hamstring — selvstændig diagnose i DSM-5</div>';
+  var hsl = getSubLevel(hoarding);
+  var hKey = hoarding <= 2 ? 'low' : hoarding <= 5 ? 'moderate' : hoarding <= 8 ? 'elevated' : 'high';
+  dimHtml += '<div class="domain-block">' +
+    '<div class="domain-header"><div class="domain-dot" style="background:#7b68ee"></div><div class="domain-name">📦 ' + SUB_META.hoarding.name + '</div><div class="domain-score" style="color:' + hsl.color + '">' + hoarding + '/12</div></div>' +
+    '<div class="domain-bar"><div class="domain-bar-fill" style="width:' + Math.round((hoarding/12)*100) + '%;background:#7b68ee"></div></div>' +
+    '<div class="domain-level" style="color:' + hsl.color + '">' + hsl.label + ' · Items: 1, 7, 13</div>' +
+    '<div class="domain-desc">' + INTERP.hoarding[hKey] + '</div>' +
+    '<div class="domain-cognitive"><strong>Kognitiv model:</strong> ' + COGNITIVE_MODELS.hoarding + '</div>' +
+    '<div class="dsm-note"><h4>📋 DSM-5 note</h4><p>I DSM-5 er hamstring reklassificeret som Hoarding Disorder — en selvstændig diagnose adskilt fra OCD. Behandlingen er anderledes: CBT for hamstring (Steketee & Frost model) er mere effektiv end standard OCD-behandling for denne tilstand.</p></div>' +
+  '</div>';
+  document.getElementById('dimensions-detail').innerHTML = dimHtml;
+
+  // Comorbidity
+  var coHtml = '';
+  coHtml += '<div class="resource-card"><h4>OCD + Angst</h4><p>Ca. 75% livstidskomorbiditet. Hvis du oplever generel angst ud over OCD-symptomerne, kan det være relevant at undersøge dette nærmere.</p></div>';
+  coHtml += '<div class="resource-card"><h4>OCD + Depression</h4><p>Ca. 60-70% livstidskomorbiditet. OCD kan være udmattende og isolerende, hvilket øger risikoen for depression.</p></div>';
+  if (subs.obsessing >= 5 || subs.checking >= 5) {
+    coHtml += '<div class="resource-card"><h4>OCD + ADHD</h4><p>Ca. 30% overlap. Uopmærksomhed og impulsivitet kan ligne eller forstærke OCD-symptomer. <a href="/tests/adhd.html">Tag ADHD-screening →</a></p></div>';
+  }
+  if (subs.washing >= 5) {
+    coHtml += '<div class="resource-card"><h4>Kontamination + spiseforstyrrelser</h4><p>Forhøjet komorbiditet mellem kontaminations-OCD og spiseforstyrrelser. Hvis du har bekymringer om mad eller krop, kan det være relevant at tale med en fagperson.</p></div>';
+  }
+  coHtml += '<p style="font-size:13px;color:var(--text-3);margin-top:12px">Relevante tests: <a href="/tests/stress.html" style="color:var(--accent)">Stress →</a> · <a href="/tests/adhd.html" style="color:var(--accent)">ADHD →</a> · <a href="/tests/personlighed.html" style="color:var(--accent)">Personlighed →</a></p>';
+  document.getElementById('comorbidity-content').innerHTML = coHtml;
+
+  // Strengths & challenges
+  var str = [], chal = [];
+  if (subs.ordering <= 5) str.push({ t:'Fleksibel tilgang', d:'Du håndterer uorden og ændringer uden markant ubehag.' });
+  if (subs.obsessing <= 5) str.push({ t:'Tankekontrol', d:'Du formår at lade ubehagelige tanker passere uden at de overtager.' });
+  if (subs.washing <= 5) str.push({ t:'Afslappet hygiejne', d:'Du opretholder normal hygiejne uden overdrevne ritualer.' });
+  if (subs.checking <= 5) str.push({ t:'Tillid til hukommelse', d:'Du stoler på at du har tjekket tilstrækkeligt.' });
+  if (subs.neutralizing <= 5) str.push({ t:'Fravær af ritualer', d:'Du oplever ikke tvangsprægede tælle- eller neutraliseringsritualer.' });
+  if (str.length === 0) str.push({ t:'Selvindsigt', d:'Du har taget dette skridt mod at forstå dine symptomer — det er i sig selv en styrke.' });
+
+  ocdSubs.forEach(function(k) {
+    if (subs[k] >= 6) chal.push({ t: SUB_META[k].name.split(' (')[0], d: 'Score: ' + subs[k] + '/12. Denne dimension kræver opmærksomhed og kan have gavn af professionel hjælp.' });
+  });
+  if (hoarding >= 6) chal.push({ t:'Hamstring', d:'Score: ' + hoarding + '/12. Bemærk at hamstring kræver separat behandlingstilgang (CBT for hoarding).' });
+  if (chal.length === 0) chal.push({ t:'Ingen markante udfordringer', d:'Dine scores er generelt lave. Bliv ved med at holde øje med eventuelle ændringer.' });
+
+  document.getElementById('strengths-challenges').innerHTML =
+    '<div class="sc-card strengths"><h3 style="color:var(--green);margin-bottom:12px">Styrker</h3>' + str.map(function(s) { return '<div class="sc-item"><strong>' + s.t + '</strong>' + s.d + '</div>'; }).join('') + '</div>' +
+    '<div class="sc-card challenges"><h3 style="color:var(--red);margin-bottom:12px">Udfordringer</h3>' + chal.map(function(c) { return '<div class="sc-item"><strong>' + c.t + '</strong>' + c.d + '</div>'; }).join('') + '</div>';
+
+  // Action plan
+  var apHtml = '';
+  apHtml += '<div class="action-card"><h4>📌 I morgen</h4><ul>';
+  if (total >= 21) {
+    apHtml += '<li>Book en tid hos din læge eller psykolog</li>';
+    apHtml += '<li>Læs "Til din læge"-sektionen og tag den med</li>';
+    apHtml += '<li>Besøg <a href="https://ocd-foreningen.dk" target="_blank" style="color:var(--accent)">ocd-foreningen.dk</a> for rådgivning</li>';
+  } else {
+    apHtml += '<li>Læg mærke til dine tvangsmønstre i løbet af dagen — observation uden vurdering</li>';
+    apHtml += '<li>Øv dig på at forsinke en ritual med 5 minutter</li>';
+    apHtml += '<li>Praktiser mindfulness i 5 minutter — observer tanker uden at handle på dem</li>';
+  }
+  apHtml += '</ul></div>';
+
+  apHtml += '<div class="action-card"><h4>📅 Denne uge</h4><ul>';
+  if (subs.washing >= 6) apHtml += '<li>Udfordring: Rør ved en "kontamineret" genstand og vent 10 minutter med at vaske hænder</li>';
+  if (subs.checking >= 6) apHtml += '<li>Udfordring: Forlad hjemmet efter kun én kontrol af døren</li>';
+  if (subs.ordering >= 6) apHtml += '<li>Udfordring: Efterlad bevidst én ting "forkert" placeret i 24 timer</li>';
+  if (subs.obsessing >= 6) apHtml += '<li>Udfordring: Skriv den påtrængende tanke ned og læg papiret væk — neutral observation</li>';
+  apHtml += '<li>Hold dagbog over ritualer: tidspunkt, trigger, varighed</li>';
+  apHtml += '<li>Del dine oplevelser med en du stoler på</li>';
+  apHtml += '</ul></div>';
+
+  apHtml += '<div class="action-card"><h4>📆 Denne måned</h4><ul>';
+  if (total >= 21) {
+    apHtml += '<li>Start behandlingsforløb (ERP eller CBT) hos psykolog</li>';
+    apHtml += '<li>Overvej SSRI-behandling med din læge hvis symptomerne er invaliderende</li>';
+  }
+  apHtml += '<li>Byg gradvist op: forlæng forsinkelsen af ritualer fra 5 til 15 til 30 minutter</li>';
+  apHtml += '<li>Evaluer dine fremskridt ved at tage testen igen om 4 uger</li>';
+  apHtml += '</ul></div>';
+  document.getElementById('action-plan').innerHTML = apHtml;
+
+  // Treatment — therapy
+  var thHtml = '';
+  thHtml += '<div class="therapy-card"><h4>ERP (Exposure and Response Prevention)</h4><div class="evidence">Evidens: Stærk (førstevalg)</div><p>Den mest effektive behandling for alle OCD-subtyper. 12-20 sessioner. Gradvis eksponering for angstprovokerende stimuli uden at udføre ritualer. Effektstørrelse d = 1.0-1.5 vs. kontrolbetingelser.</p></div>';
+  thHtml += '<div class="therapy-card"><h4>CBT (Kognitiv Adfærdsterapi)</h4><div class="evidence">Evidens: Stærk</div><p>Udfordrer urealistiske overbevisninger, overdreven ansvarsfølelse og tanke-handling-fusion. Ofte kombineret med ERP. Fokus på at udfordre metakognitive overbevisninger om tanker.</p></div>';
+  thHtml += '<div class="therapy-card"><h4>ACT (Acceptance and Commitment Therapy)</h4><div class="evidence">Evidens: Moderat-stærk</div><p>Særligt effektiv for Pure O / obsessioner. Fokus på psykologisk fleksibilitet og accept af påtrængende tanker. Komplementerer ERP. Effektiv for dem der finder ERP for konfronterende.</p></div>';
+  thHtml += '<div class="therapy-card"><h4>Mindfulness-baseret terapi</h4><div class="evidence">Evidens: Moderat</div><p>8-ugers program. Forebyggelse af tilbagefald, rumination og meta-kognition. Bedst som supplement til ERP, ikke alene.</p></div>';
+  document.getElementById('treatment-therapy').innerHTML = thHtml;
+
+  // Treatment — meds
+  document.getElementById('treatment-meds').innerHTML =
+    '<table class="med-table"><thead><tr><th>Præparat</th><th>Type</th><th>Dosis</th><th>Effekt</th><th>Bivirkninger</th></tr></thead><tbody>' +
+    '<tr><td>Sertralin (Zoloft)</td><td>SSRI (førstevalg)</td><td>50-200 mg/dag</td><td>NNT 5-8; d ≈ 0.4-0.5</td><td>Kvalme, søvn, seksuel dysfunktion</td></tr>' +
+    '<tr><td>Fluoxetin (Prozac)</td><td>SSRI</td><td>20-80 mg/dag</td><td>Moderat effekt</td><td>Som sertralin; lang halveringstid</td></tr>' +
+    '<tr><td>Fluvoxamin (Fevarin)</td><td>SSRI</td><td>100-300 mg/dag</td><td>Bedst dokumenteret for OCD</td><td>Kvalme, sedation, interaktioner</td></tr>' +
+    '<tr><td>Clomipramin (Anafranil)</td><td>TCA</td><td>75-300 mg/dag</td><td>Størst effekt (d ≈ 0.8)</td><td>Mundtørhed, forstoppelse, kardielt</td></tr>' +
+    '<tr><td>SSRI + antipsykotikum</td><td>Augmentation</td><td>Varierer</td><td>Ved manglende SSRI-respons</td><td>Yderligere bivirkningsprofil</td></tr>' +
+    '</tbody></table>';
+
+  document.getElementById('treatment-notes').innerHTML =
+    '<div style="font-size:13px;color:var(--text-2);line-height:1.7">' +
+    '<p><strong>Vigtige noter fra forskningen:</strong></p>' +
+    '<ul style="padding-left:18px;margin-top:8px">' +
+    '<li>ERP er førstevalg. Effektstørrelserne er højere end medicin alene.</li>' +
+    '<li>SSRI kræver typisk <strong>højere doser</strong> ved OCD end ved depression (fx sertralin 200 mg vs. 50-100 mg).</li>' +
+    '<li>Kombination ERP + SSRI er bedre end enten alene ved moderat-svær OCD.</li>' +
+    '<li>30-40% responderer ikke tilstrækkeligt på første SSRI — skifte til anden SSRI eller augmentation er standard.</li>' +
+    '<li>Effekt af SSRI tager typisk <strong>4-8 uger</strong> ved OCD (længere end ved depression).</li>' +
+    '</ul></div>';
+
+  // Doctor section
+  var docHtml = '';
+  docHtml += '<div style="font-size:14px;line-height:1.7;color:var(--text-2)">';
+  docHtml += '<p><strong>Testnavn:</strong> Obsessive-Compulsive Inventory-Revised (OCI-R; Foa et al., 2002)</p>';
+  docHtml += '<p><strong>Totalscore:</strong> ' + total + '/72 (cutoff for sandsynlig OCD: ≥ 21)</p>';
+  docHtml += '<p><strong>OCD-score (ekskl. hamstring):</strong> ' + ocd + '/60</p>';
+  docHtml += '<p><strong>Hamstring-score:</strong> ' + hoarding + '/12 (DSM-5: selvstændig diagnose)</p>';
+  docHtml += '<p><strong>Alvorlighedsgrad:</strong> ' + (sevLabels[severity] || severity) + '</p>';
+  docHtml += '<p><strong>Dominerende symptomprofil:</strong> ' + profile + '</p>';
+  docHtml += '<br><p><strong>Subskala-scores:</strong></p>';
+  docHtml += '<table class="med-table"><thead><tr><th>Subskala</th><th>Score</th><th>Niveau</th></tr></thead><tbody>';
+  ['washing','checking','ordering','obsessing','neutralizing','hoarding'].forEach(function(k) {
+    var sl = getSubLevel(subs[k]);
+    docHtml += '<tr><td>' + SUB_META[k].name + '</td><td>' + subs[k] + '/12</td><td style="color:' + sl.color + '">' + sl.label + '</td></tr>';
+  });
+  docHtml += '</tbody></table>';
+  docHtml += '<br><h3 style="color:var(--accent)">Samtaleguide</h3>';
+  docHtml += '<div style="padding:16px;border-radius:12px;background:rgba(139,92,122,0.06);border:1px solid rgba(139,92,122,0.2);margin-top:8px">';
+  docHtml += '<p style="font-style:italic">"Jeg har taget en OCD-screening (OCI-R) der viser ' + (total >= 21 ? 'forhøjede' : 'milde') + ' scores. Jeg vil gerne tale om muligheden for udredning' + (total >= 21 ? ' og behandling' : '') + '."</p>';
+  docHtml += '</div>';
+  if (total >= 21) {
+    docHtml += '<br><p><strong>Foreslåede næste skridt:</strong></p><ul style="padding-left:18px"><li>Klinisk vurdering for OCD</li><li>Henvisning til psykolog med ERP-erfaring</li><li>Overvej SSRI-behandling (NB: højere doser end ved depression)</li></ul>';
+  } else {
+    docHtml += '<br><p><strong>Foreslåede næste skridt:</strong></p><ul style="padding-left:18px"><li>Monitorering af symptomudvikling</li><li>Psykoedukation om OCD</li><li>Gentest om 3-6 måneder ved symptomforværring</li></ul>';
+  }
+  docHtml += '</div>';
+  document.getElementById('doctor-section').innerHTML = docHtml;
+
+  // Resources
+  var resHtml = '';
+  resHtml += '<div class="resource-card"><h4>🏥 OCD-foreningen</h4><p>Rådgivning, netværk og erfaringsgrupper for mennesker med OCD. <a href="https://ocd-foreningen.dk" target="_blank">ocd-foreningen.dk →</a></p></div>';
+  resHtml += '<div class="resource-card"><h4>🏥 Angstforeningen</h4><p>OCD hører under angstspektret. Rådgivning og information. <a href="https://angstforeningen.dk" target="_blank">angstforeningen.dk →</a></p></div>';
+  resHtml += '<div class="resource-card"><h4>📞 Psykiatrilinjen</h4><p>Rådgivning om psykiatriske spørgsmål: <strong>1899 333 999</strong></p></div>';
+  resHtml += '<div class="resource-card"><h4>📖 "Stop OCD" af Elsabet Sinding</h4><p>Dansk selvhjælpsbog baseret på ERP. Praktiske øvelser og forklaringer.</p></div>';
+  resHtml += '<div class="resource-card"><h4>📱 Apps</h4><p><strong>NOCD</strong> — ERP-baseret OCD-app med terapeut-support. <strong>Woebot</strong> — kognitiv terapi chatbot.</p></div>';
+  document.getElementById('resources').innerHTML = resHtml;
+
+  // Show report
+  document.getElementById('report').style.display = 'block';
+}
+
+// Radar SVG builder
+function buildRadar(dims) {
+  var cx = 180, cy = 170, R = 120;
+  var n = dims.length;
+  var angleStep = (Math.PI * 2) / n;
+  var startAngle = -Math.PI / 2;
+  var svg = '<svg width="360" height="360" viewBox="0 0 360 360">';
+  for (var r = 1; r <= 4; r++) {
+    var radius = (R / 4) * r;
+    var points = [];
+    for (var i = 0; i < n; i++) {
+      var a = startAngle + i * angleStep;
+      points.push((cx + radius * Math.cos(a)).toFixed(1) + ',' + (cy + radius * Math.sin(a)).toFixed(1));
+    }
+    svg += '<polygon points="' + points.join(' ') + '" fill="none" stroke="#e8e5e0" stroke-width="1" opacity="' + (r === 4 ? 0.6 : 0.3) + '"/>';
+  }
+  for (var j = 0; j < n; j++) {
+    var a2 = startAngle + j * angleStep;
+    svg += '<line x1="' + cx + '" y1="' + cy + '" x2="' + (cx + R * Math.cos(a2)).toFixed(1) + '" y2="' + (cy + R * Math.sin(a2)).toFixed(1) + '" stroke="#e8e5e0" stroke-width="1" opacity="0.3"/>';
+  }
+  var dataPoints = [];
+  for (var k = 0; k < n; k++) {
+    var a3 = startAngle + k * angleStep;
+    var rd = (dims[k].pct / 100) * R;
+    dataPoints.push((cx + rd * Math.cos(a3)).toFixed(1) + ',' + (cy + rd * Math.sin(a3)).toFixed(1));
+  }
+  svg += '<polygon points="' + dataPoints.join(' ') + '" fill="rgba(139,92,122,0.12)" stroke="#8b5c7a" stroke-width="2"/>';
+  for (var m = 0; m < n; m++) {
+    var a4 = startAngle + m * angleStep;
+    var rd2 = (dims[m].pct / 100) * R;
+    var px = cx + rd2 * Math.cos(a4);
+    var py = cy + rd2 * Math.sin(a4);
+    svg += '<circle cx="' + px.toFixed(1) + '" cy="' + py.toFixed(1) + '" r="5" fill="#8b5c7a" stroke="#faf9f7" stroke-width="2"/>';
+    var lx = cx + (R + 28) * Math.cos(a4);
+    var ly = cy + (R + 28) * Math.sin(a4);
+    var anchor = lx < cx - 10 ? 'end' : lx > cx + 10 ? 'start' : 'middle';
+    svg += '<text x="' + lx.toFixed(1) + '" y="' + ly.toFixed(1) + '" text-anchor="' + anchor + '" fill="#8a857e" font-size="11" font-family="Figtree,sans-serif">' + dims[m].label + '</text>';
+    svg += '<text x="' + lx.toFixed(1) + '" y="' + (ly + 15).toFixed(1) + '" text-anchor="' + anchor + '" fill="#8b5c7a" font-size="13" font-weight="700" font-family="Source Serif 4,serif">' + dims[m].pct + '%</text>';
+  }
+  svg += '</svg>';
+  return svg;
+}
+
+function downloadPDF() {
+  var el = document.getElementById('report-content');
+  var opt = {
+    margin: [10, 10, 10, 10],
+    filename: 'OCD-Rapport-Hjernebarometeret.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+  };
+  html2pdf().set(opt).from(el).save();
+}
+</script>
+</body>
+</html>

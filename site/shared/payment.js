@@ -105,6 +105,11 @@
         completed_at: new Date().toISOString()
       };
 
+      // Attach birth_year if present in result data
+      if (data && data.birth_year) {
+        row.birth_year = data.birth_year;
+      }
+
       // Attach user or anonymous token
       if (window.HB_AUTH && HB_AUTH.user) {
         row.user_id = HB_AUTH.user.id;
@@ -361,6 +366,99 @@
     });
   }
 
+  // ── Migrate anonymous results to logged-in user ──
+  async function _migrateAnonymousResults(userId) {
+    try {
+      var sb = window.HB_AUTH && HB_AUTH.supabase;
+      if (!sb || !userId) return 0;
+
+      // Collect all anonymous tokens from localStorage
+      var tokens = [];
+      var testTypes = ['iq', 'adhd', 'autisme', 'personlighed', 'stress', 'eq', 'karriere'];
+      testTypes.forEach(function(tt) {
+        var t = localStorage.getItem('hb_report_token_' + tt);
+        if (t) tokens.push(t);
+      });
+      if (tokens.length === 0) return 0;
+
+      // Update test_results: set user_id where anonymous_token matches
+      var { data, error } = await sb
+        .from('test_results')
+        .update({ user_id: userId, anonymous_token: null })
+        .is('user_id', null)
+        .in('anonymous_token', tokens)
+        .select('id');
+
+      // Also migrate report_access
+      await sb
+        .from('report_access')
+        .update({ user_id: userId, anonymous_token: null })
+        .is('user_id', null)
+        .in('anonymous_token', tokens);
+
+      return (data && data.length) || 0;
+    } catch(e) {
+      console.warn('Could not migrate anonymous results:', e);
+      return 0;
+    }
+  }
+
+  // ── Render "Gem dit resultat" prompt for anonymous users ──
+  function renderSavePrompt(container, testType) {
+    // Don't show if already logged in
+    if (window.HB_AUTH && HB_AUTH.user) return;
+
+    // Accept string ID or DOM element
+    var el = typeof container === 'string' ? document.getElementById(container) : container;
+    if (!el) return;
+
+    // Don't add twice
+    if (el.querySelector('.hb-save-prompt')) return;
+
+    var div = document.createElement('div');
+    div.className = 'hb-save-prompt';
+    div.style.cssText = 'text-align:center;margin:28px auto;padding:24px 20px;max-width:420px;background:#f8f7f5;border:1.5px solid #e8e5e0;border-radius:16px;';
+    div.innerHTML =
+      '<div style="font-size:24px;margin-bottom:10px">💾</div>' +
+      '<p style="font-size:15px;font-weight:600;color:#1c1b1a;margin:0 0 6px">Gem dit resultat</p>' +
+      '<p style="font-size:13px;color:#5a5650;margin:0 0 16px;line-height:1.6">Opret en gratis konto for at gemme dine resultater og se dem igen senere.</p>' +
+      '<button class="hb-save-prompt-btn" style="display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:#2c5f4b;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;font-family:Figtree,system-ui,sans-serif;cursor:pointer;transition:opacity .2s">' +
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="10 17 15 12 10 7"/></svg>' +
+        'Log ind / Opret konto' +
+      '</button>';
+
+    el.appendChild(div);
+
+    // Hover effect
+    var btn = div.querySelector('.hb-save-prompt-btn');
+    btn.onmouseenter = function() { btn.style.opacity = '0.85'; };
+    btn.onmouseleave = function() { btn.style.opacity = '1'; };
+
+    // Click → open login modal
+    btn.addEventListener('click', function() {
+      if (window.HB_AUTH) HB_AUTH.showLogin();
+    });
+
+    // Listen for login → migrate results + update UI
+    function onAuth(e) {
+      var user = e.detail && e.detail.user;
+      if (user) {
+        // Migrate anonymous results
+        _migrateAnonymousResults(user.id).then(function(count) {
+          if (count > 0) console.log('Migrated ' + count + ' anonymous results to user');
+        });
+        // Replace prompt with success message
+        div.innerHTML =
+          '<div style="font-size:24px;margin-bottom:10px">✅</div>' +
+          '<p style="font-size:15px;font-weight:600;color:#2c5f4b;margin:0 0 4px">Resultat gemt!</p>' +
+          '<p style="font-size:13px;color:#5a5650;margin:0">Dine resultater er nu knyttet til din konto.</p>';
+        // Clean up listener
+        window.removeEventListener('hb-auth-change', onAuth);
+      }
+    }
+    window.addEventListener('hb-auth-change', onAuth);
+  }
+
   // ── Public API ──
   window.HB_PAY = {
     hasAccess: hasAccess,
@@ -372,6 +470,7 @@
     loadResultsFromDB: loadResultsFromDB,
     getResultsHistory: getResultsHistory,
     useCredit: useCredit,
-    renderCreditOption: renderCreditOption
+    renderCreditOption: renderCreditOption,
+    renderSavePrompt: renderSavePrompt
   };
 })();

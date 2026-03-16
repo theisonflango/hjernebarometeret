@@ -591,6 +591,69 @@ window.handleShareCard = function() {
     }
 };
 
+// ── Birth year helpers ──
+function getAgeFromBirthYear(by) {
+  var now = new Date();
+  return now.getFullYear() - by - (now.getMonth() < 6 ? 1 : 0);
+}
+function getAgeGroup(age) {
+  if (age < 16) return "13-15";
+  if (age < 20) return "16-19";
+  if (age < 25) return "20-24";
+  if (age < 30) return "25-29";
+  if (age < 35) return "30-34";
+  if (age < 45) return "35-44";
+  if (age < 55) return "45-54";
+  if (age < 65) return "55-64";
+  return "65+";
+}
+function getBirthYearOptions() {
+  var opts = [];
+  var cy = new Date().getFullYear();
+  for (var y = cy - 10; y >= cy - 90; y--) opts.push(y);
+  return opts;
+}
+
+// ─── YOUTH EDUCATION MAPPING ───
+var YOUTH_EDU = {
+  R: {
+    gym: [{ name: 'HTX', desc_da: 'Teknisk gymnasium med fokus på teknik, it og naturvidenskab', desc_en: 'Technical gymnasium focusing on technology, IT and natural science' },
+          { name: 'EUX', desc_da: 'Kombineret erhvervsuddannelse og gymnasial eksamen', desc_en: 'Combined vocational education and upper secondary diploma' }],
+    paths_da: 'Håndværk, teknik, landbrug, byggeri, mekanik',
+    paths_en: 'Crafts, engineering, agriculture, construction, mechanics'
+  },
+  I: {
+    gym: [{ name: 'STX', desc_da: 'Almen gymnasium med naturvidenskabeligt fokus', desc_en: 'General gymnasium with science focus' },
+          { name: 'HTX', desc_da: 'Teknisk gymnasium med fokus på eksperimentering og analyse', desc_en: 'Technical gymnasium focusing on experimentation and analysis' }],
+    paths_da: 'Naturvidenskab, forskning, medicin, IT, matematik',
+    paths_en: 'Science, research, medicine, IT, mathematics'
+  },
+  A: {
+    gym: [{ name: 'STX', desc_da: 'Almen gymnasium med kreative og humanistiske fag', desc_en: 'General gymnasium with creative and humanities subjects' },
+          { name: 'Kunstakademi-forberedende', desc_da: 'Kreative forløb og kunstneriske uddannelser', desc_en: 'Creative programs and artistic education' }],
+    paths_da: 'Design, kunst, musik, film, arkitektur, skrivning',
+    paths_en: 'Design, art, music, film, architecture, writing'
+  },
+  S: {
+    gym: [{ name: 'STX', desc_da: 'Almen gymnasium med samfundsfag og psykologi', desc_en: 'General gymnasium with social studies and psychology' },
+          { name: 'SOSU', desc_da: 'Social- og sundhedsuddannelse', desc_en: 'Social and health education' }],
+    paths_da: 'Sundhed, pædagogik, psykologi, socialrådgivning, undervisning',
+    paths_en: 'Health, education, psychology, social work, teaching'
+  },
+  E: {
+    gym: [{ name: 'HHX', desc_da: 'Handelsgymnasium med fokus på økonomi og iværksætteri', desc_en: 'Business gymnasium focusing on economics and entrepreneurship' },
+          { name: 'STX', desc_da: 'Almen gymnasium med samfundsfag og retorik', desc_en: 'General gymnasium with social studies and rhetoric' }],
+    paths_da: 'Ledelse, salg, iværksætteri, jura, politik',
+    paths_en: 'Management, sales, entrepreneurship, law, politics'
+  },
+  C: {
+    gym: [{ name: 'HHX', desc_da: 'Handelsgymnasium med fokus på økonomi og organisation', desc_en: 'Business gymnasium focusing on economics and organization' },
+          { name: 'EUX', desc_da: 'Kombineret erhvervsuddannelse med kontor/finans-retning', desc_en: 'Combined vocational with office/finance direction' }],
+    paths_da: 'Økonomi, administration, finans, revision, logistik',
+    paths_en: 'Economics, administration, finance, accounting, logistics'
+  }
+};
+
 // ─── MAIN APP ───
 function App() {
     const [phase, setPhase] = useState('hero');
@@ -604,6 +667,9 @@ function App() {
     const [topMatches, setTopMatches] = useState([]);
     const [loadingStep, setLoadingStep] = useState(0);
     const [occupations, setOccupations] = useState(null);
+    const [birthYear, setBirthYear] = useState('');
+    const [showUnderAge, setShowUnderAge] = useState(false);
+    const [birthYearError, setBirthYearError] = useState(false);
 
     // Load occupations data
     useEffect(function() {
@@ -689,7 +755,27 @@ function App() {
         }
     }, [phase]);
 
+    useEffect(function() {
+        if (phase === 'results' && window.HB_PAY) {
+            HB_PAY.renderSavePrompt('hb-save-prompt-karriere', 'karriere');
+        }
+    }, [phase]);
+
     function startTest() {
+        if (!birthYear) {
+            setBirthYearError(true);
+            setTimeout(function() { setBirthYearError(false); }, 2000);
+            return;
+        }
+        var age = getAgeFromBirthYear(parseInt(birthYear));
+        if (age < 16) {
+            setShowUnderAge(true);
+            return;
+        }
+        doStartTest();
+    }
+    function doStartTest() {
+        setShowUnderAge(false);
         setPhase('test');
         setSection('interests');
         setCurrent(0);
@@ -770,6 +856,12 @@ function App() {
             }
 
             var resultObj = buildResultObj(res, matches, allAnswers);
+            if (birthYear) {
+                var byAge = getAgeFromBirthYear(parseInt(birthYear));
+                resultObj.birth_year = parseInt(birthYear);
+                resultObj.age = byAge;
+                resultObj.age_group = getAgeGroup(byAge);
+            }
             window._karriereResultObj = resultObj;
             if (window.HB_PAY) HB_PAY.saveResults('karriere', resultObj);
 
@@ -796,9 +888,56 @@ function App() {
                     <div className="hero-stat"><strong>6</strong><span>{t('dimensioner', 'dimensions')}</span></div>
                     <div className="hero-stat"><strong>900+</strong><span>{t('erhverv', 'occupations')}</span></div>
                 </div>
-                <button className="btn-primary" onClick={startTest}>
-                    {t('Start testen \u2192', 'Start the test \u2192')}
-                </button>
+                <div style={{ margin: '0 auto 24px', maxWidth: 320, textAlign: 'left' }}>
+                    <label style={{ display: 'block', fontWeight: 600, fontSize: '0.9rem', marginBottom: 6, color: 'var(--text)' }}>
+                        {t('Fødselsår', 'Birth year')}
+                    </label>
+                    <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: 10, lineHeight: 1.5 }}>
+                        {t('Bruges til at sammenligne din score med andre i din aldersgruppe', 'Used to compare your score with others in your age group')}
+                    </p>
+                    <select
+                        value={birthYear}
+                        onChange={function(e) {
+                            setBirthYear(e.target.value);
+                            setBirthYearError(false);
+                            if (e.target.value) {
+                                var a = getAgeFromBirthYear(parseInt(e.target.value));
+                                setShowUnderAge(a < 16);
+                            } else {
+                                setShowUnderAge(false);
+                            }
+                        }}
+                        style={{ width: '100%', padding: '12px 16px', fontSize: '0.95rem', border: '1px solid ' + (birthYearError ? 'var(--red)' : 'var(--border)'), borderRadius: 8, background: 'var(--bg-card)', color: 'var(--text)', fontFamily: 'inherit', cursor: 'pointer' }}
+                    >
+                        <option value="">{t('Vælg fødselsår...', 'Select birth year...')}</option>
+                        {getBirthYearOptions().map(function(y) {
+                            return <option key={y} value={y}>{y}</option>;
+                        })}
+                    </select>
+                </div>
+
+                {showUnderAge && (
+                    <div style={{ background: '#e8f4fd', border: '1px solid #7bb8e0', borderRadius: 'var(--radius)', padding: 20, margin: '0 auto 20px', maxWidth: 520, textAlign: 'left' }}>
+                        <p style={{ fontWeight: 600, fontSize: '0.9rem', color: '#1a5276', marginBottom: 8 }}>
+                            {t('🎓 Ungdomsversion', '🎓 Youth version')}
+                        </p>
+                        <p style={{ fontSize: '0.85rem', color: '#1a5276', lineHeight: 1.6, marginBottom: 16 }}>
+                            {t(
+                                'Du får en tilpasset version med fokus på uddannelsesvalg og fremtidige muligheder i stedet for karrierematch. Testen bruger de samme spørgsmål, men resultaterne vises med fokus på gymnasieretninger og uddannelsesveje.',
+                                'You\'ll get a tailored version focused on education choices and future possibilities instead of career matching. The test uses the same questions, but results are presented with focus on gymnasium directions and education paths.'
+                            )}
+                        </p>
+                        <button onClick={doStartTest} style={{ background: 'var(--accent)', color: '#fff', fontWeight: 500, fontSize: '0.88rem', padding: '10px 22px', border: '1px solid var(--accent)', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit' }}>
+                            {t('Start uddannelsestesten →', 'Start education test →')}
+                        </button>
+                    </div>
+                )}
+
+                {!showUnderAge && (
+                    <button className="btn-primary" onClick={startTest}>
+                        {t('Start testen \u2192', 'Start the test \u2192')}
+                    </button>
+                )}
 
                 <div style={{ marginTop: 48, width: '100%' }}>
                     <div className="science-box">
@@ -973,12 +1112,16 @@ function App() {
         var isAdmin = window.HB_AUTH && HB_AUTH.isAdmin();
         var primaryInfo = RIASEC_TYPES[results.primaryType];
         var codeColors = { R: 'var(--clr-R)', I: 'var(--clr-I)', A: 'var(--clr-A)', S: 'var(--clr-S)', E: 'var(--clr-E)', C: 'var(--clr-C)' };
+        var isYouth = birthYear && getAgeFromBirthYear(parseInt(birthYear)) < 18;
 
         return (
             <div className="results-container fade-in-up">
                 <div className="results-header">
-                    <h1>{t('Din karriereprofil', 'Your Career Profile')}</h1>
-                    <p>{t('Baseret p\u00e5 Hollands RIASEC-model og O*NET Interest Profiler', 'Based on Holland\'s RIASEC model and the O*NET Interest Profiler')}</p>
+                    <h1>{isYouth ? t('Din uddannelsesprofil', 'Your Education Profile') : t('Din karriereprofil', 'Your Career Profile')}</h1>
+                    <p>{isYouth
+                        ? t('Find ud af hvilke uddannelser og retninger der passer til dine interesser', 'Discover which education paths match your interests')
+                        : t('Baseret p\u00e5 Hollands RIASEC-model og O*NET Interest Profiler', 'Based on Holland\'s RIASEC model and the O*NET Interest Profiler')
+                    }</p>
                 </div>
 
                 {/* Holland Code Hero */}
@@ -1027,8 +1170,42 @@ function App() {
                     })}
                 </div>
 
+                {/* Youth: Education Recommendations */}
+                {isYouth && (
+                    <>
+                        <h3 className="section-title">{t('Anbefalede uddannelsesretninger', 'Recommended Education Paths')}</h3>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 40 }}>
+                            {results.sortedTypes.slice(0, 3).map(function(k) {
+                                var edu = YOUTH_EDU[k];
+                                var info = RIASEC_TYPES[k];
+                                return (
+                                    <div key={k} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, padding: 20 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                                            <span style={{ fontSize: 20 }}>{info.icon}</span>
+                                            <strong style={{ color: info.color }}>{t(info.da, info.en)}</strong>
+                                        </div>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+                                            {edu.gym.map(function(g) {
+                                                return (
+                                                    <div key={g.name} style={{ background: 'var(--accent-light)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 14px', flex: '1 1 200px' }}>
+                                                        <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--accent)' }}>{g.name}</div>
+                                                        <div style={{ fontSize: 13, color: 'var(--text-2)', marginTop: 2 }}>{t(g.desc_da, g.desc_en)}</div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                        <div style={{ fontSize: 13, color: 'var(--text-3)' }}>
+                                            <strong>{t('Karriereveje:', 'Career paths:')}</strong> {t(edu.paths_da, edu.paths_en)}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </>
+                )}
+
                 {/* Top Career Matches */}
-                <h3 className="section-title">{t('Top karrierematch', 'Top Career Matches')}</h3>
+                <h3 className="section-title">{isYouth ? t('Mulige fremtidige erhverv', 'Possible Future Careers') : t('Top karrierematch', 'Top Career Matches')}</h3>
                 <div className="career-matches">
                     {topMatches.slice(0, 20).map(function(m, i) {
                         var isBlurred = i >= 5;
@@ -1095,12 +1272,15 @@ function App() {
 
                 {/* Paywall CTA */}
                 <div className="cta-box">
-                    <h3>{t('F\u00e5 din fulde karriererapport', 'Get your full career report')}</h3>
+                    <h3>{isYouth
+                        ? t('Få din fulde uddannelsesrapport', 'Get your full education report')
+                        : t('F\u00e5 din fulde karriererapport', 'Get your full career report')
+                    }</h3>
                     <p>
-                        {t(
-                            'Se alle 20 karrierematch, detaljeret RIASEC-analyse, v\u00e6rdi-job-fit, karriereveje og handlingsplan.',
-                            'See all 20 career matches, detailed RIASEC analysis, value-job fit, career paths and action plan.'
-                        )}
+                        {isYouth
+                            ? t('Se alle uddannelsesanbefalinger, detaljeret RIASEC-analyse, interesseprofil og uddannelsesveje.', 'See all education recommendations, detailed RIASEC analysis, interest profile and education paths.')
+                            : t('Se alle 20 karrierematch, detaljeret RIASEC-analyse, v\u00e6rdi-job-fit, karriereveje og handlingsplan.', 'See all 20 career matches, detailed RIASEC analysis, value-job fit, career paths and action plan.')
+                        }
                     </p>
                     <div className="cta-features">
                         <span className="cta-feature">{t('20 karrierematch', '20 career matches')}</span>
@@ -1124,6 +1304,9 @@ function App() {
                         </a>
                     )}
                 </div>
+
+                {/* Save prompt for anonymous users */}
+                <div id="hb-save-prompt-karriere"></div>
 
                 {/* Cross-sell */}
                 <div className="cross-sell">

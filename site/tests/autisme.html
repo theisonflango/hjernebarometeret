@@ -131,6 +131,22 @@ const CS = { high: { color: "#c0392b", bg: "#fdf0ef", border: "#e6a09a" }, eleva
 function getDL(s) { if (s >= 7) return "high"; if (s >= 5) return "elevated"; return null; }
 function getDI(s) { if (s >= 8) return { label: "Meget høj", color: "#c0392b" }; if (s >= 6) return { label: "Forhøjet", color: "#d68910" }; if (s >= 4) return { label: "Moderat", color: "#7d8c42" }; return { label: "Lav", color: "#2471a3" }; }
 
+function getAgeFromBirthYear(by) {
+  const now = new Date();
+  return now.getFullYear() - by - (now.getMonth() < 6 ? 1 : 0);
+}
+function getAgeGroup(age) {
+  if (age < 16) return "13-15";
+  if (age < 20) return "16-19";
+  if (age < 25) return "20-24";
+  if (age < 30) return "25-29";
+  if (age < 35) return "30-34";
+  if (age < 45) return "35-44";
+  if (age < 55) return "45-54";
+  if (age < 65) return "55-64";
+  return "65+";
+}
+
 function Bar({ value, max, color }) { return (<div style={{ width: "100%", height: 8, background: "#e8e5e0", borderRadius: 4, overflow: "hidden" }}><div style={{ width: (value / max) * 100 + "%", height: "100%", background: color, borderRadius: 4, transition: "width 0.6s cubic-bezier(0.22,1,0.36,1)" }} /></div>); }
 function Sec({ icon, title, children }) { return (<div className="aq-result-section" style={{ background: "#fff", border: "1px solid #e8e5e0", borderTop: "none", padding: "32px 40px" }}><div style={{ fontFamily: "var(--serif)", fontSize: 12, letterSpacing: 2, textTransform: "uppercase", color: "#8a857e", marginBottom: 20, display: "flex", alignItems: "center", gap: 8, fontWeight: 600 }}>{icon && <span style={{ fontSize: 16 }}>{icon}</span>}{title}</div>{children}</div>); }
 function Card({ title, text, accent }) { return (<div style={{ borderLeft: "3px solid " + (accent || "#3a7d5e"), padding: "16px 20px", marginBottom: 16, background: "#f5f2ee", borderRadius: "0 8px 8px 0" }}><div style={{ fontFamily: "var(--serif)", fontSize: 15, fontWeight: 600, color: "#1c1b1a", marginBottom: 6 }}>{title}</div><div style={{ fontSize: 13.5, lineHeight: 1.7, color: "#5a5650" }}>{text}</div></div>); }
@@ -141,6 +157,8 @@ function AutismeTest() {
   const [cQ, setCQ] = useState(0);
   const [gender, setGender] = useState(null);
   const [anim, setAnim] = useState("in");
+  const [birthYear, setBirthYear] = useState("");
+  const [underAgeAck, setUnderAgeAck] = useState(false);
   const ans = Object.keys(answers).length;
   const prog = (ans / 50) * 100;
 
@@ -172,10 +190,27 @@ function AutismeTest() {
                 {[{ v: "male", l: "Mand" }, { v: "female", l: "Kvinde" }, { v: "other", l: "Andet" }].map(g => (<button key={g.v} onClick={() => setGender(g.v)} style={{ flex: 1, minWidth: 100, padding: "14px 16px", border: gender === g.v ? "2px solid var(--bg-dark)" : "1px solid var(--border-2)", borderRadius: 10, background: gender === g.v ? "var(--bg-dark)" : "#fff", color: gender === g.v ? "#faf9f7" : "var(--text-2)", fontSize: 14, cursor: "pointer", fontFamily: "var(--sans)", fontWeight: 500, transition: "all .2s" }}>{g.l}</button>))}
               </div>
             </div>
+            <div style={{ margin: "24px 0 8px" }}>
+              <div style={{ fontSize: 10, letterSpacing: 2, textTransform: "uppercase", color: "var(--text-3)", marginBottom: 12, fontWeight: 700 }}>Fødselsår</div>
+              <select value={birthYear} onChange={e => { setBirthYear(e.target.value); setUnderAgeAck(false); }} style={{ width: "100%", maxWidth: 200, padding: "10px 14px", border: "1px solid var(--border-2)", borderRadius: 10, fontSize: 15, fontFamily: "var(--sans)", background: "#fff", color: "var(--text)", appearance: "auto", cursor: "pointer" }}>
+                <option value="">Vælg år</option>
+                {Array.from({ length: new Date().getFullYear() - 13 - 1940 + 1 }, (_, i) => new Date().getFullYear() - 13 - i).map(y => <option key={y} value={y}>{y}</option>)}
+              </select>
+              <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 6 }}>Bruges til at sammenligne din score med andre i din aldersgruppe</div>
+            </div>
+            {birthYear && getAgeFromBirthYear(parseInt(birthYear)) < 16 && !underAgeAck && (
+              <div style={{ background: "#fef9e7", border: "1px solid #f0d78c", borderRadius: 10, padding: "16px 20px", margin: "16px 0 0", fontSize: 13, lineHeight: 1.7, color: "#7d6608" }}>
+                <strong>Bemærk:</strong> Denne test er primært udviklet til voksne (16+). Dine resultater kan være mindre præcise for din aldersgruppe. Testens normdata er baseret på voksne.
+                <div style={{ marginTop: 12, textAlign: "center" }}>
+                  <button onClick={() => setUnderAgeAck(true)} style={{ padding: "8px 18px", fontSize: 13, background: "transparent", border: "1px solid #f0d78c", borderRadius: 8, cursor: "pointer", color: "#7d6608", fontFamily: "var(--sans)", fontWeight: 500 }}>Jeg forstår — start testen</button>
+                </div>
+              </div>
+            )}
           </div>
+          {(() => { const canStart = gender && birthYear && (!(birthYear && getAgeFromBirthYear(parseInt(birthYear)) < 16) || underAgeAck); return (
           <div className="aq-intro-footer" style={{ padding: "20px 40px 36px", borderTop: "1px solid var(--border)", display: "flex", justifyContent: "flex-end" }}>
-            <button onClick={() => gender && setPhase("test")} disabled={!gender} style={{ padding: "14px 40px", fontSize: 15, background: gender ? "var(--bg-dark)" : "var(--border-2)", color: gender ? "#fff" : "var(--text-3)", border: "none", borderRadius: 10, cursor: gender ? "pointer" : "default", fontFamily: "var(--sans)", fontWeight: 600, transition: "all .25s" }}>Start testen →</button>
-          </div>
+            <button onClick={() => canStart && setPhase("test")} disabled={!canStart} style={{ padding: "14px 40px", fontSize: 15, background: canStart ? "var(--bg-dark)" : "var(--border-2)", color: canStart ? "#fff" : "var(--text-3)", border: "none", borderRadius: 10, cursor: canStart ? "pointer" : "default", fontFamily: "var(--sans)", fontWeight: 600, transition: "all .25s" }}>Start testen →</button>
+          </div>); })()}
         </div>
       </div>
     );
@@ -223,7 +258,12 @@ function AutismeTest() {
     if (!window._aqSaved) {
       window._aqSaved = true;
       const answersArr = questions.map(q => ({ id: q.id, text: q.text, domain: q.domain, reverse: q.reverse, chosen: answers[q.id] || null, scored: scoreQ(q, answers[q.id]) }));
-      if (window.HB_PAY) HB_PAY.saveResults('autisme', { t: total, d: ds, category: cat, categoryLabel: catLabel, answers: answersArr });
+      const saveData = { t: total, d: ds, category: cat, categoryLabel: catLabel, answers: answersArr };
+      if (birthYear) { const by = parseInt(birthYear); const age = getAgeFromBirthYear(by); saveData.birth_year = by; saveData.age = age; saveData.age_group = getAgeGroup(age); }
+      if (window.HB_PAY) {
+        HB_PAY.saveResults('autisme', saveData);
+        setTimeout(() => HB_PAY.renderSavePrompt('hb-save-prompt-autisme', 'autisme'), 0);
+      }
     }
 
     return (
@@ -305,6 +345,9 @@ function AutismeTest() {
             <button onClick={() => { if (window.HB_CARD) HB_CARD.share('autisme', { t: total, d: ds, category: cat, categoryLabel: catLabel }); }} style={{ background: "var(--bg-dark)", color: "#fff", border: "none", padding: "12px 24px", borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "var(--sans)" }}>📸 Del dit resultat</button>
           </div>
 
+          {/* Save prompt for anonymous users */}
+          <div id="hb-save-prompt-autisme"></div>
+
           {/* Paywall */}
           <div style={{ marginTop: 24, padding: "28px 24px", borderRadius: 16, background: "linear-gradient(135deg,#fff 0%,#eaf5ef 100%)", border: "1.5px solid rgba(58,125,94,0.25)", textAlign: "center" }}>
             <h3 style={{ fontFamily: "var(--serif)", fontSize: 19, fontWeight: 600, marginBottom: 6 }}>Få din fulde autisme-rapport</h3>
@@ -323,7 +366,7 @@ function AutismeTest() {
           </div>
 
           <div style={{ textAlign: "center", marginTop: 32 }}>
-            <button onClick={() => { setAnswers({}); setCQ(0); setGender(null); setPhase("intro"); }} style={{ padding: "14px 36px", fontSize: 15, background: "transparent", border: "1.5px solid var(--border-2)", color: "var(--text-2)", borderRadius: 10, cursor: "pointer", fontFamily: "var(--sans)", fontWeight: 500 }}>Tag testen igen</button>
+            <button onClick={() => { setAnswers({}); setCQ(0); setGender(null); setBirthYear(""); setUnderAgeAck(false); setPhase("intro"); }} style={{ padding: "14px 36px", fontSize: 15, background: "transparent", border: "1.5px solid var(--border-2)", color: "var(--text-2)", borderRadius: 10, cursor: "pointer", fontFamily: "var(--sans)", fontWeight: 500 }}>Tag testen igen</button>
           </div>
 
           <div style={{ textAlign: "center", marginTop: 32, marginBottom: 40 }}>

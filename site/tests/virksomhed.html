@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Gratis AI-drevet virksomhedsanalyse. 35 spørgsmål, 15 minutters investering. Få markedsanalyse, SWOT, vækststrategi og handlingsplan.">
+<title>Virksomhedsanalyse — Hjernebarometeret.dk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,500&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
+<style>
+:root {
+  --bg: #faf9f7;
+  --bg-card: #fff;
+  --bg-card-hover: rgba(0,0,0,.02);
+  --bg-warm: #f5f2ee;
+  --bg-dark: #1c1b1a;
+  --text: #1c1b1a;
+  --text-2: #5a5650;
+  --text-3: #8a857e;
+  --text-4: #b5b0a8;
+  --text-dim: #5a5650;
+  --text-muted: #8a857e;
+  --border: #e8e5e0;
+  --border-2: #d5d0c9;
+  --accent: #2d6a4f;
+  --accent-light: rgba(45,106,79,0.08);
+  --accent-hover: #1b4332;
+  --accent-glow: rgba(45,106,79,0.08);
+  --green: #2c6e49;
+  --green-bg: #e8f5ee;
+  --yellow: #b8860b;
+  --yellow-bg: #faf5eb;
+  --orange: #c2553a;
+  --orange-bg: #fdf0ec;
+  --red: #a23030;
+  --red-bg: #fbeaea;
+  --radius: 12px;
+  --radius-lg: 20px;
+  --serif: 'Source Serif 4', Georgia, serif;
+  --sans: 'Figtree', system-ui, sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.6; -webkit-font-smoothing: antialiased; overflow-x: hidden; padding-top: 64px; }
+
+.container { max-width: 720px; margin: 0 auto; padding: 0 20px; }
+
+/* ── Hero ── */
+.hero { min-height: calc(100vh - 64px); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 60px 24px 80px; position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; top: -20%; right: -10%; width: 600px; height: 600px; background: radial-gradient(circle, rgba(45,106,79,0.06) 0%, transparent 70%); border-radius: 50%; pointer-events: none; }
+.hero::after { content: ''; position: absolute; bottom: -10%; left: -10%; width: 500px; height: 500px; background: radial-gradient(circle, rgba(45,106,79,0.04) 0%, transparent 70%); border-radius: 50%; pointer-events: none; }
+.hero-badge { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: var(--accent); background: var(--accent-light); padding: 6px 16px; border-radius: 100px; margin-bottom: 32px; letter-spacing: 0.03em; }
+.hero h1 { font-family: var(--serif); font-size: clamp(2.4rem, 5.5vw, 3.6rem); font-weight: 600; letter-spacing: -0.03em; line-height: 1.15; max-width: 700px; margin-bottom: 20px; }
+.hero h1 em { font-style: italic; color: var(--accent); }
+.hero-sub { font-size: 17px; color: var(--text-2); max-width: 560px; line-height: 1.7; margin-bottom: 40px; }
+.hero-stats { display: flex; gap: 32px; flex-wrap: wrap; justify-content: center; margin-bottom: 48px; }
+.hero-stat { text-align: center; }
+.hero-stat strong { display: block; font-family: var(--serif); font-size: 22px; font-weight: 600; color: var(--text); }
+.hero-stat span { font-size: 13px; color: var(--text-3); }
+.btn-primary { display: inline-flex; align-items: center; gap: 8px; background: var(--accent); color: #fff; font-family: var(--sans); font-size: 16px; font-weight: 600; padding: 14px 36px; border-radius: 12px; border: none; cursor: pointer; transition: all .2s; text-decoration: none; }
+.btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(45,106,79,0.2); }
+
+/* ── Science box ── */
+.science-box { max-width: 680px; margin: 0 auto; background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 32px; text-align: left; }
+.science-box h3 { font-family: var(--serif); font-size: 18px; font-weight: 600; margin-bottom: 12px; }
+.science-box p { font-size: 14.5px; color: var(--text-2); line-height: 1.7; margin-bottom: 20px; }
+.sections-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.section-card { background: var(--accent-light); border-radius: 10px; padding: 14px; text-align: center; }
+.section-card h4 { font-size: 13px; font-weight: 600; color: var(--accent); margin-bottom: 4px; }
+.section-card span { font-size: 12px; color: var(--text-3); }
+.disclaimer { font-size: 12.5px; color: var(--text-4); border-top: 1px solid var(--border); padding-top: 16px; line-height: 1.6; }
+
+/* ── Question phase ── */
+.test-container { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 100px 24px 80px; }
+.progress-bar { width: 100%; max-width: 560px; height: 3px; background: var(--border); border-radius: 4px; margin-bottom: 12px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.4s ease; }
+.progress-text { font-size: 13px; color: var(--text-4); margin-bottom: 48px; font-variant-numeric: tabular-nums; }
+.section-indicator { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: var(--accent); background: var(--accent-light); padding: 4px 12px; border-radius: 100px; margin-bottom: 16px; letter-spacing: 0.02em; text-transform: uppercase; }
+.question-card { max-width: 600px; width: 100%; text-align: center; }
+.question-text { font-family: var(--serif); font-size: clamp(1.15rem, 2.5vw, 1.4rem); font-weight: 500; line-height: 1.5; letter-spacing: -0.01em; color: var(--text); margin-bottom: 12px; min-height: 48px; }
+.question-help { font-size: 13.5px; color: var(--text-3); line-height: 1.6; margin-bottom: 32px; max-width: 520px; margin-left: auto; margin-right: auto; }
+
+/* Input types */
+.input-textarea { width: 100%; max-width: 520px; min-height: 120px; padding: 16px; border: 1.5px solid var(--border); border-radius: 12px; font-family: var(--sans); font-size: 15px; line-height: 1.6; color: var(--text); background: var(--bg-card); resize: vertical; transition: border-color .15s; margin: 0 auto 32px; display: block; }
+.input-textarea:focus { outline: none; border-color: var(--accent); }
+.input-textarea.short { min-height: 60px; }
+
+.input-text { width: 100%; max-width: 520px; padding: 14px 16px; border: 1.5px solid var(--border); border-radius: 12px; font-family: var(--sans); font-size: 15px; color: var(--text); background: var(--bg-card); transition: border-color .15s; margin: 0 auto 32px; display: block; }
+.input-text:focus { outline: none; border-color: var(--accent); }
+
+.options-list { display: flex; flex-direction: column; gap: 10px; max-width: 520px; margin: 0 auto 32px; }
+.option-item { display: flex; align-items: center; gap: 14px; padding: 12px 18px; border: 1.5px solid var(--border); border-radius: 10px; cursor: pointer; transition: all .15s; background: var(--bg-card); text-align: left; }
+.option-item:hover { border-color: var(--accent); background: var(--accent-light); }
+.option-item.selected { border-color: var(--accent); background: var(--accent-light); }
+.option-dot { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border-2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all .15s; }
+.option-item.selected .option-dot { border-color: var(--accent); background: var(--accent); }
+.option-item.selected .option-dot::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #fff; }
+.option-label { font-size: 15px; color: var(--text-2); }
+.option-item.selected .option-label { color: var(--text); font-weight: 500; }
+
+/* Multi-select */
+.option-check { width: 20px; height: 20px; border-radius: 6px; border: 2px solid var(--border-2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all .15s; }
+.option-item.selected .option-check { border-color: var(--accent); background: var(--accent); }
+.option-item.selected .option-check::after { content: '\2713'; color: #fff; font-size: 12px; font-weight: 700; }
+
+.nav-buttons { display: flex; gap: 12px; justify-content: center; }
+.btn-nav { padding: 10px 24px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--bg-card); font-family: var(--sans); font-size: 14px; font-weight: 500; color: var(--text-2); cursor: pointer; transition: all .15s; }
+.btn-nav:hover { border-color: var(--accent); color: var(--accent); }
+.btn-nav.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-nav.primary:hover { background: var(--accent-hover); }
+.btn-nav:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-skip { background: transparent; border: none; font-family: var(--sans); font-size: 13px; color: var(--text-4); cursor: pointer; padding: 8px 16px; transition: color .15s; }
+.btn-skip:hover { color: var(--text-3); }
+
+.required-badge { display: inline-block; font-size: 11px; font-weight: 600; color: var(--accent); background: var(--accent-light); padding: 2px 8px; border-radius: 100px; margin-left: 8px; vertical-align: middle; }
+
+/* ── Transition screen ── */
+.transition-screen { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 60px 24px; text-align: center; }
+.transition-screen h2 { font-family: var(--serif); font-size: clamp(1.6rem, 3.5vw, 2.2rem); font-weight: 600; letter-spacing: -0.02em; margin-bottom: 16px; }
+.transition-screen p { font-size: 16px; color: var(--text-2); max-width: 520px; line-height: 1.7; margin-bottom: 32px; }
+.transition-progress { display: flex; gap: 8px; margin-bottom: 32px; }
+.transition-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border); }
+.transition-dot.active { background: var(--accent); }
+.transition-dot.done { background: var(--green); }
+
+/* ── Loading ── */
+.loading-phase { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; text-align: center; }
+.loading-title { font-family: var(--serif); font-size: 24px; font-weight: 600; margin-bottom: 32px; }
+.loading-steps { display: flex; flex-direction: column; gap: 16px; max-width: 400px; width: 100%; }
+.loading-step { display: flex; align-items: center; gap: 12px; font-size: 15px; color: var(--text-3); transition: color 0.3s; }
+.loading-step.active { color: var(--text); }
+.loading-step.done { color: var(--green); }
+.loading-spinner { width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.6s linear infinite; flex-shrink: 0; }
+.loading-check { width: 20px; height: 20px; color: var(--green); flex-shrink: 0; }
+.loading-pending { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border); flex-shrink: 0; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Results ── */
+.results-container { max-width: 720px; margin: 0 auto; padding: 60px 24px 80px; }
+.results-header { text-align: center; margin-bottom: 48px; }
+.results-header h1 { font-family: var(--serif); font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 600; letter-spacing: -0.03em; margin-bottom: 12px; }
+.results-header p { font-size: 16px; color: var(--text-2); max-width: 520px; margin: 0 auto; line-height: 1.6; }
+
+.result-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 32px; margin-bottom: 24px; }
+.result-card h3 { font-family: var(--serif); font-size: 18px; font-weight: 600; margin-bottom: 16px; color: var(--text); }
+.result-content { font-size: 15px; color: var(--text-2); line-height: 1.8; }
+.result-content p { margin-bottom: 12px; }
+.result-content strong { color: var(--text); }
+.result-content ul { padding-left: 20px; margin-bottom: 12px; }
+.result-content li { margin-bottom: 6px; }
+
+.result-hero { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 40px; text-align: center; margin-bottom: 32px; }
+.result-hero h2 { font-family: var(--serif); font-size: 26px; font-weight: 600; margin-bottom: 8px; }
+.result-hero .label { font-size: 15px; color: var(--text-2); margin-bottom: 16px; }
+.result-hero .summary { font-size: 15px; color: var(--text-2); line-height: 1.7; max-width: 520px; margin: 0 auto; }
+
+/* SWOT grid */
+.swot-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+.swot-card { border-radius: 12px; padding: 20px; }
+.swot-card h4 { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+.swot-card ul { font-size: 13.5px; line-height: 1.6; padding-left: 16px; }
+.swot-card li { margin-bottom: 4px; }
+.swot-s { background: #e8f5ee; color: #1b4332; }
+.swot-w { background: #fdf0ec; color: #7c2d12; }
+.swot-o { background: #eaf5f7; color: #134e4a; }
+.swot-t { background: #faf5eb; color: #713f12; }
+
+/* CTA / paywall */
+.cta-box { background: linear-gradient(135deg, var(--accent-light), rgba(45,106,79,0.04)); border: 1px solid var(--border); border-radius: 16px; padding: 32px; text-align: center; margin-bottom: 32px; }
+.cta-box h3 { font-family: var(--serif); font-size: 20px; font-weight: 600; margin-bottom: 10px; }
+.cta-box p { font-size: 14.5px; color: var(--text-2); margin-bottom: 20px; line-height: 1.6; }
+.cta-features { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 24px; }
+.cta-feature { font-size: 13px; color: var(--accent); background: rgba(45,106,79,0.08); padding: 4px 12px; border-radius: 100px; }
+.cta-buttons { display: flex; flex-direction: column; gap: 12px; max-width: 400px; margin: 0 auto; }
+.cta-btn { padding: 14px 24px; border-radius: 12px; border: none; font-family: var(--sans); font-size: 15px; font-weight: 600; cursor: pointer; transition: all .2s; text-align: center; }
+.cta-btn.standard { background: var(--accent); color: #fff; }
+.cta-btn.standard:hover { background: var(--accent-hover); transform: translateY(-1px); }
+.cta-btn.premium { background: var(--bg-dark); color: #fff; }
+.cta-btn.premium:hover { opacity: 0.9; transform: translateY(-1px); }
+.cta-note { font-size: 12px; color: var(--text-4); margin-top: 12px; }
+
+/* Cross-sell */
+.cross-sell { margin: 40px 0; }
+.cross-sell h3 { font-family: var(--serif); font-size: 18px; font-weight: 600; margin-bottom: 16px; text-align: center; }
+.cross-sell-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.cross-sell-card { display: block; background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; text-align: center; text-decoration: none; color: inherit; transition: all .15s; }
+.cross-sell-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+.cross-sell-card .name { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+.cross-sell-card .sub { font-size: 12px; color: var(--text-3); }
+
+/* Error */
+.error-box { background: var(--red-bg); border: 1px solid #e8a0a0; border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 24px; }
+.error-box h3 { font-size: 16px; color: var(--red); margin-bottom: 8px; }
+.error-box p { font-size: 14px; color: var(--text-2); margin-bottom: 16px; }
+
+/* Disclaimer */
+.results-disclaimer { font-size: 13px; color: var(--text-4); text-align: center; border-top: 1px solid var(--border); padding-top: 24px; margin-top: 40px; line-height: 1.6; }
+
+/* ── Animations ── */
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+.fade-in-up { animation: fadeInUp 0.5s ease forwards; }
+
+/* Blurred content */
+.blurred { filter: blur(6px); pointer-events: none; user-select: none; }
+
+/* Mobile */
+@media (max-width: 600px) {
+  .hero { padding: 40px 20px 60px; }
+  .hero-stats { gap: 20px; }
+  .test-container { padding: 90px 20px 60px; }
+  .results-container { padding: 40px 16px 60px; }
+  .result-hero { padding: 28px 20px; }
+  .swot-grid { grid-template-columns: 1fr; }
+  .cta-features { flex-direction: column; align-items: center; }
+}
+</style>
+</head>
+<body>
+<div id="site-nav" data-active="tests" data-test-mode="true"></div>
+
+<div id="app"></div>
+
+<div id="site-footer"></div>
+
+<script src="../shared/nav.js"></script>
+<script src="../shared/footer.js"></script>
+<script src="../shared/auth.js"></script>
+<script src="../shared/coupon.js"></script>
+<script src="../shared/payment.js"></script>
+
+<script type="text/babel">
+const { useState, useEffect, useCallback, useRef } = React;
+
+// ─── SUPABASE ───
+var SUPABASE_URL = 'https://pmbbachqedomvixvvfpj.supabase.co';
+var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtYmJhY2hxZWRvbXZpeHZ2ZnBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3MDQ4MDksImV4cCI6MjA4NzI4MDgwOX0.dQ9GDUxyAqttisIPGI5hR20-9JpBKlFG4UvANivu4kM';
+var EDGE_URL = SUPABASE_URL + '/functions/v1/hjernebarometeret-business-analysis';
+
+// ─── QUESTIONS ───
+var SECTIONS = [
+    { id: 'forretning', title: 'Din forretning', icon: '🏢', count: 7 },
+    { id: 'marked', title: 'Marked & kunde', icon: '🎯', count: 7 },
+    { id: 'konkurrence', title: 'Konkurrence & differentiering', icon: '⚔️', count: 4 },
+    { id: 'model', title: 'Forretningsmodel & økonomi', icon: '💰', count: 4 },
+    { id: 'marketing', title: 'Marketing & kanaler', icon: '📣', count: 2 },
+    { id: 'ressourcer', title: 'Ressourcer & team', icon: '👥', count: 4 },
+    { id: 'maal', title: 'Mål & udfordringer', icon: '🚀', count: 7 }
+];
+
+var QUESTIONS = [
+    // ── Sektion 1: Din forretning ──
+    { id: 'q1', section: 0, required: true, type: 'textarea',
+      text: 'Beskriv din virksomhed eller forretningsidé',
+      help: 'Dette er det vigtigste spørgsmål. Jo mere du skriver, jo bedre og mere specifik bliver din rapport. Beskriv hvad du sælger, til hvem, og hvordan.' },
+    { id: 'q2', section: 0, required: true, type: 'select',
+      text: 'Hvilket stadie er din forretning på?',
+      help: 'Stadiet afgør hvilke strategier der er relevante. En idé har brug for validering; en omsættende virksomhed har brug for skalering.',
+      options: ['Idé / koncept (ikke lanceret endnu)', 'MVP / tidlig fase (lanceret, få eller ingen kunder)', 'Omsætningsskabende (betalende kunder)', 'Vækstfase (skalerer aktivt)', 'Etableret (stabil forretning, 3+ år)'] },
+    { id: 'q3', section: 0, required: true, type: 'select',
+      text: 'Hvilken branche eller sektor opererer du i?',
+      help: 'Branchen påvirker konkurrencelandskab, markedsdynamikker og de strategier der virker bedst.',
+      options: ['Teknologi / SaaS', 'E-handel / retail', 'Sundhed / wellness', 'Konsulentvirksomhed / service', 'Uddannelse / kurser', 'Mad & drikke / restaurant', 'Kreativt / medie / indhold', 'Finans / forsikring', 'Byggeri / håndværk', 'Andet'] },
+    { id: 'q4', section: 0, required: false, type: 'text',
+      text: 'Hvis du valgte "Andet" — beskriv din branche kort',
+      help: 'Hjælper os med at forstå din specifikke kontekst.' },
+    { id: 'q5', section: 0, required: false, type: 'select',
+      text: 'Hvor længe har forretningen eksisteret?',
+      help: 'Driftsperioden fortæller os om du skal fokusere på at finde product-market fit eller optimere en eksisterende motor.',
+      options: ['Ikke startet endnu', 'Under 6 måneder', '6-12 måneder', '1-3 år', '3+ år'] },
+    { id: 'q6', section: 0, required: false, type: 'text',
+      text: 'Har du en hjemmeside?',
+      help: 'Angiv URL. Vi analyserer din hjemmeside og giver konkret feedback på messaging, positionering og brugeroplevelse.',
+      placeholder: 'https://...' },
+    { id: 'q7', section: 0, required: false, type: 'text',
+      text: 'Har du aktive sociale medier? (angiv URL\'er)',
+      help: 'Vi kigger på din digitale tilstedeværelse og giver anbefalinger.',
+      placeholder: 'Instagram, LinkedIn, Facebook...' },
+
+    // ── Sektion 2: Marked & kunde ──
+    { id: 'q8', section: 1, required: true, type: 'textarea',
+      text: 'Hvem er din primære kunde?',
+      help: 'En klar kundebeskrivelse er fundamentet for al strategi. Beskriv én typisk person eller virksomhed der køber af dig.' },
+    { id: 'q9', section: 1, required: true, type: 'select',
+      text: 'Sælger du til privatpersoner, virksomheder eller begge?',
+      help: 'B2B og B2C kræver fundamentalt forskellige tilgange til salg, marketing og prissætning.',
+      options: ['B2C (privatpersoner)', 'B2B (virksomheder)', 'Begge dele'] },
+    { id: 'q10', section: 1, required: false, type: 'textarea',
+      text: 'Hvilket problem løser du for dine kunder?',
+      help: 'Det problem du løser er kernen i dit value proposition. Jo tydeligere du kan formulere det, jo stærkere bliver analysen.' },
+    { id: 'q11', section: 1, required: false, type: 'select',
+      text: 'Har du betalende kunder?',
+      help: 'Betalende kunder er det stærkeste signal for product-market fit.',
+      options: ['Ja', 'Nej, men har testbrugere/ventende', 'Nej, ikke endnu'] },
+    { id: 'q12', section: 1, required: false, type: 'select',
+      text: 'Omtrent hvor mange aktive kunder har du?',
+      help: 'Kundeantal hjælper os med at vurdere dit stadie.',
+      options: ['0 (ikke lanceret)', '1-10', '11-50', '51-200', '201-1.000', '1.000+'] },
+    { id: 'q13', section: 1, required: false, type: 'select',
+      text: 'Hvad er din omtrentlige månedlige omsætning?',
+      help: 'Omsætning giver os et billede af forretningens sundhed. Du kan trygt skippe dette.',
+      options: ['Ingen omsætning endnu', 'Under 10.000 kr', '10.000-50.000 kr', '50.000-200.000 kr', '200.000-500.000 kr', '500.000+ kr'] },
+    { id: 'q14', section: 1, required: false, type: 'select',
+      text: 'Kommer dine kunder igen?',
+      help: 'Kundefastholdelse er ofte vigtigere end kundetiltrækning.',
+      options: ['Ja, regelmæssigt', 'Ja, nogle gør', 'Nej, mest engangskøb', 'Ved ikke / for tidligt at sige', 'Ikke relevant (abonnement / løbende)'] },
+
+    // ── Sektion 3: Konkurrence & differentiering ──
+    { id: 'q15', section: 2, required: false, type: 'select',
+      text: 'Kender du dine primære konkurrenter?',
+      help: 'Vi bruger dine konkurrenter til at analysere hvordan du differentierer dig.',
+      options: ['Ja, jeg kender dem godt', 'Ja, nogle stykker', 'Nej, ikke rigtigt', 'Jeg tror ikke jeg har direkte konkurrenter'] },
+    { id: 'q16', section: 2, required: false, type: 'text',
+      text: 'Nævn op til 3 konkurrenter (navn eller URL)',
+      help: 'Angiv URL\'er for den bedste analyse. Vi sammenligner deres positionering med din.',
+      placeholder: 'Fx: konkurrent1.dk, konkurrent2.dk' },
+    { id: 'q17', section: 2, required: false, type: 'textarea',
+      text: 'Hvad adskiller dig fra konkurrenterne?',
+      help: 'Din differentiering afgør om kunder vælger dig. Vi vurderer styrken af din positionering.' },
+    { id: 'q18', section: 2, required: false, type: 'select',
+      text: 'Opererer du i et eksisterende marked eller skaber du et nyt?',
+      help: 'Eksisterende markeder kræver differentiering; nye markeder kræver edukation.',
+      options: ['Eksisterende marked med kendte konkurrenter', 'Nyt marked / ny kategori', 'Eksisterende marked, men ny tilgang/niche'] },
+
+    // ── Sektion 4: Forretningsmodel & økonomi ──
+    { id: 'q19', section: 3, required: false, type: 'multi',
+      text: 'Hvilken indtægtsmodel bruger du?',
+      help: 'Indtægtsmodellen påvirker alt fra kundetiltrækning til vækststrategi.',
+      options: ['Abonnement / SaaS', 'Engangssalg af produkt', 'Freemium (gratis + betalt opgradering)', 'Markedsplads / provision', 'Reklameindtægter', 'Service / timebetaling', 'Licens / franchise', 'Andet'] },
+    { id: 'q20', section: 3, required: false, type: 'text',
+      text: 'Hvad er din prissætning?',
+      help: 'Vi sammenligner med branchenormer og vurderer om du underpriser eller overpriser.',
+      placeholder: 'Fx: 299 kr/md, 49 kr pr. stk, 800 kr/time...' },
+    { id: 'q21', section: 3, required: false, type: 'text',
+      text: 'Hvad er dine vigtigste omkostninger?',
+      help: 'Omkostningsstruktur afgør din profitabilitet og skalerbarhed.',
+      placeholder: 'Fx: løn, hosting, markedsføring, materialer...' },
+    { id: 'q22', section: 3, required: false, type: 'select',
+      text: 'Hvad er din funding-status?',
+      help: 'Funding påvirker hvilke strategier der er realistiske.',
+      options: ['Bootstrapped (egen drift/overskud)', 'Egen opsparing', 'Angel-investering / pre-seed', 'VC-funded (seed eller senere)', 'Lån / kredit', 'Ansøger / søger funding'] },
+
+    // ── Sektion 5: Marketing & kanaler ──
+    { id: 'q23', section: 4, required: false, type: 'multi',
+      text: 'Hvordan får du kunder i dag?',
+      help: 'Vi analyserer dine nuværende kanaler og identificerer uudnyttet potentiale.',
+      options: ['Organisk søgning (SEO / Google)', 'Sociale medier (organisk)', 'Betalt annoncering (Meta, Google Ads, etc.)', 'Word of mouth / anbefalinger', 'Netværk / events', 'Partnerskaber / affiliates', 'Content marketing (blog, podcast, video)', 'Kold outreach (email, LinkedIn, telefon)', 'Ingen aktiv strategi endnu'] },
+    { id: 'q24', section: 4, required: false, type: 'textarea',
+      text: 'Hvad har du prøvet der IKKE virkede?',
+      help: 'Ved at vide hvad der ikke fungerede, undgår vi at give dig råd du allerede har testet — og kan analysere hvorfor det ikke virkede.' },
+
+    // ── Sektion 6: Ressourcer & team ──
+    { id: 'q25', section: 5, required: false, type: 'select',
+      text: 'Hvor mange er I på teamet?',
+      help: 'Teamstørrelse afgør hvilke initiativer der er realistiske.',
+      options: ['Solo / soloprenør', '2-5 personer', '6-20 personer', '20+ personer'] },
+    { id: 'q26', section: 5, required: false, type: 'text',
+      text: 'Hvad er jeres kernekompetencer?',
+      help: 'Vi identificerer kompetencegab og anbefaler hvordan I lukker dem.',
+      placeholder: 'Fx: salg, teknik, design, markedsføring...' },
+    { id: 'q27', section: 5, required: false, type: 'select',
+      text: 'Hvad er dit omtrentlige budget til vækst/marketing?',
+      help: 'Budget dimensionerer vores anbefalinger. Vi foreslår kun strategier du reelt kan eksekvere.',
+      options: ['Intet budget (kun tid)', 'Under 5.000 kr/md', '5.000-20.000 kr/md', '20.000-50.000 kr/md', '50.000+ kr/md'] },
+    { id: 'q28', section: 5, required: false, type: 'select',
+      text: 'Hvad er dit geografiske fokus?',
+      help: 'Geografi påvirker markedsstørrelse, konkurrence og kanalstrategi.',
+      options: ['Lokalt (by/region)', 'Nationalt (Danmark)', 'Norden', 'Europa', 'Globalt'] },
+
+    // ── Sektion 7: Mål & udfordringer ──
+    { id: 'q29', section: 6, required: false, type: 'multi', maxSelect: 3,
+      text: 'Hvad er din største udfordring lige nu? (vælg op til 3)',
+      help: 'Vi prioriterer rapportens fokus baseret på dine mest presserende udfordringer.',
+      options: ['Tiltrække nye kunder', 'Fastholde eksisterende kunder', 'Finde funding / kapital', 'Produktudvikling / feature-prioritering', 'Skalering / vækst', 'Prissætning / forretningsmodel', 'Teambuilding / ansættelser', 'Markedsføring / synlighed', 'Regulering / juridisk', 'Tidsstyring / for mange bolde i luften'] },
+    { id: 'q30', section: 6, required: false, type: 'textarea',
+      text: 'Hvad er dit vigtigste mål for de næste 12 måneder?',
+      help: 'Et klart mål gør rapporten langt mere fokuseret. Vi bygger din handlingsplan op omkring dette mål.' },
+    { id: 'q31', section: 6, required: false, type: 'select',
+      text: 'Hvad er dit ambitionsniveau?',
+      help: 'En livsstilsvirksomhed og en startup kræver helt forskellige strategier.',
+      options: ['Livsstilsvirksomhed (frihed og fleksibilitet)', 'Vækstvirksomhed (ambitiøs men selvfinansieret)', 'Skalerbar startup (investor-drevet vækst)', 'Ved ikke endnu'] },
+    { id: 'q32', section: 6, required: false, type: 'select',
+      text: 'Er din branche reguleret?',
+      help: 'Regulering er en ofte overset risikofaktor.',
+      options: ['Ja, meget reguleret', 'Delvist / noget regulering', 'Nej, ikke reguleret', 'Ved ikke'] },
+    { id: 'q33', section: 6, required: false, type: 'select',
+      text: 'Er din efterspørgsel sæsonbetonet?',
+      help: 'Sæsonudsving påvirker cashflow, marketing-timing og ressourceplanlægning.',
+      options: ['Ja, klart sæsonbetonet', 'Lidt sæsonvariation', 'Nej, jævn hele året', 'Ved ikke / for tidligt at sige'] },
+    { id: 'q34', section: 6, required: false, type: 'text',
+      text: 'Hvad ville den ideelle rapport fokusere på for dig?',
+      help: 'Dine prioriteter hjælper os med at vægte rapportens sektioner.',
+      placeholder: 'Fx: vækststrategi, prissætning, markedsanalyse...' },
+    { id: 'q35', section: 6, required: false, type: 'textarea',
+      text: 'Er der andet vi bør vide?',
+      help: 'Alt der giver kontekst — specielle omstændigheder, planer, partnerskaber — gør rapporten bedre.' }
+];
+
+var LOADING_STEPS = [
+    'Analyserer din forretning...',
+    'Undersøger dit marked...',
+    'Evaluerer konkurrenter...',
+    'Bygger din strategi...',
+    'Genererer din vurdering...'
+];
+
+// ─── APP ───
+function App() {
+    var [phase, setPhase] = useState('hero'); // hero | questions | transition | loading | results | error
+    var [currentQ, setCurrentQ] = useState(0);
+    var [answers, setAnswers] = useState({});
+    var [loadingStep, setLoadingStep] = useState(0);
+    var [freeResult, setFreeResult] = useState(null);
+    var [analysisId, setAnalysisId] = useState(null);
+    var [errorMsg, setErrorMsg] = useState('');
+    var [retryCount, setRetryCount] = useState(0);
+
+    var q = QUESTIONS[currentQ];
+    var section = q ? SECTIONS[q.section] : null;
+    var progress = ((currentQ + 1) / QUESTIONS.length) * 100;
+
+    // Check if current answer is valid for required questions
+    function isCurrentValid() {
+        if (!q) return false;
+        if (!q.required) return true;
+        var val = answers[q.id];
+        if (val === undefined || val === null || val === '') return false;
+        if (q.type === 'multi' && Array.isArray(val) && val.length === 0) return false;
+        return true;
+    }
+
+    function setAnswer(val) {
+        setAnswers(function(prev) {
+            var next = Object.assign({}, prev);
+            next[q.id] = val;
+            return next;
+        });
+    }
+
+    function handleNext() {
+        if (currentQ < QUESTIONS.length - 1) {
+            // Check if we're entering a new section
+            var nextQ = QUESTIONS[currentQ + 1];
+            if (nextQ.section !== q.section) {
+                setPhase('transition');
+            } else {
+                setCurrentQ(currentQ + 1);
+                window.scrollTo(0, 0);
+            }
+        } else {
+            submitAnalysis();
+        }
+    }
+
+    function handlePrev() {
+        if (currentQ > 0) {
+            setCurrentQ(currentQ - 1);
+            window.scrollTo(0, 0);
+        }
+    }
+
+    function handleSkip() {
+        setAnswer(null);
+        handleNext();
+    }
+
+    function handleTransitionContinue() {
+        setCurrentQ(currentQ + 1);
+        setPhase('questions');
+        window.scrollTo(0, 0);
+    }
+
+    // Multi-select toggle
+    function toggleMulti(option) {
+        var current = answers[q.id] || [];
+        var idx = current.indexOf(option);
+        if (idx >= 0) {
+            setAnswer(current.filter(function(x) { return x !== option; }));
+        } else {
+            if (q.maxSelect && current.length >= q.maxSelect) return;
+            setAnswer(current.concat([option]));
+        }
+    }
+
+    // Submit to Edge Function
+    async function submitAnalysis() {
+        setPhase('loading');
+        setLoadingStep(0);
+        window.scrollTo(0, 0);
+
+        // Animate loading steps
+        var stepInterval = setInterval(function() {
+            setLoadingStep(function(prev) {
+                if (prev >= LOADING_STEPS.length - 1) {
+                    clearInterval(stepInterval);
+                    return prev;
+                }
+                return prev + 1;
+            });
+        }, 4000);
+
+        try {
+            var token = null;
+            var userId = null;
+
+            if (window.HB_AUTH && HB_AUTH.user) {
+                userId = HB_AUTH.user.id;
+                var session = HB_AUTH.supabase ? (await HB_AUTH.supabase.auth.getSession()).data.session : null;
+                token = session ? session.access_token : null;
+            }
+
+            var anonToken = localStorage.getItem('hb_anon_token');
+            if (!anonToken) {
+                anonToken = 'anon_' + Math.random().toString(36).substr(2, 12) + '_' + Date.now();
+                localStorage.setItem('hb_anon_token', anonToken);
+            }
+
+            var body = {
+                answers: answers,
+                user_id: userId,
+                anonymous_token: userId ? null : anonToken
+            };
+
+            var headers = { 'Content-Type': 'application/json' };
+            if (token) {
+                headers['Authorization'] = 'Bearer ' + token;
+            } else {
+                headers['Authorization'] = 'Bearer ' + SUPABASE_ANON;
+            }
+
+            var response = await fetch(EDGE_URL, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(body)
+            });
+
+            clearInterval(stepInterval);
+
+            if (!response.ok) {
+                var errText = await response.text();
+                throw new Error(errText || 'Server error ' + response.status);
+            }
+
+            var result = await response.json();
+            if (result.error) {
+                throw new Error(result.error);
+            }
+
+            setFreeResult(result);
+            setAnalysisId(result.analysis_id);
+            setLoadingStep(LOADING_STEPS.length);
+
+            // Short delay then show results
+            setTimeout(function() {
+                setPhase('results');
+                window.scrollTo(0, 0);
+            }, 800);
+
+        } catch (err) {
+            clearInterval(stepInterval);
+            console.error('Analysis error:', err);
+            setErrorMsg(err.message || 'Noget gik galt. Prøv igen.');
+            setPhase('error');
+            window.scrollTo(0, 0);
+        }
+    }
+
+    async function handleRetry() {
+        setRetryCount(retryCount + 1);
+        setErrorMsg('');
+        await submitAnalysis();
+    }
+
+    // Save prompt for anonymous users
+    useEffect(function() {
+        if (phase === 'results' && window.HB_PAY) {
+            HB_PAY.renderSavePrompt('hb-save-prompt-virksomhed', 'virksomhed');
+        }
+    }, [phase]);
+
+    // ── HERO ──
+    if (phase === 'hero') {
+        return (
+            <div className="hero fade-in-up">
+                <div className="hero-badge">AI-drevet forretningsanalyse</div>
+                <h1>Få dit <em>forretnings&shy;kompas</em> kalibreret</h1>
+                <p className="hero-sub">
+                    35 spørgsmål om din virksomhed. Én AI-genereret analyse med markedsvurdering, SWOT, vækststrategi og konkret handlingsplan.
+                </p>
+                <div className="hero-stats">
+                    <div className="hero-stat"><strong>35</strong><span>spørgsmål</span></div>
+                    <div className="hero-stat"><strong>10-15</strong><span>minutter</span></div>
+                    <div className="hero-stat"><strong>7</strong><span>sektioner</span></div>
+                    <div className="hero-stat"><strong>AI</strong><span>analyse</span></div>
+                </div>
+                <button className="btn-primary" onClick={function() { setPhase('questions'); window.scrollTo(0,0); }}>
+                    Start analyse →
+                </button>
+
+                <div className="science-box" style={{ marginTop: 48 }}>
+                    <h3>Hvad får du?</h3>
+                    <p>
+                        Besvar 35 strukturerede spørgsmål om din forretning. Baseret på dine svar genererer vi en AI-drevet analyse
+                        med markedsvurdering, konkurrentanalyse, SWOT og vækststrategi — skræddersyet til din specifikke situation.
+                    </p>
+                    <div className="sections-grid">
+                        {SECTIONS.map(function(s) {
+                            return <div className="section-card" key={s.id}><h4>{s.icon}</h4><span>{s.title}</span></div>;
+                        })}
+                    </div>
+                    <p className="disclaimer">
+                        Virksomhedsanalysen er et AI-genereret beslutningsstøtteværktøj. Den erstatter ikke professionel rådgivning
+                        fra revisorer, advokater eller certificerede forretningsrådgivere.
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+    // ── TRANSITION ──
+    if (phase === 'transition') {
+        var nextSection = SECTIONS[q.section + 1];
+        return (
+            <div className="transition-screen fade-in-up">
+                <div className="transition-progress">
+                    {SECTIONS.map(function(s, i) {
+                        var cls = 'transition-dot';
+                        if (i < q.section + 1) cls += ' done';
+                        else if (i === q.section + 1) cls += ' active';
+                        return <div key={i} className={cls}></div>;
+                    })}
+                </div>
+                <h2>{nextSection.icon} {nextSection.title}</h2>
+                <p>
+                    {nextSection.id === 'marked' && 'At forstå din kunde og dit marked er afgørende for at vurdere potentialet i din forretning.'}
+                    {nextSection.id === 'konkurrence' && 'At forstå dit konkurrencelandskab er afgørende for at finde din unikke position.'}
+                    {nextSection.id === 'model' && 'Din forretningsmodel er motoren i din virksomhed. Vi analyserer om den er bæredygtig og skalerbar.'}
+                    {nextSection.id === 'marketing' && 'Hvordan du tiltrækker og fastholder kunder er ofte det der afgør succes eller fiasko.'}
+                    {nextSection.id === 'ressourcer' && 'Dine ressourcer sætter rammerne for hvad der er realistisk.'}
+                    {nextSection.id === 'maal' && 'De sidste spørgsmål hjælper os med at prioritere rapportens anbefalinger.'}
+                </p>
+                <button className="btn-primary" onClick={handleTransitionContinue}>Fortsæt →</button>
+            </div>
+        );
+    }
+
+    // ── LOADING ──
+    if (phase === 'loading') {
+        return (
+            <div className="loading-phase fade-in-up">
+                <div className="loading-title">Genererer din analyse...</div>
+                <div className="loading-steps">
+                    {LOADING_STEPS.map(function(step, i) {
+                        var cls = 'loading-step';
+                        if (i < loadingStep) cls += ' done';
+                        else if (i === loadingStep) cls += ' active';
+                        return (
+                            <div key={i} className={cls}>
+                                {i < loadingStep ? (
+                                    <svg className="loading-check" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
+                                ) : i === loadingStep ? (
+                                    <div className="loading-spinner"></div>
+                                ) : (
+                                    <div className="loading-pending"></div>
+                                )}
+                                <span>{step}</span>
+                            </div>
+                        );
+                    })}
+                </div>
+                <p style={{ marginTop: 32, fontSize: 13, color: 'var(--text-4)' }}>Dette tager typisk 30-60 sekunder</p>
+            </div>
+        );
+    }
+
+    // ── ERROR ──
+    if (phase === 'error') {
+        return (
+            <div className="results-container fade-in-up">
+                <div className="error-box">
+                    <h3>Noget gik galt</h3>
+                    <p>{errorMsg}</p>
+                    {retryCount < 2 ? (
+                        <button className="btn-primary" onClick={handleRetry}>Prøv igen</button>
+                    ) : (
+                        <div>
+                            <p style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 12 }}>
+                                Vi har forsøgt {retryCount + 1} gange. Du kan prøve igen senere, eller kontakt os på kontakt@hjernebarometeret.dk
+                            </p>
+                            <button className="btn-primary" onClick={handleRetry}>Prøv alligevel</button>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    }
+
+    // ── RESULTS ──
+    if (phase === 'results' && freeResult) {
+        var r = freeResult;
+        return (
+            <div className="results-container fade-in-up">
+                <div className="results-header">
+                    <h1>Din virksomhedsanalyse</h1>
+                    <p>Gratis vurdering baseret på dine svar. Få den fulde rapport med markedsanalyse, konkurrentvurdering og handlingsplan.</p>
+                </div>
+
+                {/* Profile label */}
+                <div className="result-hero">
+                    <h2>{r.profile_label || 'Din forretningsprofil'}</h2>
+                    <div className="label">{r.stage_label || ''}</div>
+                    <div className="summary" dangerouslySetInnerHTML={{ __html: (r.summary || '').replace(/\n/g, '<br/>') }}></div>
+                </div>
+
+                {/* SWOT preview */}
+                {r.swot && (
+                    <div className="result-card">
+                        <h3>SWOT — overblik</h3>
+                        <div className="swot-grid">
+                            <div className="swot-card swot-s">
+                                <h4>Styrker</h4>
+                                <ul>{(r.swot.strengths || []).map(function(s,i) { return <li key={i}>{s}</li>; })}</ul>
+                            </div>
+                            <div className="swot-card swot-w">
+                                <h4>Svagheder</h4>
+                                <ul>{(r.swot.weaknesses || []).map(function(s,i) { return <li key={i}>{s}</li>; })}</ul>
+                            </div>
+                            <div className="swot-card swot-o">
+                                <h4>Muligheder</h4>
+                                <ul>{(r.swot.opportunities || []).map(function(s,i) { return <li key={i}>{s}</li>; })}</ul>
+                            </div>
+                            <div className="swot-card swot-t">
+                                <h4>Trusler</h4>
+                                <ul>{(r.swot.threats || []).map(function(s,i) { return <li key={i}>{s}</li>; })}</ul>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Top 3 strengths */}
+                {r.top_strengths && (
+                    <div className="result-card">
+                        <h3>Dine 3 største styrker</h3>
+                        <div className="result-content">
+                            <ul>
+                                {r.top_strengths.map(function(s, i) { return <li key={i}><strong>{s.title}:</strong> {s.description}</li>; })}
+                            </ul>
+                        </div>
+                    </div>
+                )}
+
+                {/* Overall rating */}
+                {r.overall_rating && (
+                    <div className="result-card">
+                        <h3>Samlet vurdering</h3>
+                        <div className="result-content" dangerouslySetInnerHTML={{ __html: (r.overall_rating || '').replace(/\n/g, '<br/>') }}></div>
+                    </div>
+                )}
+
+                {/* Paywall CTA */}
+                <div className="cta-box">
+                    <h3>Få den fulde analyse</h3>
+                    <p>Din gratis vurdering er kun begyndelsen. Den fulde rapport indeholder 10 dybdegående sektioner med konkret, handlingsrettet rådgivning.</p>
+                    <div className="cta-features">
+                        <span className="cta-feature">Markedsanalyse</span>
+                        <span className="cta-feature">Konkurrentvurdering</span>
+                        <span className="cta-feature">Forretningsmodel</span>
+                        <span className="cta-feature">Vækststrategi</span>
+                        <span className="cta-feature">Risikovurdering</span>
+                        <span className="cta-feature">30/60/90-dages plan</span>
+                        <span className="cta-feature">PDF-download</span>
+                    </div>
+                    <div className="cta-buttons">
+                        <button className="cta-btn standard" onClick={function() { /* Sprint 2: Stripe checkout */ alert('Kommer snart! Rapport-generering er under udvikling.'); }}>
+                            Standard — 89 kr (Claude Sonnet)
+                        </button>
+                        <button className="cta-btn premium" onClick={function() { /* Sprint 2: Stripe checkout */ alert('Kommer snart! Rapport-generering er under udvikling.'); }}>
+                            Premium — 149 kr (Claude Opus)
+                        </button>
+                    </div>
+                    <p className="cta-note">Engangskøb. Ingen abonnement. PDF leveret med det samme.</p>
+                </div>
+
+                {/* Blurred preview */}
+                <div className="result-card" style={{ position: 'relative' }}>
+                    <h3>Markedsanalyse</h3>
+                    <div className="blurred" style={{ minHeight: 120 }}>
+                        <div className="result-content">
+                            <p>Dit marked viser tegn på stærk vækst inden for de seneste 24 måneder. Baseret på din branche og positionering identificerer vi tre primære trends der påvirker din forretning direkte. Den samlede adresserbare markedsstørrelse estimeres til...</p>
+                            <p>Konkurrenceintensiteten i din niche er moderat, hvilket giver plads til differentiering gennem focused positioning. De mest succesfulde aktører i din sektor har typisk...</p>
+                        </div>
+                    </div>
+                    <div style={{ position: 'absolute', bottom: 16, left: 0, right: 0, textAlign: 'center' }}>
+                        <span style={{ fontSize: 13, color: 'var(--accent)', fontWeight: 600 }}>Inkluderet i den fulde rapport ↑</span>
+                    </div>
+                </div>
+
+                {/* Save prompt for anonymous */}
+                <div id="hb-save-prompt-virksomhed"></div>
+
+                {/* Cross-sell */}
+                <div className="cross-sell">
+                    <h3>Relevante tests</h3>
+                    <div className="cross-sell-grid">
+                        <a href="karriere.html" className="cross-sell-card">
+                            <div className="name">🧭 Karrieretest</div>
+                            <div className="sub">Find din karriereprofil</div>
+                        </a>
+                        <a href="personlighed.html" className="cross-sell-card">
+                            <div className="name">🌟 Personlighedstest</div>
+                            <div className="sub">Forstå din lederstil</div>
+                        </a>
+                        <a href="stress.html" className="cross-sell-card">
+                            <div className="name">🔥 Stresstest</div>
+                            <div className="sub">Er du i balance?</div>
+                        </a>
+                    </div>
+                </div>
+
+                <p className="results-disclaimer">
+                    Denne analyse er genereret af AI (Claude) og er et beslutningsstøtteværktøj. Den erstatter ikke professionel rådgivning
+                    fra revisorer, advokater eller certificerede forretningsrådgivere. Alle markedsdata og estimater bør verificeres uafhængigt.
+                </p>
+            </div>
+        );
+    }
+
+    // ── QUESTIONS ──
+    return (
+        <div className="test-container fade-in-up" key={currentQ}>
+            <div className="progress-bar"><div className="progress-fill" style={{ width: progress + '%' }}></div></div>
+            <div className="progress-text">Spørgsmål {currentQ + 1} af {QUESTIONS.length}</div>
+
+            <div className="section-indicator">{section.icon} {section.title}</div>
+
+            <div className="question-card">
+                <div className="question-text">
+                    {q.text}
+                    {q.required && <span className="required-badge">Påkrævet</span>}
+                </div>
+                <div className="question-help">{q.help}</div>
+
+                {/* Textarea */}
+                {q.type === 'textarea' && (
+                    <textarea
+                        className="input-textarea"
+                        value={answers[q.id] || ''}
+                        onChange={function(e) { setAnswer(e.target.value); }}
+                        placeholder={q.placeholder || 'Skriv dit svar her...'}
+                        autoFocus
+                    />
+                )}
+
+                {/* Text input */}
+                {q.type === 'text' && (
+                    <input
+                        type="text"
+                        className="input-text"
+                        value={answers[q.id] || ''}
+                        onChange={function(e) { setAnswer(e.target.value); }}
+                        placeholder={q.placeholder || 'Skriv dit svar her...'}
+                        autoFocus
+                    />
+                )}
+
+                {/* Single select */}
+                {q.type === 'select' && (
+                    <div className="options-list">
+                        {q.options.map(function(opt, i) {
+                            var selected = answers[q.id] === opt;
+                            return (
+                                <div key={i} className={'option-item' + (selected ? ' selected' : '')}
+                                     onClick={function() { setAnswer(opt); }}>
+                                    <div className="option-dot"></div>
+                                    <div className="option-label">{opt}</div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+
+                {/* Multi select */}
+                {q.type === 'multi' && (
+                    <div className="options-list">
+                        {q.options.map(function(opt, i) {
+                            var vals = answers[q.id] || [];
+                            var selected = vals.indexOf(opt) >= 0;
+                            return (
+                                <div key={i} className={'option-item' + (selected ? ' selected' : '')}
+                                     onClick={function() { toggleMulti(opt); }}>
+                                    <div className="option-check"></div>
+                                    <div className="option-label">{opt}</div>
+                                </div>
+                            );
+                        })}
+                        {q.maxSelect && <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 4, textAlign: 'center' }}>Maks. {q.maxSelect} valg</p>}
+                    </div>
+                )}
+
+                <div className="nav-buttons">
+                    {currentQ > 0 && (
+                        <button className="btn-nav" onClick={handlePrev}>← Tilbage</button>
+                    )}
+                    {!q.required && (
+                        <button className="btn-skip" onClick={handleSkip}>Spring over</button>
+                    )}
+                    <button
+                        className="btn-nav primary"
+                        onClick={handleNext}
+                        disabled={q.required && !isCurrentValid()}
+                    >
+                        {currentQ === QUESTIONS.length - 1 ? 'Generer analyse →' : 'Næste →'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ── MOUNT ──
+ReactDOM.createRoot(document.getElementById('app')).render(<App />);
+</script>
+</body>
+</html>

@@ -699,6 +699,18 @@ body {
       <span><strong>6</strong> <span data-da="dimensioner" data-en="dimensions">dimensioner</span></span>
       <span><strong data-da="Gratis" data-en="Free">Gratis</strong> <span data-da="resultat" data-en="result">resultat</span></span>
     </div>
+    <div style="margin:0 auto 24px;max-width:320px;text-align:left;">
+      <label style="display:block;font-weight:600;font-size:0.9rem;margin-bottom:6px;color:var(--text);">Fødselsår</label>
+      <p style="font-size:0.78rem;color:var(--text-muted);margin-bottom:10px;line-height:1.5;">Bruges til at sammenligne din score med andre i din aldersgruppe</p>
+      <select id="birthYearSelect" style="width:100%;padding:12px 16px;font-size:0.95rem;border:1px solid var(--border);border-radius:8px;background:var(--bg-card);color:var(--text);font-family:inherit;cursor:pointer;">
+        <option value="">Vælg fødselsår...</option>
+      </select>
+    </div>
+    <div id="underAgeWarning" style="display:none;background:#fef9e7;border:1px solid #f0d567;border-radius:var(--radius);padding:20px;margin:0 auto 20px;max-width:520px;text-align:left;">
+      <p style="font-weight:600;font-size:0.9rem;color:#856404;margin-bottom:8px;">⚠️ Aldersadvarsel</p>
+      <p style="font-size:0.85rem;color:#856404;line-height:1.6;margin-bottom:16px;">Denne test er primært udviklet til voksne (16+). Dine resultater kan være mindre præcise for din aldersgruppe. Testens normdata er baseret på voksne.</p>
+      <button onclick="forceStart()" style="background:var(--accent);color:#fff;font-weight:500;font-size:0.88rem;padding:10px 22px;border:1px solid var(--accent);border-radius:8px;cursor:pointer;font-family:inherit;">Jeg forstår — start testen</button>
+    </div>
     <button class="btn-start" onclick="startTest()">
       <span data-da="Start testen" data-en="Start test">Start testen</span> →
     </button>
@@ -865,6 +877,56 @@ const burnoutLabels = {
 let answers = {};
 let currentQ = 0;
 let shuffledItems = [];
+let selectedBirthYear = null;
+
+// ── Birth year helpers ──
+function getAgeFromBirthYear(by) {
+  const now = new Date();
+  return now.getFullYear() - by - (now.getMonth() < 6 ? 1 : 0);
+}
+function getAgeGroup(age) {
+  if (age < 16) return "13-15";
+  if (age < 20) return "16-19";
+  if (age < 25) return "20-24";
+  if (age < 30) return "25-29";
+  if (age < 35) return "30-34";
+  if (age < 45) return "35-44";
+  if (age < 55) return "45-54";
+  if (age < 65) return "55-64";
+  return "65+";
+}
+
+// Populate birth year dropdown
+(function() {
+  var sel = document.getElementById('birthYearSelect');
+  if (!sel) return;
+  var currentYear = new Date().getFullYear();
+  for (var y = currentYear - 10; y >= currentYear - 90; y--) {
+    var opt = document.createElement('option');
+    opt.value = y;
+    opt.textContent = y;
+    sel.appendChild(opt);
+  }
+  sel.addEventListener('change', function() {
+    var warning = document.getElementById('underAgeWarning');
+    var startBtn = document.querySelector('.btn-start');
+    if (sel.value) {
+      selectedBirthYear = parseInt(sel.value);
+      var age = getAgeFromBirthYear(selectedBirthYear);
+      if (age < 16) {
+        warning.style.display = 'block';
+        startBtn.style.display = 'none';
+      } else {
+        warning.style.display = 'none';
+        startBtn.style.display = '';
+      }
+    } else {
+      selectedBirthYear = null;
+      warning.style.display = 'none';
+      startBtn.style.display = '';
+    }
+  });
+})();
 
 function shuffle(arr) {
   for (let i = arr.length - 1; i > 0; i--) {
@@ -880,6 +942,28 @@ function showScreen(id) {
 }
 
 function startTest() {
+  if (!selectedBirthYear) {
+    var sel = document.getElementById('birthYearSelect');
+    sel.style.borderColor = 'var(--red)';
+    sel.focus();
+    setTimeout(function() { sel.style.borderColor = 'var(--border)'; }, 2000);
+    return;
+  }
+  const pssItems = items.filter(i => i.scale === 'pss');
+  const burnoutItems = items.filter(i => i.scale === 'burnout');
+  shuffle(pssItems);
+  shuffle(burnoutItems);
+  shuffledItems = [...pssItems, ...burnoutItems];
+  currentQ = 0;
+  answers = {};
+  showScreen('questionScreen');
+  renderQuestion();
+}
+
+function forceStart() {
+  // Allow under-16 to proceed after warning
+  document.getElementById('underAgeWarning').style.display = 'none';
+  document.querySelector('.btn-start').style.display = '';
   const pssItems = items.filter(i => i.scale === 'pss');
   const burnoutItems = items.filter(i => i.scale === 'burnout');
   shuffle(pssItems);
@@ -1054,7 +1138,9 @@ function calculateAndShowResults() {
 
   // Save results for payment flow
   var answersArr = items.map(function(item) { return { id: item.id, text: item[lang === 'en' ? 'en' : 'da'], domain: item.domain, scale: item.scale, reverse: item.reverse, chosen: answers[item.id] || null }; });
-  if (window.HB_PAY) HB_PAY.saveResults('stress', { pssTotal, pssPct, helpPct, effPct, exhPct, cynPct, accPct, level, burnoutProfile, answers: answersArr });
+  var birthAge = selectedBirthYear ? getAgeFromBirthYear(selectedBirthYear) : null;
+  var birthAgeGroup = birthAge !== null ? getAgeGroup(birthAge) : null;
+  if (window.HB_PAY) HB_PAY.saveResults('stress', { pssTotal, pssPct, helpPct, effPct, exhPct, cynPct, accPct, level, burnoutProfile, answers: answersArr, birth_year: selectedBirthYear, age: birthAge, age_group: birthAgeGroup });
 
   // Subscale data
   var subscales = [
@@ -1120,7 +1206,7 @@ function calculateAndShowResults() {
         '<div class="score-max">/ 40 PSS</div>' +
       '</div>' +
     '</div>' +
-    (window.HB_NORM ? (function() { var nr = HB_NORM.getPercentile('stress', pssTotal); return nr.percentile ? '<div class="norm-badge fade-up" style="text-align:center;font-size:13px;color:var(--text-2);margin:12px 0;padding:10px 16px;background:rgba(194,85,58,0.05);border-radius:10px;border:1px solid rgba(194,85,58,0.1)">' + nr.description + ' <span style="opacity:.6;font-size:12px">(' + nr.source + ')</span></div>' : ''; })() : '') +
+    (window.HB_NORM ? (function() { var normAge = null; if (birthAge) { if (birthAge<=29) normAge='18-29'; else if (birthAge<=44) normAge='30-44'; else if (birthAge<=54) normAge='45-54'; else if (birthAge<=64) normAge='55-64'; else normAge='65+'; } var nr = HB_NORM.getPercentile('stress', pssTotal, { age: normAge }); return nr.percentile ? '<div class="norm-badge fade-up" style="text-align:center;font-size:13px;color:var(--text-2);margin:12px 0;padding:10px 16px;background:rgba(194,85,58,0.05);border-radius:10px;border:1px solid rgba(194,85,58,0.1)">' + nr.description + (normAge ? ' <span style="opacity:.6;font-size:12px">(din aldersgruppe: ' + normAge + ')</span>' : '') + ' <span style="opacity:.6;font-size:12px">(' + nr.source + ')</span></div>' : ''; })() : '') +
     '<div class="score-interpretation fade-up">' + interpText + '</div>' +
     '<div class="radar-section fade-up">' +
       '<h3>' + t('Din stressprofil','Your Stress Profile') + '</h3>' +
@@ -1177,6 +1263,9 @@ function calculateAndShowResults() {
     '<br><button class="btn-sub-alt" onclick="HB_PAY.checkout(\'unlimited\',\'stress\')">' + t('Eller: Ubegrænset adgang — 89 kr/md','Or: Unlimited access — 89 kr/mo') + '</button>' +
   '</div>';
 
+  // Save prompt for anonymous users
+  html += '<div id="hb-save-prompt-stress"></div>';
+
   // Cross-sell
   html += '<div class="cross-sell fade-up">' +
     '<h3>' + t('Relaterede tests','Related tests') + '</h3>' +
@@ -1197,6 +1286,7 @@ function calculateAndShowResults() {
 
   document.getElementById('resultsContainer').innerHTML = html;
   showScreen('resultsScreen');
+  if (window.HB_PAY) HB_PAY.renderSavePrompt('hb-save-prompt-stress', 'stress');
 }
 
 // ═══════════════════════════════════════════

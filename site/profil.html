@@ -61,7 +61,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:
 .result-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
 .result-icon.iq{background:#f0ebf5}.result-icon.adhd{background:#eaf1f7}
 .result-icon.autisme{background:#eaf5ef}.result-icon.personlighed{background:#faf5eb}
-.result-icon.stress{background:#faf0ed}
+.result-icon.stress{background:#faf0ed}.result-icon.eq{background:#faf5eb}.result-icon.karriere{background:#eaf5f7}
 .result-info{flex:1;min-width:0}
 .result-test{font-weight:600;font-size:14px}
 .result-score{font-size:13px;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -127,6 +127,19 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:
 .loading .spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px}
 @keyframes spin{to{transform:rotate(360deg)}}
 
+/* ── Coupon input ── */
+.coupon-input-row{display:flex;gap:10px;margin-bottom:12px}
+.coupon-input{flex:1;padding:12px 16px;font-family:var(--sans);font-size:15px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;border:1.5px solid var(--border);border-radius:10px;background:var(--bg);color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s}
+.coupon-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(44,95,75,.1)}
+.coupon-input::placeholder{text-transform:none;letter-spacing:0;font-weight:400;color:var(--text-4)}
+.coupon-input.error{border-color:#c2553a;box-shadow:0 0 0 3px rgba(194,85,58,.1)}
+.coupon-submit{white-space:nowrap;padding:12px 20px}
+.coupon-feedback{font-size:14px;line-height:1.5;padding:12px 16px;border-radius:10px;display:none}
+.coupon-feedback.visible{display:block}
+.coupon-feedback.success{background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9}
+.coupon-feedback.error{background:#fbe9e7;color:#c2553a;border:1px solid #ffccbc}
+@media(max-width:500px){.coupon-input-row{flex-direction:column}.coupon-submit{width:100%}}
+
 /* ── Responsive ── */
 @media(max-width:600px){
   .profile-info{flex-direction:column;text-align:center}
@@ -189,6 +202,21 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:
     <h3>Opgrader til ubegrænset adgang</h3>
     <p>Fri adgang til alle rapporter for kun 89 kr/md. Afmeld nemt med et klik.</p>
     <button class="btn-upgrade" onclick="if(window.HB_PAY)HB_PAY.checkout('unlimited')">Opgrader nu</button>
+  </div>
+
+  <!-- Coupon code -->
+  <div class="card" id="coupon-card">
+    <h2>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h14v4"/><path d="M20 12v4H6a2 2 0 0 0 0 4h14v-4"/><circle cx="16" cy="12" r="1"/></svg>
+      Indløs kuponkode
+    </h2>
+    <p style="color:var(--text-2);font-size:14px;margin-bottom:16px">Har du modtaget en kuponkode? Indtast den herunder for at få rapport-credits.</p>
+    <div class="coupon-input-row">
+      <input type="text" id="coupon-input" class="coupon-input" placeholder="Fx VENNER2026" maxlength="30" autocomplete="off" spellcheck="false">
+      <button class="btn-primary coupon-submit" id="coupon-btn" onclick="redeemCoupon()">Indløs</button>
+    </div>
+    <div id="coupon-feedback" class="coupon-feedback"></div>
+    <p style="font-size:12px;color:var(--text-3);margin-top:12px">Credits bruges til at låse op for fulde rapporter. Hver rapport koster 1 credit.</p>
   </div>
 
   <!-- Test results -->
@@ -259,7 +287,9 @@ var TEST_INFO = {
   adhd: { name: 'ADHD-screening', icon: '⚡', color: '#2e6b9e', report: '/rapporter/adhd.html', test: '/tests/adhd.html' },
   autisme: { name: 'Autisme-test (AQ-50)', icon: '🧩', color: '#3a7d5e', report: '/rapporter/autisme.html', test: '/tests/autisme.html' },
   personlighed: { name: 'Personlighedstest', icon: '🎭', color: '#b8860b', report: '/rapporter/personlighed.html', test: '/tests/personlighed.html' },
-  stress: { name: 'Stress & udbrændthed', icon: '🔥', color: '#c2553a', report: '/rapporter/stress.html', test: '/tests/stress.html' }
+  stress: { name: 'Stress & udbrændthed', icon: '🔥', color: '#c2553a', report: '/rapporter/stress.html', test: '/tests/stress.html' },
+  eq: { name: 'Emotionel intelligens', icon: '💡', color: '#7a6b3a', report: '/rapporter/eq.html', test: '/tests/eq.html' },
+  karriere: { name: 'Karrieretest', icon: '🧭', color: '#2a7d8f', report: '/rapporter/karriere.html', test: '/tests/karriere.html' }
 };
 
 var PLAN_LABELS = {
@@ -397,6 +427,101 @@ function renderOrders(orders) {
   container.innerHTML = html;
 }
 
+// ── Redeem coupon code ──
+var _redeeming = false;
+async function redeemCoupon() {
+  if (_redeeming) return;
+  var input = document.getElementById('coupon-input');
+  var btn = document.getElementById('coupon-btn');
+  var fb = document.getElementById('coupon-feedback');
+  var code = input.value.trim();
+
+  if (!code) { input.classList.add('error'); input.focus(); return; }
+
+  _redeeming = true;
+  btn.disabled = true;
+  btn.textContent = 'Tjekker...';
+  fb.className = 'coupon-feedback';
+  fb.style.display = 'none';
+
+  try {
+    var session = (await HB_AUTH.supabase.auth.getSession()).data.session;
+    if (!session) { showCouponFeedback('error', 'Du skal være logget ind.'); return; }
+
+    var res = await fetch(
+      'https://pmbbachqedomvixvvfpj.supabase.co/functions/v1/hjernebarometeret-redeem-coupon',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + session.access_token,
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtYmJhY2hxZWRvbXZpeHZ2ZnBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3MDQ4MDksImV4cCI6MjA4NzI4MDgwOX0.dQ9GDUxyAqttisIPGI5hR20-9JpBKlFG4UvANivu4kM'
+        },
+        body: JSON.stringify({ code: code })
+      }
+    );
+    var data = await res.json();
+
+    if (data.success) {
+      showCouponFeedback('success',
+        '✓ ' + data.message +
+        '<br><span style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;background:var(--accent-light);color:var(--accent);border-radius:6px;font-size:13px;font-weight:600;margin-top:6px">' +
+        data.total_credits + ' credits i alt</span>'
+      );
+      input.value = '';
+      input.disabled = true;
+      btn.style.display = 'none';
+
+      // Opdater credits-visning
+      document.getElementById('stat-credits').textContent = data.total_credits;
+      window.dispatchEvent(new CustomEvent('hb-credits-change', {
+        detail: { credits: data.total_credits, granted: data.credits_granted }
+      }));
+    } else {
+      var msgs = {
+        'INVALID_CODE': 'Koden findes ikke. Tjek at du har tastet den korrekt.',
+        'INACTIVE_CODE': 'Denne kode er ikke længere aktiv.',
+        'EXPIRED_CODE': 'Denne kode er udløbet.',
+        'MAX_USES_REACHED': 'Denne kode er allerede brugt det maksimale antal gange.',
+        'ALREADY_REDEEMED': 'Du har allerede indløst denne kode.'
+      };
+      showCouponFeedback('error', msgs[data.error] || data.message || 'Noget gik galt.');
+      input.classList.add('error');
+      input.select();
+    }
+  } catch (err) {
+    console.error('Coupon error:', err);
+    showCouponFeedback('error', 'Kunne ikke forbinde til serveren. Prøv igen.');
+  } finally {
+    _redeeming = false;
+    btn.disabled = false;
+    if (btn.style.display !== 'none') btn.textContent = 'Indløs';
+  }
+}
+
+function showCouponFeedback(type, html) {
+  var fb = document.getElementById('coupon-feedback');
+  fb.className = 'coupon-feedback ' + type + ' visible';
+  fb.innerHTML = html;
+  fb.style.display = 'block';
+}
+
+// Clear error on input
+document.addEventListener('DOMContentLoaded', function() {
+  var ci = document.getElementById('coupon-input');
+  if (ci) {
+    ci.addEventListener('input', function() {
+      ci.classList.remove('error');
+      var fb = document.getElementById('coupon-feedback');
+      fb.className = 'coupon-feedback';
+      fb.style.display = 'none';
+    });
+    ci.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') redeemCoupon();
+    });
+  }
+});
+
 // ── Init ──
 (async function init() {
   // Wait for auth
@@ -454,7 +579,7 @@ function renderOrders(orders) {
       var allReports = (reportsRes.data || []);
       // If they have unlimited but no specific report_access rows, show all tests as available
       if (allReports.length === 0) {
-        var allTests = ['iq', 'adhd', 'autisme', 'personlighed', 'stress'];
+        var allTests = ['iq', 'adhd', 'autisme', 'personlighed', 'stress', 'eq', 'karriere'];
         var syntheticReports = allTests.map(function(t) {
           return { test_type: t, granted_at: null };
         });

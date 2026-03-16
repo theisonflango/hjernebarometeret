@@ -32,6 +32,11 @@
         '</div>' +
         '<h3 class="hb-modal-title">Log ind</h3>' +
         '<p class="hb-modal-sub">Log ind for at se dine resultater og rapporter.</p>' +
+        '<button onclick="HB_AUTH._googleLogin()" class="hb-btn-google" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:12px;font-size:14px;font-weight:500;font-family:var(--sans);background:#fff;color:#1c1b1a;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:background .2s,border-color .2s;margin-bottom:16px">' +
+          '<svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.96 10.96 0 0 0 1 12c0 1.77.42 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>' +
+          'Forts\u00e6t med Google' +
+        '</button>' +
+        '<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><div style="flex:1;height:1px;background:var(--border)"></div><span style="font-size:12px;color:var(--text-4)">eller</span><div style="flex:1;height:1px;background:var(--border)"></div></div>' +
         '<form id="hb-login-form" onsubmit="HB_AUTH._handleLogin(event)">' +
           '<input type="email" id="hb-login-email" class="hb-input" placeholder="Email" required autocomplete="email">' +
           '<input type="password" id="hb-login-pw" class="hb-input" placeholder="Adgangskode" required autocomplete="current-password">' +
@@ -69,6 +74,17 @@
   }
 
   var _isSignup = false;
+
+  async function _googleLogin() {
+    try {
+      await sb.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.href }
+      });
+    } catch(e) {
+      console.error('Google login error:', e);
+    }
+  }
 
   function _toggleSignup(e) {
     e.preventDefault();
@@ -130,13 +146,18 @@
         return;
       }
 
-      // Success — if signup, create profile
+      // Success — if signup, create profile with welcome bonus
       if (_isSignup && result.data.user) {
+        var welcomeCredits = 0;
+        try {
+          var { data: cfg } = await sb.from('site_config').select('value').eq('key', 'welcome_credits').maybeSingle();
+          if (cfg) welcomeCredits = parseInt(cfg.value) || 0;
+        } catch(e) {}
         await sb.from('user_profiles').insert({
           id: result.data.user.id,
           email: email,
           plan: 'free',
-          report_credits: 0
+          report_credits: welcomeCredits
         });
       }
 
@@ -164,14 +185,19 @@
       _credits = data.report_credits || 0;
     } else {
       // Profile doesn't exist yet — create it (e.g. user confirmed email and returned)
+      var wcCredits = 0;
+      try {
+        var { data: wcCfg } = await sb.from('site_config').select('value').eq('key', 'welcome_credits').maybeSingle();
+        if (wcCfg) wcCredits = parseInt(wcCfg.value) || 0;
+      } catch(e) {}
       _plan = 'free';
-      _credits = 0;
+      _credits = wcCredits;
       try {
         await sb.from('user_profiles').insert({
           id: user.id,
           email: user.email,
           plan: 'free',
-          report_credits: 0
+          report_credits: wcCredits
         });
       } catch(e) { /* Ignore duplicate insert errors */ }
     }
@@ -243,22 +269,6 @@
     _updateNav();
   }
 
-  // ── Init: check existing session ──
-  async function _init() {
-    try {
-      var { data: { session } } = await sb.auth.getSession();
-      if (session && session.user) {
-        await _loadProfile(session.user);
-      }
-    } catch (e) {
-      // No session
-    }
-    _ready = true;
-    _updateNav();
-    _callbacks.forEach(function(cb) { try { cb(); } catch(e) {} });
-    _callbacks = [];
-  }
-
   // Refresh credits from DB (called after coupon redemption)
   async function refreshCredits() {
     if (!_user) return 0;
@@ -274,27 +284,49 @@
     }
   });
 
-  // Listen for auth state changes (including email confirmation callback)
+  // ── Init via onAuthStateChange (avoids navigator lock deadlock from separate getSession call) ──
+  var _initDone = false;
+  function _markReady() {
+    if (_initDone) return;
+    _initDone = true;
+    _ready = true;
+    _updateNav();
+    _callbacks.forEach(function(cb) { try { cb(); } catch(e) {} });
+    _callbacks = [];
+  }
+
   sb.auth.onAuthStateChange(async function(event, session) {
-    if (event === 'SIGNED_OUT') {
+    if (event === 'INITIAL_SESSION') {
+      // First callback — replaces _init()
+      if (session && session.user) {
+        await _loadProfile(session.user);
+      }
+      _markReady();
+    } else if (event === 'SIGNED_OUT') {
       _user = null;
       _plan = 'free';
       _credits = 0;
       _updateNav();
+      window.dispatchEvent(new CustomEvent('hb-auth-change', { detail: { user: null, plan: 'free' } }));
     } else if (event === 'SIGNED_IN' && session && session.user) {
-      // Handle email confirmation redirect or new sign-in
       await _loadProfile(session.user);
-      // Create profile if it doesn't exist (new confirmed user)
-      if (_plan === 'free' && !_user) {
-        _user = session.user;
-      }
       _updateNav();
+      window.dispatchEvent(new CustomEvent('hb-auth-change', { detail: { user: _user, plan: _plan } }));
       // Clean hash fragment from URL after email confirmation
       if (window.location.hash && window.location.hash.includes('access_token')) {
         window.history.replaceState({}, '', window.location.pathname + window.location.search);
       }
+    } else if (event === 'TOKEN_REFRESHED' && session && session.user) {
+      // Session refreshed — update profile if needed
+      if (!_user) {
+        await _loadProfile(session.user);
+        _updateNav();
+      }
     }
   });
+
+  // Safety: if onAuthStateChange never fires INITIAL_SESSION, force ready after 5s
+  setTimeout(function() { _markReady(); }, 5000);
 
   // ── Public API ──
   window.HB_AUTH = {
@@ -324,9 +356,9 @@
     refreshCredits: refreshCredits,
     supabase: sb,
     _handleLogin: _handleLogin,
-    _toggleSignup: _toggleSignup
+    _toggleSignup: _toggleSignup,
+    _googleLogin: _googleLogin
   };
 
-  // Run init
-  _init();
+  // Init happens via onAuthStateChange INITIAL_SESSION callback above
 })();

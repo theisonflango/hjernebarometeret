@@ -497,10 +497,8 @@ function downloadPDF() {
   var paymentReturn = false;
   if (window.HB_PAY) { var ret = HB_PAY.handleReturn(); if (ret && ret.success) { paymentReturn = true; if (ret.token) localStorage.setItem('hb_report_token_eq', ret.token); } }
   if (window.HB_AUTH) await new Promise(function(r){ HB_AUTH.onReady(r); });
-  var hasAccess = false;
-  if (window.HB_AUTH && HB_AUTH.isAdmin()) hasAccess = true;
-  else if (paymentReturn && window.HB_PAY) { document.querySelector('#loading p').textContent = 'Bekræfter betaling...'; hasAccess = await HB_PAY.waitForAccess('eq', 10); }
-  else if (window.HB_PAY) hasAccess = await HB_PAY.hasAccess('eq');
+  // EQ-rapport er gratis — ingen paywall (SSEIT bruges ikke-kommercielt)
+  var hasAccess = true;
   if (!hasAccess) { document.getElementById('loading').style.display = 'none'; document.getElementById('no-access').style.display = 'block'; if(window.HB_PAY)HB_PAY.renderCreditOption('eq'); return; }
   var data = null;
   if (window.HB_PAY) data = HB_PAY.loadResults('eq');

@@ -589,7 +589,19 @@ body {
       <span><strong>5</strong> <span data-da="dimensioner" data-en="dimensions">dimensioner</span></span>
       <span><strong>30</strong> <span data-da="facetter" data-en="facets">facetter</span></span>
     </div>
-    <button class="btn-start" onclick="startTest()">
+    <div style="margin:0 auto 24px;max-width:320px;text-align:left;">
+      <label style="display:block;font-weight:600;font-size:0.9rem;margin-bottom:6px;color:var(--text);" data-da="Fødselsår" data-en="Birth year">Fødselsår</label>
+      <p style="font-size:0.78rem;color:var(--text-3);margin-bottom:10px;line-height:1.5;" data-da="Bruges til at sammenligne din score med andre i din aldersgruppe" data-en="Used to compare your score with others in your age group">Bruges til at sammenligne din score med andre i din aldersgruppe</p>
+      <select id="birthYearSelect" onchange="onBirthYearChange()" style="width:100%;padding:12px 16px;font-size:0.95rem;border:1px solid var(--border);border-radius:8px;background:var(--bg-card);color:var(--text);font-family:inherit;cursor:pointer;">
+        <option value="" data-da="Vælg fødselsår..." data-en="Select birth year...">Vælg fødselsår...</option>
+      </select>
+    </div>
+    <div id="underAgeWarning" style="display:none;background:#fef9e7;border:1px solid #f0d567;border-radius:var(--radius);padding:20px;margin:0 auto 20px;max-width:520px;text-align:left;">
+      <p style="font-weight:600;font-size:0.9rem;color:#856404;margin-bottom:8px;">⚠️ Aldersadvarsel</p>
+      <p style="font-size:0.85rem;color:#856404;line-height:1.6;margin-bottom:16px;" data-da="Denne test er primært udviklet til voksne (16+). Dine resultater kan være mindre præcise for din aldersgruppe. Testens normdata er baseret på voksne." data-en="This test is primarily developed for adults (16+). Your results may be less accurate for your age group. The test norms are based on adults.">Denne test er primært udviklet til voksne (16+). Dine resultater kan være mindre præcise for din aldersgruppe. Testens normdata er baseret på voksne.</p>
+      <button onclick="forceStartTest()" style="background:var(--accent);color:#fff;font-weight:500;font-size:0.88rem;padding:10px 22px;border:1px solid var(--accent);border-radius:8px;cursor:pointer;font-family:inherit;" data-da="Jeg forstår — start testen" data-en="I understand — start the test">Jeg forstår — start testen</button>
+    </div>
+    <button class="btn-start" id="btnStart" onclick="handleStartClick()" style="opacity:0.4;pointer-events:none;">
       <span data-da="Start testen" data-en="Start test">Start testen</span> →
     </button>
     <div class="intro-science">
@@ -962,6 +974,73 @@ function showScreen(id) {
 }
 
 // ═══════════════════════════════════════════
+//  BIRTH YEAR
+// ═══════════════════════════════════════════
+let selectedBirthYear = null;
+
+function getAgeFromBirthYear(by) {
+  const now = new Date();
+  return now.getFullYear() - by - (now.getMonth() < 6 ? 1 : 0);
+}
+function getAgeGroup(age) {
+  if (age < 16) return "13-15";
+  if (age < 20) return "16-19";
+  if (age < 25) return "20-24";
+  if (age < 30) return "25-29";
+  if (age < 35) return "30-34";
+  if (age < 45) return "35-44";
+  if (age < 55) return "45-54";
+  if (age < 65) return "55-64";
+  return "65+";
+}
+
+// Populate birth year dropdown
+(function() {
+  const sel = document.getElementById('birthYearSelect');
+  if (!sel) return;
+  const currentYear = new Date().getFullYear();
+  for (let y = currentYear - 13; y >= 1940; y--) {
+    const opt = document.createElement('option');
+    opt.value = y; opt.textContent = y;
+    sel.appendChild(opt);
+  }
+})();
+
+function onBirthYearChange() {
+  const val = document.getElementById('birthYearSelect').value;
+  const btn = document.getElementById('btnStart');
+  const warning = document.getElementById('underAgeWarning');
+  if (val) {
+    selectedBirthYear = parseInt(val);
+    const age = getAgeFromBirthYear(selectedBirthYear);
+    if (age < 16) {
+      btn.style.opacity = '0.4';
+      btn.style.pointerEvents = 'none';
+      warning.style.display = 'block';
+    } else {
+      btn.style.opacity = '1';
+      btn.style.pointerEvents = 'auto';
+      warning.style.display = 'none';
+    }
+  } else {
+    selectedBirthYear = null;
+    btn.style.opacity = '0.4';
+    btn.style.pointerEvents = 'none';
+    warning.style.display = 'none';
+  }
+}
+
+function handleStartClick() {
+  if (!selectedBirthYear) return;
+  startTest();
+}
+
+function forceStartTest() {
+  if (!selectedBirthYear) return;
+  startTest();
+}
+
+// ═══════════════════════════════════════════
 //  START TEST
 // ═══════════════════════════════════════════
 function startTest() {
@@ -1084,7 +1163,14 @@ async function showResults() {
   const { traitPct, facetPct } = computeScores();
   // Save results for payment flow
   var answersArr = ITEMS.map(function(item, idx) { return { q: idx, text: item[lang === 'en' ? 'en' : 'da'], trait: item.trait, facet: item.facet, reversed: !!item.R, chosen: answers[idx] || null }; });
-  if (window.HB_PAY) HB_PAY.saveResults('personlighed', { traitPct, facetPct, answers: answersArr });
+  var resultData = { traitPct, facetPct, answers: answersArr };
+  if (selectedBirthYear) {
+    var age = getAgeFromBirthYear(selectedBirthYear);
+    resultData.birth_year = selectedBirthYear;
+    resultData.age = age;
+    resultData.age_group = getAgeGroup(age);
+  }
+  if (window.HB_PAY) HB_PAY.saveResults('personlighed', resultData);
 
   // Check access while "calculating" animation plays
   var userHasAccess = false;
@@ -1220,13 +1306,8 @@ function buildResultsPage(traitPct, facetPct, hasAccess) {
     `;
   }
 
-  // Save prompt
-  html += `
-    <div style="text-align:center; margin: 24px 0;">
-      <p style="color:var(--text-dim); font-size:0.88rem; margin-bottom:12px;">${lang === 'da' ? 'Vil du gemme dit resultat? Opret gratis konto.' : 'Want to save your result? Create a free account.'}</p>
-      <button class="btn-nav" style="border-color:var(--accent); color:var(--accent);">${lang === 'da' ? 'Gem resultat' : 'Save result'}</button>
-    </div>
-  `;
+  // Save prompt (rendered by shared HB_PAY module)
+  html += `<div id="hb-save-prompt-personlighed"></div>`;
 
   // Cross-sell
   html += `
@@ -1253,6 +1334,9 @@ function buildResultsPage(traitPct, facetPct, hasAccess) {
   `;
 
   c.innerHTML = html;
+
+  // Show save prompt for anonymous users
+  if (window.HB_PAY) HB_PAY.renderSavePrompt('hb-save-prompt-personlighed', 'personlighed');
 }
 
 // ═══════════════════════════════════════════

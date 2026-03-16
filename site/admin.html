@@ -364,15 +364,12 @@
     <script type="text/babel">
     const { useState, useEffect, useCallback, useRef } = React;
 
-    // ── Supabase client ─────────────────────────────────
+    // ── Supabase client (always reuse HB_AUTH's instance to avoid auth lock conflicts) ──
     function getSB() {
-        if (window.HB_AUTH?.supabase) return window.HB_AUTH.supabase;
-        return window.supabase.createClient(
-            'https://pmbbachqedomvixvvfpj.supabase.co',
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtYmJhY2hxZWRvbXZpeHZ2ZnBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3MDQ4MDksImV4cCI6MjA4NzI4MDgwOX0.dQ9GDUxyAqttisIPGI5hR20-9JpBKlFG4UvANivu4kM',
-            { db: { schema: 'hjernebarometeret' } }
-        );
+        return window.HB_AUTH.supabase;
     }
+    const SUPABASE_URL = 'https://pmbbachqedomvixvvfpj.supabase.co';
+    const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtYmJhY2hxZWRvbXZpeHZ2ZnBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3MDQ4MDksImV4cCI6MjA4NzI4MDgwOX0.dQ9GDUxyAqttisIPGI5hR20-9JpBKlFG4UvANivu4kM';
 
     // ── Helpers ──────────────────────────────────────────
     function fmtDate(d) {
@@ -410,6 +407,8 @@
         coupons: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h14v4"/><path d="M20 12v4H6a2 2 0 0 0 0 4h14v-4"/><circle cx="16" cy="12" r="1"/></svg>,
         close: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>,
         download: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{width:14,height:14,display:'inline',verticalAlign:'middle',marginRight:4}}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
+        settings: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
+        email: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>,
     };
 
     // ══════════════════════════════════════════════════════
@@ -1009,6 +1008,10 @@
                                             </div>
                                         </div>
                                         <div className="detail-item">
+                                            <label>Email bekr&aelig;ftet</label>
+                                            <EmailConfirmStatus userId={userId} />
+                                        </div>
+                                        <div className="detail-item">
                                             <label>Oprettet</label>
                                             <span>{fmtDate(data.profile.created_at)}</span>
                                         </div>
@@ -1173,18 +1176,96 @@
     function CouponsPage() {
         const [coupons, setCoupons] = useState(null);
         const [loading, setLoading] = useState(true);
+        const [showCreate, setShowCreate] = useState(false);
+        const [editingId, setEditingId] = useState(null);
+
+        // Create form state
+        const [newCode, setNewCode] = useState('');
+        const [newDesc, setNewDesc] = useState('');
+        const [newCredits, setNewCredits] = useState('14');
+        const [newMax, setNewMax] = useState('10');
+        const [newExpires, setNewExpires] = useState('');
+        const [createLoading, setCreateLoading] = useState(false);
+        const [createError, setCreateError] = useState('');
+
+        // Edit form state
+        const [editDesc, setEditDesc] = useState('');
+        const [editCredits, setEditCredits] = useState('');
+        const [editMax, setEditMax] = useState('');
+        const [editExpires, setEditExpires] = useState('');
+        const [editLoading, setEditLoading] = useState(false);
+
+        async function loadCoupons() {
+            try {
+                const sb = getSB();
+                const { data, error } = await sb.rpc('admin_list_coupons');
+                if (error) throw error;
+                setCoupons(data);
+            } catch (err) { console.error(err); }
+        }
 
         useEffect(() => {
             (async () => {
-                try {
-                    const sb = getSB();
-                    const { data, error } = await sb.rpc('admin_list_coupons');
-                    if (error) throw error;
-                    setCoupons(data);
-                } catch (err) { console.error(err); }
+                await loadCoupons();
                 setLoading(false);
             })();
         }, []);
+
+        async function createCoupon() {
+            if (!newCode.trim()) { setCreateError('Angiv en kuponkode'); return; }
+            setCreateLoading(true);
+            setCreateError('');
+            try {
+                const sb = getSB();
+                const params = {
+                    p_code: newCode.trim(),
+                    p_description: newDesc || null,
+                    p_credits: parseInt(newCredits) || 14,
+                    p_max_uses: parseInt(newMax) || 10,
+                    p_expires_at: newExpires ? new Date(newExpires).toISOString() : null
+                };
+                const { data, error } = await sb.rpc('admin_create_coupon', params);
+                if (error) throw error;
+                if (data && !data.success) { setCreateError(data.error); setCreateLoading(false); return; }
+                setShowCreate(false);
+                setNewCode(''); setNewDesc(''); setNewCredits('14'); setNewMax('10'); setNewExpires('');
+                await loadCoupons();
+            } catch (err) { setCreateError(err.message); }
+            setCreateLoading(false);
+        }
+
+        async function toggleActive(couponId, currentActive) {
+            try {
+                const sb = getSB();
+                await sb.rpc('admin_update_coupon', { p_coupon_id: couponId, p_is_active: !currentActive });
+                await loadCoupons();
+            } catch (err) { console.error(err); }
+        }
+
+        function startEdit(c) {
+            setEditingId(c.id);
+            setEditDesc(c.description || '');
+            setEditCredits(String(c.credits));
+            setEditMax(String(c.max_uses));
+            setEditExpires(c.expires_at ? c.expires_at.substring(0, 10) : '');
+        }
+
+        async function saveEdit(couponId) {
+            setEditLoading(true);
+            try {
+                const sb = getSB();
+                await sb.rpc('admin_update_coupon', {
+                    p_coupon_id: couponId,
+                    p_description: editDesc || null,
+                    p_credits: parseInt(editCredits) || 14,
+                    p_max_uses: parseInt(editMax) || 10,
+                    p_expires_at: editExpires ? new Date(editExpires).toISOString() : null
+                });
+                setEditingId(null);
+                await loadCoupons();
+            } catch (err) { console.error(err); }
+            setEditLoading(false);
+        }
 
         if (loading) return <div className="admin-loading"><div className="admin-spinner"></div>Henter kuponer...</div>;
 
@@ -1195,7 +1276,43 @@
                         <h1 className="admin-page-title">Kuponkoder</h1>
                         <p className="admin-page-subtitle">Administrer kuponer og se indl&oslash;sninger</p>
                     </div>
+                    <button className="btn-sm btn-sm-primary" onClick={() => setShowCreate(!showCreate)} style={{ padding: '.5rem 1rem', fontSize: '.85rem' }}>
+                        {showCreate ? 'Annuller' : '+ Opret kupon'}
+                    </button>
                 </div>
+
+                {/* Create form */}
+                {showCreate && (
+                    <div className="admin-panel fade-up" style={{ marginBottom: '1.5rem', padding: '1.5rem' }}>
+                        <div style={{ fontWeight: 600, marginBottom: '1rem' }}>Ny kuponkode</div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.75rem', marginBottom: '.75rem' }}>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 600, color: 'var(--text-2)', marginBottom: '.25rem' }}>Kode *</label>
+                                <input className="admin-input" placeholder="FX: SUMMER2026" value={newCode} onChange={e => setNewCode(e.target.value.toUpperCase())} style={{ textTransform: 'uppercase', letterSpacing: '.05em' }} />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 600, color: 'var(--text-2)', marginBottom: '.25rem' }}>Beskrivelse</label>
+                                <input className="admin-input" placeholder="Intern note" value={newDesc} onChange={e => setNewDesc(e.target.value)} />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 600, color: 'var(--text-2)', marginBottom: '.25rem' }}>Credits per indl&oslash;sning</label>
+                                <input className="admin-input" type="number" min="1" value={newCredits} onChange={e => setNewCredits(e.target.value)} />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 600, color: 'var(--text-2)', marginBottom: '.25rem' }}>Max brugere</label>
+                                <input className="admin-input" type="number" min="1" value={newMax} onChange={e => setNewMax(e.target.value)} />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 600, color: 'var(--text-2)', marginBottom: '.25rem' }}>Udl&oslash;bsdato (valgfri)</label>
+                                <input className="admin-input" type="date" value={newExpires} onChange={e => setNewExpires(e.target.value)} />
+                            </div>
+                        </div>
+                        {createError && <p style={{ color: '#c2553a', fontSize: '.82rem', marginBottom: '.5rem' }}>{createError}</p>}
+                        <button className="btn-sm btn-sm-primary" onClick={createCoupon} disabled={createLoading} style={{ padding: '.5rem 1.25rem' }}>
+                            {createLoading ? 'Opretter...' : 'Opret kupon'}
+                        </button>
+                    </div>
+                )}
 
                 {(!coupons || coupons.length === 0) ? (
                     <div className="admin-panel" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-3)' }}>
@@ -1208,17 +1325,55 @@
                                 <span style={{ fontFamily: 'var(--sans)', fontSize: '1.1rem', fontWeight: 700, letterSpacing: '.05em', color: 'var(--admin)' }}>
                                     {c.code}
                                 </span>
-                                <span className={`badge ${c.is_active ? 'badge-single' : 'badge-free'}`}>
+                                <span
+                                    className={`badge ${c.is_active ? 'badge-single' : 'badge-free'}`}
+                                    style={{ cursor: 'pointer' }}
+                                    onClick={() => toggleActive(c.id, c.is_active)}
+                                    title={c.is_active ? 'Klik for at deaktivere' : 'Klik for at aktivere'}
+                                >
                                     {c.is_active ? 'Aktiv' : 'Deaktiveret'}
                                 </span>
                             </div>
-                            <div style={{ display: 'flex', gap: '1.5rem', fontSize: '.85rem', color: 'var(--text-2)' }}>
-                                <span><strong>{c.credits}</strong> credits</span>
-                                <span><strong>{c.times_used}</strong> / {c.max_uses} brugt</span>
-                                {c.expires_at && <span>Udl&oslash;ber: {fmtDate(c.expires_at)}</span>}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                <div style={{ display: 'flex', gap: '1.5rem', fontSize: '.85rem', color: 'var(--text-2)' }}>
+                                    <span><strong>{c.credits}</strong> credits</span>
+                                    <span><strong>{c.times_used}</strong> / {c.max_uses} brugt</span>
+                                    {c.expires_at && <span>Udl&oslash;ber: {fmtDate(c.expires_at)}</span>}
+                                </div>
+                                <button className="btn-sm btn-sm-ghost" onClick={() => editingId === c.id ? setEditingId(null) : startEdit(c)} style={{ fontSize: '.75rem' }}>
+                                    {editingId === c.id ? 'Luk' : 'Rediger'}
+                                </button>
                             </div>
                         </div>
-                        {c.description && (
+
+                        {/* Edit form (inline) */}
+                        {editingId === c.id && (
+                            <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid var(--border)', background: 'var(--bg)' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '.5rem', marginBottom: '.75rem' }}>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '.72rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: '.2rem' }}>Beskrivelse</label>
+                                        <input className="admin-input" value={editDesc} onChange={e => setEditDesc(e.target.value)} style={{ fontSize: '.82rem' }} />
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '.72rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: '.2rem' }}>Credits</label>
+                                        <input className="admin-input" type="number" min="1" value={editCredits} onChange={e => setEditCredits(e.target.value)} style={{ fontSize: '.82rem' }} />
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '.72rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: '.2rem' }}>Max brugere</label>
+                                        <input className="admin-input" type="number" min="1" value={editMax} onChange={e => setEditMax(e.target.value)} style={{ fontSize: '.82rem' }} />
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '.72rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: '.2rem' }}>Udl&oslash;b</label>
+                                        <input className="admin-input" type="date" value={editExpires} onChange={e => setEditExpires(e.target.value)} style={{ fontSize: '.82rem' }} />
+                                    </div>
+                                </div>
+                                <button className="btn-sm btn-sm-primary" onClick={() => saveEdit(c.id)} disabled={editLoading} style={{ fontSize: '.75rem' }}>
+                                    {editLoading ? 'Gemmer...' : 'Gem \u00e6ndringer'}
+                                </button>
+                            </div>
+                        )}
+
+                        {c.description && editingId !== c.id && (
                             <div style={{ padding: '.5rem 1.5rem', fontSize: '.85rem', color: 'var(--text-3)' }}>{c.description}</div>
                         )}
                         {c.redemptions && c.redemptions.length > 0 && (
@@ -1240,6 +1395,143 @@
                         )}
                     </div>
                 ))}
+            </div>
+        );
+    }
+
+    // ══════════════════════════════════════════════════════
+    // EMAIL CONFIRM STATUS (used in UserDetailModal)
+    // ══════════════════════════════════════════════════════
+    function EmailConfirmStatus({ userId }) {
+        const [status, setStatus] = useState('loading');
+        const [confirmedAt, setConfirmedAt] = useState(null);
+        const [confirming, setConfirming] = useState(false);
+
+        useEffect(() => {
+            // We can't read auth.users directly, but we check via edge function
+            // For now show "Ukendt" — actual status visible after confirm attempt
+            setStatus('unknown');
+        }, [userId]);
+
+        async function confirmEmail() {
+            setConfirming(true);
+            try {
+                const sb = getSB();
+                const { data: { session } } = await sb.auth.getSession();
+                const resp = await fetch(SUPABASE_URL + '/functions/v1/hjernebarometeret-admin-confirm-email', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + session.access_token,
+                        'apikey': SUPABASE_ANON
+                    },
+                    body: JSON.stringify({ user_id: userId })
+                });
+                const result = await resp.json();
+                if (result.success) {
+                    setStatus('confirmed');
+                    setConfirmedAt(result.email_confirmed_at);
+                } else {
+                    alert('Fejl: ' + (result.error || 'Ukendt fejl'));
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Fejl ved bekr\u00e6ftelse');
+            }
+            setConfirming(false);
+        }
+
+        if (status === 'loading') return <span style={{ color: 'var(--text-4)', fontSize: '.85rem' }}>Henter...</span>;
+        if (status === 'confirmed') return <span style={{ color: '#2c5f4b', fontSize: '.85rem', fontWeight: 600 }}>{'\u2705'} Bekr\u00e6ftet{confirmedAt ? ' ' + fmtDateTime(confirmedAt) : ''}</span>;
+
+        return (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem' }}>
+                <button className="btn-sm btn-sm-primary" onClick={confirmEmail} disabled={confirming} style={{ fontSize: '.75rem', padding: '.3rem .6rem' }}>
+                    {confirming ? 'Bekr\u00e6fter...' : 'Bekr\u00e6ft email'}
+                </button>
+            </div>
+        );
+    }
+
+    // ══════════════════════════════════════════════════════
+    // SETTINGS PAGE
+    // ══════════════════════════════════════════════════════
+    function SettingsPage() {
+        const [welcomeCredits, setWelcomeCredits] = useState('');
+        const [loading, setLoading] = useState(true);
+        const [saving, setSaving] = useState(false);
+        const [saved, setSaved] = useState(false);
+
+        useEffect(() => {
+            (async () => {
+                try {
+                    const sb = getSB();
+                    const { data, error } = await sb.rpc('admin_get_config', { p_key: 'welcome_credits' });
+                    if (!error && data && data.value !== null) {
+                        setWelcomeCredits(String(parseInt(data.value) || 0));
+                    }
+                } catch (err) { console.error(err); }
+                setLoading(false);
+            })();
+        }, []);
+
+        async function saveWelcomeCredits() {
+            setSaving(true);
+            setSaved(false);
+            try {
+                const sb = getSB();
+                const val = parseInt(welcomeCredits) || 0;
+                const { data, error } = await sb.rpc('admin_set_config', {
+                    p_key: 'welcome_credits',
+                    p_value: JSON.stringify(val)
+                });
+                if (error) throw error;
+                setSaved(true);
+                setTimeout(() => setSaved(false), 3000);
+            } catch (err) {
+                console.error(err);
+                alert('Fejl ved gem');
+            }
+            setSaving(false);
+        }
+
+        if (loading) return <div className="admin-loading"><div className="admin-spinner"></div>Henter indstillinger...</div>;
+
+        return (
+            <div>
+                <div className="admin-page-header">
+                    <div>
+                        <h1 className="admin-page-title">Indstillinger</h1>
+                        <p className="admin-page-subtitle">Konfigurer platformens adf&aelig;rd</p>
+                    </div>
+                </div>
+
+                <div className="admin-panel fade-up">
+                    <div className="admin-panel-header">
+                        <span style={{ fontWeight: 600 }}>Velkomstbonus</span>
+                    </div>
+                    <div style={{ padding: '1.25rem 1.5rem' }}>
+                        <p style={{ fontSize: '.85rem', color: 'var(--text-2)', marginBottom: '1rem', lineHeight: 1.6 }}>
+                            Antal rapport-credits nye brugere automatisk modtager n&aring;r de opretter en konto.
+                            S&aelig;t til 0 for ingen velkomstbonus.
+                        </p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '.75rem' }}>
+                            <label style={{ fontSize: '.85rem', fontWeight: 600 }}>Credits til nye brugere:</label>
+                            <input
+                                type="number"
+                                min="0"
+                                max="100"
+                                value={welcomeCredits}
+                                onChange={e => setWelcomeCredits(e.target.value)}
+                                className="admin-input"
+                                style={{ width: 80, marginBottom: 0 }}
+                            />
+                            <button className="btn-sm btn-sm-primary" onClick={saveWelcomeCredits} disabled={saving}>
+                                {saving ? 'Gemmer...' : saved ? '\u2705 Gemt!' : 'Gem'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         );
     }
@@ -1287,6 +1579,7 @@
             { id: 'users', icon: Icons.users, label: 'Brugere' },
             { id: 'anonymous', icon: Icons.anonymous, label: 'Anonyme' },
             { id: 'coupons', icon: Icons.coupons, label: 'Kuponer' },
+            { id: 'settings', icon: Icons.settings, label: 'Indstillinger' },
         ];
 
         return (
@@ -1325,6 +1618,7 @@
                     {activePage === 'users' && <UsersPage onSelectUser={setSelectedUserId} />}
                     {activePage === 'anonymous' && <AnonymousPage />}
                     {activePage === 'coupons' && <CouponsPage />}
+                    {activePage === 'settings' && <SettingsPage />}
                 </main>
 
                 {/* User detail modal */}

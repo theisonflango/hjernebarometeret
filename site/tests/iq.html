@@ -162,6 +162,23 @@ const erf=x=>{const a1=.254829592,a2=-.284496736,a3=1.421413741,a4=-1.453152027,
 const calcIQ=(ans,qs,time)=>{const cats={};["pattern","logic","spatial","memory","verbal","numerical"].forEach(c=>cats[c]={cor:0,tot:0});let ws=0,tw=0;qs.forEach((q,i)=>{cats[q.cat].tot++;tw+=q.d;if(ans[i]===q.c){cats[q.cat].cor++;ws+=q.d;}});const tb=Math.max(0,Math.min(.05,(qs.length*45-time)/(qs.length*45)*.1)),wa=ws/tw,z=(wa+tb-.5)*4;const iq=Math.max(55,Math.min(160,Math.round(100+z*15)));const pct=Math.round(Math.min(99.9,Math.max(.1,50*(1+erf(z/1.414))))*10)/10;const cp={};Object.keys(cats).forEach(c=>cp[c]=cats[c].tot>0?Math.round(cats[c].cor/cats[c].tot*100):0);const cor=Object.values(cats).reduce((s,c)=>s+c.cor,0);let cls;if(iq>=130)cls="very-superior";else if(iq>=120)cls="superior";else if(iq>=110)cls="high-average";else if(iq>=90)cls="average";else if(iq>=80)cls="low-average";else if(iq>=70)cls="borderline";else cls="extremely-low";return{iq,pct,cls,cp,cor,tot:qs.length,time};};
 const getTips=(cp,lang)=>{const e=lang==="en";const tips=[];const n=e?{pattern:"Pattern Recognition",logic:"Logical Reasoning",spatial:"Spatial Ability",memory:"Working Memory",verbal:"Verbal Reasoning",numerical:"Numerical Reasoning"}:{pattern:"Mønstergenkendelse",logic:"Logisk Ræsonnement",spatial:"Rumlig Evne",memory:"Arbejdshukommelse",verbal:"Verbal Ræsonnement",numerical:"Numerisk Ræsonnement"};const tm=e?{pattern:"Practice matrix puzzles and visual sequences.",logic:"Try Sudoku and syllogism exercises.",spatial:"3D puzzles and Tetris boost spatial skills.",memory:"Memory games and number sequences help.",verbal:"Read widely and practice analogies.",numerical:"Mental math and estimation games."}:{pattern:"Øv matrix-puslespil og sekvenser.",logic:"Prøv Sudoku og syllogismer.",spatial:"3D-puslespil og Tetris.",memory:"Huskespil og talsekvenser.",verbal:"Læs bredt og øv analogier.",numerical:"Hovedregning og estimering."};const sorted=Object.entries(cp).sort((a,b)=>b[1]-a[1]);sorted.slice(0,2).forEach(([k])=>tips.push({type:"strength",cat:n[k],tip:e?`${n[k]} is a strong area!`:`${n[k]} er stærkt!`}));sorted.slice(-2).forEach(([k])=>tips.push({type:"improve",cat:n[k],tip:tm[k]}));return tips;};
 
+/* ═══ AGE HELPERS ═══ */
+function getAgeFromBirthYear(by) {
+  const now = new Date();
+  return now.getFullYear() - by - (now.getMonth() < 6 ? 1 : 0);
+}
+function getAgeGroup(age) {
+  if (age < 16) return "13-15";
+  if (age < 20) return "16-19";
+  if (age < 25) return "20-24";
+  if (age < 30) return "25-29";
+  if (age < 35) return "30-34";
+  if (age < 45) return "35-44";
+  if (age < 55) return "45-54";
+  if (age < 65) return "55-64";
+  return "65+";
+}
+
 /* ═══ COMPONENTS ═══ */
 const Bell=({iq})=>{const pts=[];for(let x=55;x<=160;x++){const z=(x-100)/15;pts.push({x,y:Math.exp(-.5*z*z)});}const my=Math.max(...pts.map(p=>p.y));const W=400,H=130,P=28;const s=(x,y)=>({sx:P+(x-55)/105*(W-2*P),sy:H-P-(y/my)*(H-2*P)});const d=pts.map((p,i)=>`${i?'L':'M'}${s(p.x,p.y).sx},${s(p.x,p.y).sy}`).join(' ');const ux=s(Math.max(55,Math.min(160,iq)),0);const uy=s(iq,(pts.find(p=>Math.round(p.x)===Math.round(iq))||{y:0}).y);return(<svg viewBox={`0 0 ${W} ${H}`} style={{width:"100%",maxWidth:460}}><defs><linearGradient id="bg" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor={C.accent} stopOpacity=".15"/><stop offset="100%" stopColor={C.accent} stopOpacity=".02"/></linearGradient></defs><path d={d+`L${s(160,0).sx},${H-P}L${s(55,0).sx},${H-P}Z`} fill="url(#bg)"/><path d={d} fill="none" stroke={C.accent} strokeWidth="2"/>{[70,85,100,115,130,145].map(v=>{const{sx}=s(v,0);return<g key={v}><line x1={sx} y1={H-P} x2={sx} y2={H-P+4} stroke={C.text4}/><text x={sx} y={H-P+14} fill={C.text3} fontSize="9" textAnchor="middle">{v}</text></g>})}<line x1={ux.sx} y1={H-P} x2={ux.sx} y2={uy.sy} stroke={C.yellow} strokeWidth="2" strokeDasharray="3,3"/><circle cx={ux.sx} cy={uy.sy} r="4.5" fill={C.yellow}/><text x={ux.sx} y={uy.sy-10} fill={C.yellow} fontSize="11" fontWeight="bold" textAnchor="middle">{iq}</text></svg>);};
 const CatBar=({label,value,delay=0})=>{const[w,setW]=useState(0);useEffect(()=>{const t=setTimeout(()=>setW(value),delay);return()=>clearTimeout(t);},[value,delay]);const col=value>=80?C.green:value>=60?C.accent:value>=40?C.yellow:C.red;return(<div style={{marginBottom:14}}><div style={{display:"flex",justifyContent:"space-between",marginBottom:5,fontSize:13}}><span style={{color:C.text3}}>{label}</span><span style={{color:col,fontWeight:600}}>{value}%</span></div><div style={{background:C.border,borderRadius:6,height:6,overflow:"hidden"}}><div style={{width:`${w}%`,height:"100%",borderRadius:6,background:col,transition:"width 1s cubic-bezier(.22,1,.36,1)"}}/></div></div>);};
@@ -170,6 +187,7 @@ const ANum=({target})=>{const[c,setC]=useState(0);useEffect(()=>{let s=0;const s
 /* ═══ MAIN APP ═══ */
 function App(){
   const[lang,setLang]=useState("da");const[page,setPage]=useState("home");const[cQ,setCQ]=useState(0);const[ans,setAns]=useState({});const[sTime,setSTime]=useState(null);const[elapsed,setElapsed]=useState(0);const[res,setRes]=useState(null);const[showI,setShowI]=useState(true);const[anim,setAnim]=useState(false);const[payLoading,setPayLoading]=useState(false);const tRef=useRef(null);
+  const[birthYear,setBirthYear]=useState("");const[underAgeAck,setUnderAgeAck]=useState(false);
   const t=T[lang];const qs=useMemo(()=>makeQ(lang),[lang]);
   // Handle return from Stripe payment
   useEffect(()=>{
@@ -185,10 +203,10 @@ function App(){
   useEffect(()=>{if(page==="test"&&!showI&&sTime){tRef.current=setInterval(()=>setElapsed(Math.floor((Date.now()-sTime)/1000)),1000);}return()=>clearInterval(tRef.current);},[page,showI,sTime]);
   const fmt=s=>`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
   const go=p=>{setPage(p);window.scrollTo(0,0);};
-  const goTest=()=>{setCQ(0);setAns({});setRes(null);setShowI(true);setAnim(false);go("test");};
+  const goTest=()=>{setCQ(0);setAns({});setRes(null);setShowI(true);setAnim(false);setBirthYear("");setUnderAgeAck(false);go("test");};
   const begin=()=>{setShowI(false);setSTime(Date.now());setElapsed(0);};
   const pick=i=>setAns({...ans,[cQ]:i});
-  const done=()=>{clearInterval(tRef.current);const r=calcIQ(ans,qs,Math.floor((Date.now()-sTime)/1000));r.answers=qs.map((q,i)=>({q:i,text:q.q,chosen:ans[i]!=null?q.o[ans[i]]:null,chosenIdx:ans[i],correct:q.o[q.c],correctIdx:q.c,category:q.cat}));setRes(r);if(window.HB_PAY)HB_PAY.saveResults('iq',r);setAnim(true);go("results");setTimeout(()=>setAnim(false),2800);};
+  const done=()=>{clearInterval(tRef.current);const r=calcIQ(ans,qs,Math.floor((Date.now()-sTime)/1000));r.answers=qs.map((q,i)=>({q:i,text:q.q,chosen:ans[i]!=null?q.o[ans[i]]:null,chosenIdx:ans[i],correct:q.o[q.c],correctIdx:q.c,category:q.cat}));if(birthYear){const by=parseInt(birthYear);const age=getAgeFromBirthYear(by);r.birth_year=by;r.age=age;r.age_group=getAgeGroup(age);}setRes(r);if(window.HB_PAY)HB_PAY.saveResults('iq',r);setAnim(true);go("results");setTimeout(()=>setAnim(false),2800);};
   const buyReport=(productType)=>{
     if(window.HB_AUTH&&HB_AUTH.isAdmin()){go("paid");return;}
     HB_PAY.saveResults('iq',res);
@@ -216,7 +234,17 @@ function App(){
 
   /* TEST */
   const Test=()=>{
-    if(showI)return(<div className="card" style={{padding:40,textAlign:"center",maxWidth:480,margin:"60px auto"}}><div style={{fontSize:40,marginBottom:18}}>🧠</div><h2 style={{fontFamily:C.serif,fontSize:24,fontWeight:600,marginBottom:10}}>{t.instrTitle}</h2><p style={{color:C.text3,lineHeight:1.8,marginBottom:24,fontSize:14}}>{t.instrText}</p><button className="btn-p" onClick={begin}>{t.begin}</button></div>);
+    if(showI){const byAge=birthYear?getAgeFromBirthYear(parseInt(birthYear)):null;const isUnder16=byAge!==null&&byAge<16;const canStart=birthYear&&(!isUnder16||underAgeAck);const curYear=new Date().getFullYear();return(<div className="card" style={{padding:40,textAlign:"center",maxWidth:480,margin:"60px auto"}}><div style={{fontSize:40,marginBottom:18}}>🧠</div><h2 style={{fontFamily:C.serif,fontSize:24,fontWeight:600,marginBottom:10}}>{t.instrTitle}</h2><p style={{color:C.text3,lineHeight:1.8,marginBottom:24,fontSize:14}}>{t.instrText}</p>
+      <div style={{margin:"0 auto 24px",maxWidth:280,textAlign:"left"}}>
+        <label style={{display:"block",fontSize:13,fontWeight:600,color:C.text2,marginBottom:6}}>{lang==="en"?"Birth year":"Fødselsår"}</label>
+        <select value={birthYear} onChange={e=>{setBirthYear(e.target.value);setUnderAgeAck(false)}} style={{width:"100%",padding:"10px 14px",border:"1.5px solid "+C.border2,borderRadius:10,fontSize:15,fontFamily:"'Figtree',system-ui,sans-serif",background:"#fff",color:C.text,appearance:"auto",cursor:"pointer"}}>
+          <option value="">{lang==="en"?"Select year":"Vælg år"}</option>
+          {Array.from({length:curYear-13-1940+1},(_,i)=>curYear-13-i).map(y=><option key={y} value={y}>{y}</option>)}
+        </select>
+        <div style={{fontSize:11,color:C.text3,marginTop:6}}>{lang==="en"?"Used to compare your score with others in your age group":"Bruges til at sammenligne din score med andre i din aldersgruppe"}</div>
+      </div>
+      {isUnder16&&!underAgeAck&&<div style={{background:"#fef9e7",border:"1px solid #f0d78c",borderRadius:10,padding:"16px 20px",margin:"0 auto 20px",maxWidth:380,textAlign:"left",fontSize:13,lineHeight:1.7,color:"#7d6608"}}><strong>{lang==="en"?"Note:":"Bemærk:"}</strong> {lang==="en"?"This test is primarily developed for adults (16+). Your results may be less accurate for your age group. The test norms are based on adults.":"Denne test er primært udviklet til voksne (16+). Dine resultater kan være mindre præcise for din aldersgruppe. Testens normdata er baseret på voksne."}<div style={{marginTop:12,textAlign:"center"}}><button className="btn-s" style={{fontSize:13,padding:"8px 18px"}} onClick={()=>setUnderAgeAck(true)}>{lang==="en"?"I understand — start the test":"Jeg forstår — start testen"}</button></div></div>}
+      <button className="btn-p" onClick={begin} disabled={!canStart} style={{opacity:canStart?1:.4,cursor:canStart?"pointer":"default"}}>{t.begin}</button></div>);}
     const q=qs[cQ],prog=((cQ+1)/qs.length)*100;const catL={pattern:t.cPattern,logic:t.cLogic,spatial:t.cSpatial,memory:t.cMemory,verbal:t.cVerbal,numerical:t.cNumerical};
     return(<div style={{maxWidth:620,margin:"0 auto",padding:"30px 20px"}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}><span style={{color:C.text3,fontSize:13}}>{cQ+1} {t.qOf} {qs.length}</span><div style={{background:C.warm,borderRadius:20,padding:"5px 13px",fontSize:13,color:C.text3}}>⏱ {fmt(elapsed)}</div></div>
@@ -277,6 +305,8 @@ function App(){
       <div style={{textAlign:"center",margin:"20px 0"}}>
         <button className="btn-s" style={{background:"#1c1b1a",color:"#fff",padding:"12px 24px",borderRadius:10,fontSize:14,fontWeight:600,border:"none",cursor:"pointer"}} onClick={()=>{if(window.HB_CARD&&res)HB_CARD.share('iq',res)}}>📸 Del dit resultat</button>
       </div>
+      {/* Save prompt for anonymous users */}
+      <div id="hb-save-prompt-iq"></div>
       <div style={{display:"flex",gap:10,justifyContent:"center"}}><button className="btn-s" onClick={goTest}>{t.retake}</button><button className="btn-s" onClick={()=>go("home")}>← {t.home}</button></div>
     </div>);
   };
@@ -325,6 +355,13 @@ function App(){
       footerEl.style.display='';
       var s1=document.createElement('script');s1.src='../shared/nav.js';s1.onload=function(){this.remove()};document.body.appendChild(s1);
       var s2=document.createElement('script');s2.src='../shared/footer.js';s2.onload=function(){this.remove()};document.body.appendChild(s2);
+    }
+  },[page]);
+
+  /* Save prompt for anonymous users */
+  useEffect(()=>{
+    if(page==="results"&&window.HB_PAY){
+      HB_PAY.renderSavePrompt('hb-save-prompt-iq','iq');
     }
   },[page]);
 

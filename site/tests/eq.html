@@ -1,3 +1,4 @@
+<!-- EQ-test: SSEIT (Schutte et al., 1998). Rapport er gratis — ingen kommerciel brug af instrumentet. -->
 <!DOCTYPE html>
 <html lang="da">
 <head>
@@ -515,8 +516,8 @@ function RadarChart({ subscales }) {
 }
 
 // ─── BUILD RESULT OBJECT ───
-function buildResultObj(scores, answersArr) {
-    return {
+function buildResultObj(scores, answersArr, birthYearVal) {
+    var obj = {
         total: scores.total,
         max: scores.max,
         percentile: scores.percentile,
@@ -534,24 +535,49 @@ function buildResultObj(scores, answersArr) {
             };
         })
     };
+    if (birthYearVal) {
+        var by = parseInt(birthYearVal);
+        var age = getAgeFromBirthYear(by);
+        obj.birth_year = by;
+        obj.age = age;
+        obj.age_group = getAgeGroup(age);
+    }
+    return obj;
 }
 
 // ─── PAYMENT HANDLERS ───
 window.handleBuyReport = function() {
     if (window._eqScores && window.HB_PAY) {
-        HB_PAY.checkout('single', 'eq', buildResultObj(window._eqScores, window._eqAnswers));
+        HB_PAY.checkout('single', 'eq', buildResultObj(window._eqScores, window._eqAnswers, window._eqBirthYear));
     }
 };
 window.handleBuyUnlimited = function() {
     if (window._eqScores && window.HB_PAY) {
-        HB_PAY.checkout('unlimited', 'eq', buildResultObj(window._eqScores, window._eqAnswers));
+        HB_PAY.checkout('unlimited', 'eq', buildResultObj(window._eqScores, window._eqAnswers, window._eqBirthYear));
     }
 };
 window.handleShareCard = function() {
     if (window._eqScores && window.HB_CARD) {
-        HB_CARD.share('eq', buildResultObj(window._eqScores, window._eqAnswers));
+        HB_CARD.share('eq', buildResultObj(window._eqScores, window._eqAnswers, window._eqBirthYear));
     }
 };
+
+// ─── AGE HELPERS ───
+function getAgeFromBirthYear(by) {
+    const now = new Date();
+    return now.getFullYear() - by - (now.getMonth() < 6 ? 1 : 0);
+}
+function getAgeGroup(age) {
+    if (age < 16) return "13-15";
+    if (age < 20) return "16-19";
+    if (age < 25) return "20-24";
+    if (age < 30) return "25-29";
+    if (age < 35) return "30-34";
+    if (age < 45) return "35-44";
+    if (age < 55) return "45-54";
+    if (age < 65) return "55-64";
+    return "65+";
+}
 
 // ─── MAIN APP ───
 function App() {
@@ -560,6 +586,8 @@ function App() {
     const [answers, setAnswers] = useState(new Array(QUESTIONS.length).fill(null));
     const [scores, setScores] = useState(null);
     const [loadingStep, setLoadingStep] = useState(0);
+    const [birthYear, setBirthYear] = useState('');
+    const [underAgeAck, setUnderAgeAck] = useState(false);
 
     useEffect(() => {
         function handleKey(e) {
@@ -588,11 +616,23 @@ function App() {
         }
     }, [phase]);
 
+    useEffect(() => {
+        if (phase === 'results' && window.HB_PAY) {
+            HB_PAY.renderSavePrompt('hb-save-prompt-eq', 'eq');
+        }
+    }, [phase]);
+
     function startTest() {
         setPhase('test');
         setCurrent(0);
         setAnswers(new Array(QUESTIONS.length).fill(null));
         window.scrollTo(0, 0);
+    }
+    function resetTest() {
+        setBirthYear('');
+        setUnderAgeAck(false);
+        startTest();
+        setPhase('hero');
     }
 
     function selectAnswer(val) {
@@ -622,8 +662,9 @@ function App() {
 
             window._eqScores = result;
             window._eqAnswers = answers;
+            window._eqBirthYear = birthYear;
 
-            var resultObj = buildResultObj(result, answers);
+            var resultObj = buildResultObj(result, answers, birthYear);
             if (window.HB_PAY) HB_PAY.saveResults('eq', resultObj);
 
             setPhase('results');
@@ -649,9 +690,26 @@ function App() {
                     <div className="hero-stat"><strong>4</strong><span>{t('dom\u00e6ner', 'domains')}</span></div>
                     <div className="hero-stat"><strong>{t('Gratis', 'Free')}</strong><span>{t('resultat', 'result')}</span></div>
                 </div>
-                <button className="btn-primary" onClick={startTest}>
+                <div style={{ margin: '0 auto 24px', maxWidth: 280, textAlign: 'left' }}>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 6 }}>{t('Fødselsår', 'Birth year')}</label>
+                    <select value={birthYear} onChange={e => { setBirthYear(e.target.value); setUnderAgeAck(false); }} style={{ width: '100%', padding: '10px 14px', border: '1.5px solid var(--border-2)', borderRadius: 10, fontSize: 15, fontFamily: 'var(--sans)', background: '#fff', color: 'var(--text)', appearance: 'auto', cursor: 'pointer' }}>
+                        <option value="">{t('Vælg år', 'Select year')}</option>
+                        {Array.from({ length: new Date().getFullYear() - 13 - 1940 + 1 }, (_, i) => new Date().getFullYear() - 13 - i).map(y => <option key={y} value={y}>{y}</option>)}
+                    </select>
+                    <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 6 }}>{t('Bruges til at sammenligne din score med andre i din aldersgruppe', 'Used to compare your score with others in your age group')}</div>
+                </div>
+                {birthYear && getAgeFromBirthYear(parseInt(birthYear)) < 16 && !underAgeAck && (
+                    <div style={{ background: '#fef9e7', border: '1px solid #f0d78c', borderRadius: 10, padding: '16px 20px', margin: '0 auto 20px', maxWidth: 440, textAlign: 'left', fontSize: 13, lineHeight: 1.7, color: '#7d6608' }}>
+                        <strong>{t('Bemærk:', 'Note:')}</strong> {t('Denne test er primært udviklet til voksne (16+). Dine resultater kan være mindre præcise for din aldersgruppe. Testens normdata er baseret på voksne.', 'This test is primarily developed for adults (16+). Your results may be less accurate for your age group. The test norms are based on adults.')}
+                        <div style={{ marginTop: 12, textAlign: 'center' }}>
+                            <button onClick={() => setUnderAgeAck(true)} style={{ padding: '8px 18px', fontSize: 13, background: 'transparent', border: '1px solid #f0d78c', borderRadius: 8, cursor: 'pointer', color: '#7d6608', fontFamily: 'var(--sans)', fontWeight: 500 }}>{t('Jeg forstår — start testen', 'I understand — start the test')}</button>
+                        </div>
+                    </div>
+                )}
+                {(() => { const byAge = birthYear ? getAgeFromBirthYear(parseInt(birthYear)) : null; const isUnder16 = byAge !== null && byAge < 16; const canStart = birthYear && (!isUnder16 || underAgeAck); return (
+                <button className="btn-primary" onClick={startTest} disabled={!canStart} style={{ opacity: canStart ? 1 : 0.4, cursor: canStart ? 'pointer' : 'default' }}>
                     {t('Start testen \u2192', 'Start the test \u2192')}
-                </button>
+                </button>); })()}
 
                 <div style={{ marginTop: 48, width: '100%' }}>
                     <div className="science-box">
@@ -880,33 +938,30 @@ function App() {
                 </div>
 
                 <div className="cta-box">
-                    <h3>{t('F\u00e5 din fulde EQ-rapport', 'Get your full EQ report')}</h3>
+                    <h3>{t('Se din fulde EQ-rapport — gratis', 'See your full EQ report — free')}</h3>
                     <p>
                         {t(
-                            'Detaljeret analyse af alle 4 dom\u00e6ner, profil-arketype, personlige strategier og handlingsplan.',
+                            'Detaljeret analyse af alle 4 domæner, profil-arketype, personlige strategier og handlingsplan.',
                             'Detailed analysis of all 4 domains, profile archetype, personal strategies and action plan.'
                         )}
                     </p>
                     <div className="cta-features">
-                        <span className="cta-feature">{t('4 dom\u00e6ne-dybdeanalyser', '4 domain deep analyses')}</span>
+                        <span className="cta-feature">{t('4 domæne-dybdeanalyser', '4 domain deep analyses')}</span>
                         <span className="cta-feature">{t('Profil-arketype', 'Profile archetype')}</span>
                         <span className="cta-feature">{t('Handlingsplan', 'Action plan')}</span>
                         <span className="cta-feature">{t('PDF-download', 'PDF download')}</span>
                     </div>
-                    <button className="btn-primary" onClick={window.handleBuyReport}>
-                        {t('K\u00f8b rapport \u2014 49 kr', 'Buy report \u2014 49 DKK')}
-                    </button>
-                    <p style={{ marginTop: 12 }}>
-                        <button onClick={window.handleBuyUnlimited} style={{ background: 'transparent', border: 'none', color: 'var(--accent)', fontWeight: 500, fontSize: 14, cursor: 'pointer', textDecoration: 'underline', fontFamily: 'var(--sans)' }}>
-                            {t('Eller: Ubegr\u00e6nset \u2014 89 kr/md', 'Or: Unlimited \u2014 89 DKK/mo')}
-                        </button>
+                    <a className="btn-primary" href={`../rapporter/eq.html?total=${scores.total}&p=${scores.subscales.perception.pct}&m=${scores.subscales.managing.pct}&o=${scores.subscales.others.pct}&u=${scores.subscales.utilization.pct}`}
+                       style={{ textDecoration: 'none' }}>
+                        {t('Se din rapport →', 'See your report →')}
+                    </a>
+                    <p style={{ marginTop: 12, fontSize: 12, color: 'var(--text-4)' }}>
+                        {t('Baseret på SSEIT (Schutte et al., 1998). Gratis og uden login.', 'Based on SSEIT (Schutte et al., 1998). Free, no login required.')}
                     </p>
-                    {isAdmin && (
-                        <a className="admin-link" href={`../rapporter/eq.html?total=${scores.total}&p=${scores.subscales.perception.pct}&m=${scores.subscales.managing.pct}&o=${scores.subscales.others.pct}&u=${scores.subscales.utilization.pct}`}>
-                            {t('Admin: Se rapport direkte', 'Admin: View report directly')}
-                        </a>
-                    )}
                 </div>
+
+                {/* Save prompt for anonymous users */}
+                <div id="hb-save-prompt-eq"></div>
 
                 <div className="cross-sell">
                     <h3>{t('Relaterede tests', 'Related tests')}</h3>
@@ -927,7 +982,7 @@ function App() {
                 </div>
 
                 <div style={{ textAlign: 'center', marginBottom: 24 }}>
-                    <button className="btn-nav" onClick={startTest}>
+                    <button className="btn-nav" onClick={resetTest}>
                         {t('\u21bb Tag testen igen', '\u21bb Take the test again')}
                     </button>
                 </div>
