@@ -185,6 +185,13 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:
     <div id="differential-dx"></div>
   </section>
 
+  <!-- 2c. SÅDAN STILLES DIAGNOSEN -->
+  <section>
+    <h2>⚕️ Sådan stilles en ADHD-diagnose</h2>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:16px">En screening er kun første skridt. En egentlig diagnose kræver en klinisk udredning hos speciallæge (psykiater), hvor <strong>alle fem</strong> DSM-5-kriterier skal være opfyldt. Her er hvor din test bidrager — og hvad den ikke kan afgøre:</p>
+    <div id="dsm-criteria"></div>
+  </section>
+
   <!-- 3. SUBTYPEKLASSIFICERING -->
   <section>
     <h2>🧩 Subtypeklassificering</h2>
@@ -385,12 +392,14 @@ var SUBTYPES = {
 
 // ── Medication data (Lancet Psychiatry 2018, 2024) ──
 // SMD values: Cortese et al. 2018 reports class-level (amphetamines/methylphenidate), not per-drug
+// Effect sizes are Cortese et al. 2018 network meta-analysis, adults, clinician
+// ratings (class-level SMD). Response rates are broad literature estimates.
 var MEDICATIONS = [
-  { name:'Methylphenidat', brand:'Ritalin, Concerta, Medikinet', type:'Stimulant (førstevalg børn)', dose:'18-72 mg/dag', effect:'SMD 0.49 (klasse)', response:'~70-80%', side:'Nedsat appetit, søvnproblemer, hovedpine, højere puls' },
-  { name:'Lisdexamfetamin', brand:'Elvanse/Vyvanse', type:'Stimulant (førstevalg voksne)', dose:'30-70 mg/dag', effect:'SMD 0.79 (amfetamin-klasse)', response:'~70-80%', side:'Nedsat appetit, mundtørhed, søvnproblemer, angst' },
-  { name:'Dexamfetamin', brand:'Attentin', type:'Stimulant', dose:'5-40 mg/dag', effect:'SMD 0.79 (amfetamin-klasse)', response:'~70%', side:'Som lisdexamfetamin men kortere virkning' },
-  { name:'Atomoxetin', brand:'Strattera', type:'Non-stimulant (SNRI)', dose:'40-100 mg/dag', effect:'SMD 0.45 (klasse)', response:'~50-60%', side:'Kvalme, nedsat appetit, svimmelhed, blodtryksstigning' },
-  { name:'Guanfacin', brand:'Intuniv', type:'Non-stimulant (alfa-2)', dose:'1-4 mg/dag', effect:'Begrænset data', response:'~40-50%', side:'Træthed, lavt blodtryk, svimmelhed' }
+  { name:'Methylphenidat', brand:'Ritalin, Concerta, Medikinet', type:'Stimulant · ofte førstevalg', dose:'18-72 mg/dag', effect:'SMD ~0.5 (klasse)', response:'~70-80%', side:'Nedsat appetit, søvnproblemer, hovedpine, højere puls' },
+  { name:'Lisdexamfetamin', brand:'Elvanse/Vyvanse', type:'Stimulant (amfetamin)', dose:'30-70 mg/dag', effect:'SMD ~0.8 (amfetamin-klasse)', response:'~70-80%', side:'Nedsat appetit, mundtørhed, søvnproblemer, uro' },
+  { name:'Dexamfetamin', brand:'Attentin', type:'Stimulant (amfetamin)', dose:'5-40 mg/dag', effect:'SMD ~0.8 (amfetamin-klasse)', response:'~70%', side:'Som lisdexamfetamin, men kortere virkning' },
+  { name:'Atomoxetin', brand:'Strattera', type:'Non-stimulant (NRI)', dose:'40-100 mg/dag', effect:'SMD ~0.45 (klasse)', response:'~50-60%', side:'Kvalme, nedsat appetit, svimmelhed, blodtryksstigning' },
+  { name:'Guanfacin', brand:'Intuniv', type:'Non-stimulant (alfa-2) · kun 6-17 år i EU', dose:'1-4 mg/dag', effect:'Begrænset voksendata', response:'~40-50%', side:'Træthed, lavt blodtryk, svimmelhed' }
 ];
 
 var THERAPIES = [
@@ -419,6 +428,23 @@ function buildReport(data) {
   var partATotal = data.partATotal || 6;
   var partAPos = (data.partAAboveThreshold != null) ? data.partAAboveThreshold : (partAScore >= 4);
 
+  // DSM-5-style symptom counts: items endorsed "Ofte"/"Meget ofte" (>=3) per
+  // domain (9 each). Prefer values from the test; fall back to counting answers.
+  var inattSx = (data.inattSymptoms != null) ? data.inattSymptoms : null;
+  var hyperSx = (data.hyperSymptoms != null) ? data.hyperSymptoms : null;
+  if ((inattSx == null || hyperSx == null) && Array.isArray(data.answers)) {
+    inattSx = 0; hyperSx = 0;
+    data.answers.forEach(function(a){
+      if (a.chosen != null && a.chosen >= 3) {
+        if (a.domain === 'inattention') inattSx++;
+        else if (a.domain === 'hyperactivity') hyperSx++;
+      }
+    });
+  }
+  var hasSx = (inattSx != null && hyperSx != null);
+  var inattMeets = hasSx && inattSx >= 5;   // DSM-5 adult threshold (>=5 per domain)
+  var hyperMeets = hasSx && hyperSx >= 5;
+
   // Cover
   document.getElementById('cover-mode').textContent = 'ASRS v1.1 screening — 18 spørgsmål (WHO)';
   document.getElementById('cover-profile').textContent = '« ' + sub.short + ' — ' + label + ' »';
@@ -446,6 +472,10 @@ function buildReport(data) {
   if (partAPos) findings.push('🔴 <strong>'+partAScore+' af 6</strong> screening-spørgsmål (Del A) ligger i det klinisk signifikante område — en positiv screening (≥4) er konsistent med ADHD.');
   else if (partAScore >= 2) findings.push('🟡 <strong>'+partAScore+' af 6</strong> screening-spørgsmål ligger i det signifikante område — under tærsklen for en positiv screening (≥4), men enkelte symptomer er til stede.');
   else findings.push('🟢 <strong>'+partAScore+' af 6</strong> screening-spørgsmål i det signifikante område — under screeningstærsklen. Dit svarmønster peger ikke stærkt mod ADHD.');
+  if (hasSx) {
+    var sxMeetTxt = (inattMeets && hyperMeets) ? 'begge domæner' : inattMeets ? 'uopmærksomhedsdomænet' : hyperMeets ? 'hyperaktivitets-/impulsivitetsdomænet' : 'ingen af domænerne';
+    findings.push('🧮 <strong>'+inattSx+' af 9</strong> uopmærksomheds- og <strong>'+hyperSx+' af 9</strong> hyperaktivitets-/impulsivitetssymptomer optræder "ofte" eller "meget ofte". DSM-5 kræver ≥5 i et domæne (voksne 17+) — det er opfyldt i '+sxMeetTxt+'.');
+  }
   if (attnPct >= 60) findings.push('🎯 Forhøjet <strong>uopmærksomhed</strong> ('+attnPct+'% af maks) — et fremtrædende symptomdomæne.');
   if (hyperPct >= 60) findings.push('⚡ Forhøjet <strong>hyperaktivitet/impulsivitet</strong> ('+hyperPct+'% af maks) — et fremtrædende symptomdomæne.');
   document.getElementById('top-findings').innerHTML = '<h3>🔍 Vigtigste fund</h3>' + findings.slice(0,4).map(function(f){ return '<p style="font-size:14px;color:var(--text-2);margin:8px 0;line-height:1.6">'+f+'</p>'; }).join('');
@@ -467,6 +497,75 @@ function buildReport(data) {
     document.getElementById('differential-dx').innerHTML = ddxHTML;
     document.getElementById('differential-section').style.display = '';
   }
+
+  // DSM-5 diagnostic criteria — what the screening covers vs. what only a
+  // clinical assessment can establish.
+  var hasSupp = (data.onsetMeets != null || data.impairmentMeets != null || data.settingsMeets != null);
+
+  var critANote = hasSx
+    ? 'Din test: <strong>'+inattSx+'/9</strong> uopmærksomheds- og <strong>'+hyperSx+'/9</strong> hyperaktivitets-/impulsivitetssymptomer optræder "ofte"+. Tærsklen (≥5 i ét domæne) er '+((inattMeets||hyperMeets)?'<strong>opfyldt</strong>':'ikke opfyldt')+'.'
+    : 'Kræver optælling af symptomer på "ofte/meget ofte"-niveau.';
+
+  // B — childhood onset (from supplementary question, if present)
+  var bChip, bNote;
+  if (data.onsetMeets != null) {
+    var onsetLbl = ['ikke fra barndommen','måske enkelte fra barndommen','ja, flere fra barndommen','ja, tydeligt fra barndommen'];
+    bChip = data.onsetMeets ? 'met' : (data.childhoodOnset >= 1 ? 'partial' : 'notmet');
+    bNote = 'Du angav: "'+(onsetLbl[data.childhoodOnset]||'—')+'". '+(data.onsetMeets ? 'Flere symptomer genkendes fra før 12-årsalderen — bekræftes formelt i udredningen, evt. med barndomsoplysninger.' : 'Få barndomssymptomer angivet. ADHD kræver debut før 12 år, så dette er vigtigt at afklare med en fagperson.');
+  } else {
+    bChip = 'clinical';
+    bNote = 'Denne test spørger kun til dine symptomer som voksen. Barndomshistorik afklares i udredningen.';
+  }
+
+  // C — cross-situational (from impairment-across-settings questions)
+  var cChip, cNote;
+  if (data.settingsMeets != null) {
+    cChip = data.settingsMeets ? 'met' : (data.settingsAffected >= 1 ? 'partial' : 'notmet');
+    cNote = 'Du angav mærkbar påvirkning i <strong>'+data.settingsAffected+' af 3</strong> livsområder (arbejde/studie, relationer, dagligdag). DSM-5 kræver symptomer i ≥2 sammenhænge.';
+  } else {
+    cChip = 'clinical';
+    cNote = 'Vurderes i klinisk samtale, ofte suppleret med oplysninger fra pårørende.';
+  }
+
+  // D — functional impairment
+  var dChip, dNote;
+  if (data.impairmentMeets != null) {
+    dChip = data.impairmentMeets ? 'met' : (data.settingsAffected >= 1 ? 'partial' : 'notmet');
+    dNote = data.impairmentMeets ? 'Du angav at vanskelighederne påvirker din hverdag mærkbart. Graden af funktionsnedsættelse vurderes formelt af en fagperson.' : 'Du angav begrænset funktionspåvirkning. En klar funktionsnedsættelse er et krav for diagnosen.';
+  } else {
+    dChip = 'partial';
+    dNote = 'Rapporten belyser din hverdagsimpact, men funktionsnedsættelse vurderes formelt af en fagperson.';
+  }
+
+  var criteria = [
+    { letter:'A', title:'Symptomer', chip:(hasSx && (inattMeets||hyperMeets)) ? 'met' : (hasSx ? 'partial' : 'clinical'),
+      desc:'Mindst 5 symptomer på uopmærksomhed og/eller 5 på hyperaktivitet-impulsivitet (voksne 17+), til stede i ≥6 måneder.', note:critANote },
+    { letter:'B', title:'Tidlig debut (før 12 år)', chip:bChip,
+      desc:'Flere symptomer skal have været til stede allerede før 12-årsalderen. ADHD er en neuroudviklingsforstyrrelse — den opstår ikke først i voksenlivet.', note:bNote },
+    { letter:'C', title:'Flere sammenhænge', chip:cChip,
+      desc:'Symptomerne skal vise sig i mindst to sammenhænge — fx både hjemme og på arbejde/studie eller i sociale relationer.', note:cNote },
+    { letter:'D', title:'Funktionsnedsættelse', chip:dChip,
+      desc:'Der skal være klare tegn på at symptomerne forringer dit sociale, studie- eller arbejdsmæssige funktionsniveau.', note:dNote },
+    { letter:'E', title:'Ikke bedre forklaret', chip:'clinical',
+      desc:'Symptomerne må ikke bedre kunne forklares af en anden tilstand (angst, depression, søvnforstyrrelse, stof/alkohol m.m.).',
+      note:'Se "Andre mulige forklaringer" ovenfor. Kun en fagperson kan afklare dette.' }
+  ];
+  var chipStyle = { met:'background:rgba(59,153,121,.12);color:#3B9979', partial:'background:rgba(212,146,11,.12);color:#D4920B', clinical:'background:var(--border);color:var(--text-3)', notmet:'background:var(--border);color:var(--text-3)' };
+  var chipText = { met:'✓ Opfyldt i din test', partial:'◐ Delvist belyst', clinical:'⚕ Kræver udredning', notmet:'○ Ikke opfyldt i din test' };
+  var critHTML = criteria.map(function(c){
+    return '<div style="display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--border)">' +
+      '<div style="width:30px;height:30px;border-radius:50%;flex-shrink:0;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-family:var(--serif)">'+c.letter+'</div>' +
+      '<div style="flex:1">' +
+        '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px"><strong style="font-size:14px">'+c.title+'</strong>' +
+        '<span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;'+chipStyle[c.chip]+'">'+chipText[c.chip]+'</span></div>' +
+        '<p style="font-size:13px;color:var(--text-2);line-height:1.6;margin:0 0 4px">'+c.desc+'</p>' +
+        '<p style="font-size:12px;color:var(--text-3);line-height:1.6;margin:0">'+c.note+'</p>' +
+      '</div></div>';
+  }).join('');
+  critHTML += '<p style="font-size:12px;color:var(--text-3);line-height:1.7;margin-top:14px">' + (hasSupp
+    ? 'Din test giver et <strong>selvrapporteret</strong> billede af kriterium A-D. Kriterium E og den endelige vurdering kræver en fagperson — derfor kan ingen selvtest i sig selv stille eller udelukke en ADHD-diagnose.'
+    : 'Din online-screening kan pege på kriterium <strong>A</strong> og belyse <strong>D</strong> — men <strong>B, C og E</strong> kræver en klinisk vurdering. Derfor kan ingen selvtest stille eller udelukke en ADHD-diagnose.') + '</p>';
+  document.getElementById('dsm-criteria').innerHTML = critHTML;
 
   // Subtypes
   var subtypeHTML = '';
@@ -534,14 +633,14 @@ function buildReport(data) {
   }).join('');
 
   // Treatment
-  var treatHTML = '<h3>💊 Medicin</h3><p style="font-size:13px;color:var(--text-3);margin-bottom:12px">Kilde: Lancet Psychiatry (Cortese 2018; Ostinelli 2024) — 113 RCT\'er, 14.800+ deltagere.</p>';
+  var treatHTML = '<h3>💊 Medicin</h3><p style="font-size:13px;color:var(--text-3);margin-bottom:12px">Kilde: store netværks-metaanalyser i Lancet Psychiatry (Cortese et al. 2018; Ostinelli et al. 2024). Al ADHD-medicin ordineres og følges af speciallæge (psykiater).</p>';
   treatHTML += '<div style="overflow-x:auto"><table class="med-table"><thead><tr><th>Præparat</th><th>Type</th><th>Dosis</th><th>Effekt (SMD)</th><th>Respons</th></tr></thead><tbody>';
   MEDICATIONS.forEach(function(m){
     treatHTML += '<tr><td><strong>'+m.name+'</strong><br><span style="font-size:11px;color:var(--text-3)">'+m.brand+'</span></td><td>'+m.type+'</td><td>'+m.dose+'</td><td>'+m.effect+'</td><td>'+m.response+'</td></tr>';
   });
   treatHTML += '</tbody></table></div>';
 
-  treatHTML += '<div style="margin:16px 0;padding:16px;border-radius:10px;background:var(--accent-light);font-size:13px;color:var(--text-2);line-height:1.7"><strong>Nøglefund:</strong> Stimulanter (Elvanse, Ritalin) er de eneste behandlinger med bevist effekt på både selvrapporterede OG klinisk vurderede symptomer hos voksne. Ca. 70-80% responderer på stimulanter. 20-30% responderer ikke tilstrækkeligt og bør skifte præparat.</div>';
+  treatHTML += '<div style="margin:16px 0;padding:16px;border-radius:10px;background:var(--accent-light);font-size:13px;color:var(--text-2);line-height:1.7"><strong>Nøglefund:</strong> Stimulanter (methylphenidat, lisdexamfetamin) har den stærkeste dokumenterede effekt hos voksne. I Danmark er <strong>methylphenidat typisk førstevalg</strong>; amfetamin-præparater (Elvanse) og non-stimulanter (Strattera) er alternativer, bl.a. hvis stimulanter ikke tåles. Ca. 70-80% responderer på stimulanter — de resterende kan ofte hjælpes ved at skifte præparat. Valg, dosis og opfølgning sker altid hos speciallæge.</div>';
 
   treatHTML += '<h3 style="margin-top:24px">🧠 Terapi & ikke-medicinsk</h3>';
   treatHTML += '<div style="overflow-x:auto"><table class="med-table"><thead><tr><th>Behandling</th><th>Evidens</th><th>Hjælper med</th><th>Forløb</th></tr></thead><tbody>';
@@ -592,7 +691,10 @@ function buildReport(data) {
   docHTML += '<p><strong>Dato:</strong> '+new Date().toLocaleDateString('da-DK')+'</p>';
   docHTML += '<p><strong>Del A (screening):</strong> '+partAScore+' af 6 spørgsmål i det klinisk signifikante område — '+(partAPos?'<strong>positiv screening</strong> (≥4)':'negativ screening (&lt;4)')+'.</p>';
   docHTML += '<p><strong>Symptomdomæner (andel af maks):</strong> Uopmærksomhed '+attnPct+'% · Hyperaktivitet/impulsivitet '+hyperPct+'%</p>';
+  if (hasSx) docHTML += '<p><strong>Symptomtælling (items besvaret "ofte"/"meget ofte"):</strong> Uopmærksomhed '+inattSx+'/9 · Hyperaktivitet/impulsivitet '+hyperSx+'/9 (DSM-5-voksentærskel ≥5 pr. domæne)</p>';
   docHTML += '<p><strong>Symptomprofil:</strong> '+sub.label+'</p>';
+  if (data.onsetMeets != null) docHTML += '<p><strong>Selvrapporteret barndomsdebut (før 12 år):</strong> '+(data.onsetMeets?'ja, flere symptomer genkendes':'nej / kun få')+'</p>';
+  if (data.settingsAffected != null) docHTML += '<p><strong>Selvrapporteret funktionspåvirkning:</strong> mærkbar i '+data.settingsAffected+' af 3 livsområder (arbejde/studie, relationer, dagligdag)</p>';
   docHTML += '<h3 style="margin-top:20px;margin-bottom:12px">Samtaleguide — sætninger du kan bruge</h3>';
   docHTML += '<ul style="padding-left:18px">';
   docHTML += '<li>"Jeg har taget en valideret ADHD-screening online og scorer i den '+(level==='high'?'høje':level==='moderate'?'moderate':'lave')+' zone."</li>';
@@ -602,7 +704,7 @@ function buildReport(data) {
     docHTML += '<li>"Jeg har medbragt en opsummering af mine resultater og vil gerne bede om en henvisning til psykiatrisk vurdering."</li>';
   }
   docHTML += '</ul>';
-  docHTML += '<p style="margin-top:12px;font-size:12px;color:var(--text-3)"><strong>Om instrumentet:</strong> ASRS v1.1 er WHO\'s selvrapporterings-screeningsværktøj for voksen-ADHD. En positiv screening = ≥4 af de 6 Del A-spørgsmål i det klinisk signifikante ("skraverede") interval. ASRS er et screeningsværktøj — ikke et diagnostisk instrument. Kun formel psykiatrisk udredning kan stille en ADHD-diagnose.</p>';
+  docHTML += '<p style="margin-top:12px;font-size:12px;color:var(--text-3)"><strong>Om instrumentet:</strong> ASRS v1.1 er WHO\'s selvrapporterings-screeningsværktøj for voksen-ADHD. En positiv screening = ≥4 af de 6 Del A-spørgsmål i det klinisk signifikante ("skraverede") interval. ASRS er et screeningsværktøj — ikke et diagnostisk instrument, og det belyser kun DSM-5-kriterium A. En diagnose forudsætter desuden debut før 12 år, symptomer i ≥2 sammenhænge, funktionsnedsættelse, og at billedet ikke bedre forklares af anden tilstand (kriterium B-E). Kun formel psykiatrisk udredning kan stille en ADHD-diagnose.</p>';
   docHTML += '</div>';
   document.getElementById('doctor-section').innerHTML = docHTML;
 

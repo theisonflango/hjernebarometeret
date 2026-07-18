@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ADHD-screening (ASRS) — Hjernebarometeret</title>
-  <meta name="description" content="Gratis ADHD-screening for voksne. Baseret på WHO's ASRS v1.1 — verdens mest anvendte ADHD-screeningsværktøj. 18 spørgsmål, 5 minutter.">
+  <meta name="description" content="Gratis ADHD-screening for voksne. Baseret på WHO's ASRS v1.1 — verdens mest anvendte ADHD-screeningsværktøj. 18 ASRS-spørgsmål plus 4 uddybende, ca. 6 minutter.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,500&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../shared/styles.css">
@@ -126,6 +126,38 @@ const LIKERT5 = [
   { value:4, da:"Meget ofte",    en:"Very Often" },
 ];
 
+/* ═══════════════════════════════════════════════════════
+   Supplerende spørgsmål — IKKE en del af ASRS-scoringen.
+   Belyser DSM-5-kriterium B (debut før 12), C (flere
+   sammenhænge) og D (funktionsnedsættelse), så rapporten
+   kan vurdere dem i stedet for kun at forklare dem.
+   ═══════════════════════════════════════════════════════ */
+const ONSET_OPTS = [
+  { value:0, da:"Nej, slet ikke" },
+  { value:1, da:"Måske enkelte" },
+  { value:2, da:"Ja, flere af dem" },
+  { value:3, da:"Ja, tydeligt" },
+];
+const IMPAIR_OPTS = [
+  { value:0, da:"Slet ikke" },
+  { value:1, da:"I mindre grad" },
+  { value:2, da:"En del" },
+  { value:3, da:"I høj grad" },
+];
+const SUPP_ITEMS = [
+  { id:19, part:"C", section:"onset", domain:"onset", options:ONSET_OPTS,
+    da:"Kan du genkende flere af disse vanskeligheder allerede fra din barndom eller skoletid (før 12-årsalderen)?" },
+  { id:20, part:"C", section:"impairment", domain:"impairment", options:IMPAIR_OPTS,
+    da:"I hvor høj grad påvirker vanskelighederne dit arbejde eller studie?" },
+  { id:21, part:"C", section:"impairment", domain:"impairment", options:IMPAIR_OPTS,
+    da:"I hvor høj grad påvirker de dine nære relationer (familie, venner, parforhold)?" },
+  { id:22, part:"C", section:"impairment", domain:"impairment", options:IMPAIR_OPTS,
+    da:"I hvor høj grad påvirker de din dagligdag (økonomi, husholdning, aftaler, tidsstyring)?" },
+];
+// Full question sequence (ASRS 18 + 4 supplementary). calcASRS still scores
+// only ASRS_ITEMS, so the supplementary answers never affect the ASRS result.
+const ALL_ITEMS = ASRS_ITEMS.concat(SUPP_ITEMS);
+
 /* ═══════ HELPERS ═══════ */
 function getAgeFromBirthYear(by) {
   const now = new Date();
@@ -167,15 +199,22 @@ function calcASRS(answers) {
   const totalMax = inattMax + hyperMax;
   const totalPct = Math.round((totalSum / totalMax) * 100);
 
-  // Level based on Part A
+  // Level based on Part A. ASRS is a BINARY screener: >=4 of 6 = positive screen.
+  // We keep an internal three-way band (for symptom-load nuance) but label it
+  // honestly — 2-3 is still a negative screen, just with some symptoms present.
   let level, label, color;
   if (partAAbove >= 4) {
-    level = "high"; label = "Høj sandsynlighed"; color = "#C0392B";
+    level = "high"; label = "Positiv screening"; color = "#C0392B";
   } else if (partAAbove >= 2) {
-    level = "moderate"; label = "Moderat sandsynlighed"; color = "#D4920B";
+    level = "moderate"; label = "Symptomer til stede"; color = "#D4920B";
   } else {
-    level = "low"; label = "Lav sandsynlighed"; color = "#3B9979";
+    level = "low"; label = "Negativ screening"; color = "#3B9979";
   }
+
+  // DSM-5-style symptom counts: how many items in each domain are endorsed at
+  // "Ofte"(3) or "Meget ofte"(4). Adult diagnostic threshold is >=5 per domain.
+  const inattSymptoms = inattItems.filter(q => (answers[q.id] ?? 0) >= 3).length;
+  const hyperSymptoms = hyperItems.filter(q => (answers[q.id] ?? 0) >= 3).length;
 
   // Profile type
   let profileType;
@@ -191,7 +230,28 @@ function calcASRS(answers) {
     inattPct, hyperPct, totalPct,
     inattSum, hyperSum, totalSum,
     inattMax, hyperMax, totalMax,
+    inattSymptoms, hyperSymptoms,
     level, label, color, profileType,
+  };
+}
+
+/* Supplementary scoring — DSM-5 criteria B (onset), C (settings), D (impairment).
+   Self-report only; informs the report but never the ASRS screen. */
+function calcSupplementary(answers) {
+  const onset = answers[19];
+  const impW = answers[20], impR = answers[21], impD = answers[22];
+  const impVals = [impW, impR, impD].filter(v => v != null);
+  const settingsAffected = impVals.filter(v => v >= 2).length; // "En del" or higher
+  const maxImpair = impVals.length ? Math.max(...impVals) : null;
+  return {
+    childhoodOnset: onset != null ? onset : null,
+    onsetMeets: onset != null ? (onset >= 2) : null,               // "Ja, flere"+
+    impairWork: impW != null ? impW : null,
+    impairRel: impR != null ? impR : null,
+    impairDaily: impD != null ? impD : null,
+    settingsAffected: impVals.length ? settingsAffected : null,
+    settingsMeets: impVals.length ? (settingsAffected >= 2) : null, // criterion C proxy
+    impairmentMeets: maxImpair != null ? (maxImpair >= 2) : null,   // criterion D
   };
 }
 
@@ -269,11 +329,11 @@ function Intro({ onStart }) {
         'Har du ', React.createElement('em', { style: { fontStyle:'italic', color:'var(--accent)' } }, 'ADHD'), '-træk?'
       ),
       React.createElement('p', { style: S.lead },
-        'Verdens mest anvendte ADHD-screeningsværktøj for voksne. Udviklet af WHO i samarbejde med førende ADHD-forskere. 18 spørgsmål — ca. 5 minutter.'
+        'Verdens mest anvendte ADHD-screeningsværktøj for voksne. Udviklet af WHO i samarbejde med førende ADHD-forskere. 18 ASRS-spørgsmål plus 4 uddybende om barndom og funktion — ca. 6 minutter.'
       ),
       React.createElement('div', { style: S.meta },
-        React.createElement('span', { style: S.metaItem }, React.createElement('strong', { style: S.metaStrong }, '18'), ' spørgsmål'),
-        React.createElement('span', { style: S.metaItem }, React.createElement('strong', { style: S.metaStrong }, '5'), ' minutter'),
+        React.createElement('span', { style: S.metaItem }, React.createElement('strong', { style: S.metaStrong }, '22'), ' spørgsmål'),
+        React.createElement('span', { style: S.metaItem }, React.createElement('strong', { style: S.metaStrong }, '6'), ' minutter'),
         React.createElement('span', { style: S.metaItem }, React.createElement('strong', { style: S.metaStrong }, '2'), ' domæner'),
         React.createElement('span', { style: S.metaItem }, React.createElement('strong', { style: S.metaStrong }, 'Gratis'), ' resultat')
       ),
@@ -317,7 +377,11 @@ function Intro({ onStart }) {
 
 function Question({ item, value, onSelect, index, total, onPrev, onNext, canNext }) {
   const pct = ((index + 1) / total) * 100;
-  const partLabel = item.part === "A" ? "Del A · Screening" : "Del B · Supplerende vurdering";
+  const opts = item.options || LIKERT5;
+  const partLabel = item.part === "A" ? "Del A · Screening"
+    : item.part === "B" ? "Del B · Supplerende vurdering"
+    : item.section === "onset" ? "Uddybende · Barndom"
+    : "Uddybende · Funktion i hverdagen";
   return React.createElement('div', { style: S.container },
     React.createElement('div', { style: S.progress },
       React.createElement('div', { style: S.barBg },
@@ -330,7 +394,7 @@ function Question({ item, value, onSelect, index, total, onPrev, onNext, canNext
       React.createElement('div', { style: { fontSize:'0.68rem', color:'var(--accent)', textTransform:'uppercase', letterSpacing:'0.15em', marginBottom:16, fontWeight:600 } }, partLabel),
       React.createElement('div', { style: { fontFamily:'var(--serif)', fontSize:'clamp(1.2rem,3.5vw,1.55rem)', fontWeight:500, lineHeight:1.4, marginBottom:36, letterSpacing:'-0.01em', minHeight:80 } }, item.da),
       React.createElement('div', { style: { display:'flex', flexDirection:'column', gap:10 } },
-        LIKERT5.map(opt =>
+        opts.map(opt =>
           React.createElement('button', {
             key: opt.value,
             onClick: () => onSelect(opt.value),
@@ -368,7 +432,7 @@ function Question({ item, value, onSelect, index, total, onPrev, onNext, canNext
       React.createElement('div', { style: { textAlign:'center', fontSize:'0.72rem', color:'var(--text-3)', marginTop:20 } },
         React.createElement('kbd', { style: { background:'var(--bg-card)', border:'1px solid var(--border)', padding:'2px 6px', borderRadius:4, fontFamily:'monospace', fontSize:'0.68rem' } }, '1'),
         '–',
-        React.createElement('kbd', { style: { background:'var(--bg-card)', border:'1px solid var(--border)', padding:'2px 6px', borderRadius:4, fontFamily:'monospace', fontSize:'0.68rem' } }, '5'),
+        React.createElement('kbd', { style: { background:'var(--bg-card)', border:'1px solid var(--border)', padding:'2px 6px', borderRadius:4, fontFamily:'monospace', fontSize:'0.68rem' } }, String(opts.length)),
         ' vælg · ',
         React.createElement('kbd', { style: { background:'var(--bg-card)', border:'1px solid var(--border)', padding:'2px 6px', borderRadius:4, fontFamily:'monospace', fontSize:'0.68rem' } }, 'Enter'),
         ' næste · ',
@@ -424,7 +488,7 @@ function Results({ profile, birthYear, answers, testStartId, testStartedAt, item
         birth_year: birthYear,
         age,
         age_group: getAgeGroup(age),
-        answers: ASRS_ITEMS.map(q => ({
+        answers: ALL_ITEMS.map(q => ({
           id: q.id, part: q.part, domain: q.domain, text: q.da, chosen: answers[q.id] ?? null
         }))
       };
@@ -435,7 +499,7 @@ function Results({ profile, birthYear, answers, testStartId, testStartedAt, item
         data.answers = HB_ANALYTICS.enrichAnswersWithTiming(data.answers, itemTimerRef.current);
       }
       if (window.HB_ANALYTICS && testStartId) {
-        HB_ANALYTICS.updateTestStart(testStartId, { completed: true, last_item_index: 18 });
+        HB_ANALYTICS.updateTestStart(testStartId, { completed: true, last_item_index: ALL_ITEMS.length });
       }
       HB_PAY.saveResults('adhd', data);
       HB_PAY.renderSavePrompt('hb-save-prompt-adhd', 'adhd');
@@ -452,9 +516,9 @@ function Results({ profile, birthYear, answers, testStartId, testStartedAt, item
       }, profile.label),
       React.createElement('h2', { style: { fontFamily:'var(--serif)', fontSize:'clamp(1.6rem,4vw,2.2rem)', fontWeight:700, letterSpacing:'-0.03em', marginBottom:8 } }, 'Din ADHD-screening'),
       React.createElement('p', { style: { color:'var(--text-2)', fontSize:'0.9rem', maxWidth:500, margin:'0 auto', lineHeight:1.65 } },
-        profile.level === 'high' ? 'Din screening indikerer at du har flere symptomer der er konsistente med ADHD. Vi anbefaler at du drøfter dette med en læge.' :
-        profile.level === 'moderate' ? 'Din screening viser nogle symptomer der kan være forenelige med ADHD. Overvej at tale med en læge for nærmere vurdering.' :
-        'Din screening viser få symptomer på ADHD. Hvis du oplever vedvarende vanskeligheder, kan du altid konsultere en læge.'
+        profile.level === 'high' ? 'Din screening er positiv: 4 eller flere af de 6 nøglespørgsmål ligger i det klinisk signifikante område. Det bekræfter ikke en ADHD-diagnose, men en formel udredning er relevant.' :
+        profile.level === 'moderate' ? 'Din screening er under tærsklen for en positiv screening (≥4 af 6), men du har nogle symptomer til stede. Hvis de påvirker din hverdag, kan du drøfte det med din læge.' :
+        'Din screening er negativ — få symptomer i det klinisk signifikante område. Oplever du alligevel vedvarende vanskeligheder, så tal med din læge.'
       )
     ),
 
@@ -468,8 +532,8 @@ function Results({ profile, birthYear, answers, testStartId, testStartedAt, item
       ),
       React.createElement('p', { style: { fontSize:'0.85rem', color:'var(--text-2)', lineHeight:1.6, maxWidth:420, margin:'0 auto' } },
         profile.partAAboveThreshold
-          ? `${profile.partAScore} af 6 screening-spørgsmål ligger i det klinisk signifikante område. Score ≥ 4 er konsistent med ADHD og anbefaler videre udredning.`
-          : `${profile.partAScore} af 6 screening-spørgsmål ligger i det klinisk signifikante område. Score under 4 tyder på lavere sandsynlighed for ADHD.`
+          ? `${profile.partAScore} af 6 screening-spørgsmål ligger i det klinisk signifikante område. Score ≥ 4 er en positiv screening og taler for videre udredning — men er ikke i sig selv en diagnose.`
+          : `${profile.partAScore} af 6 screening-spørgsmål ligger i det klinisk signifikante område. Score under 4 er en negativ screening — det udelukker dog ikke ADHD, hvis du oplever vedvarende vanskeligheder.`
       )
     ),
 
@@ -591,12 +655,12 @@ function App() {
   };
 
   const handleSelect = (val) => {
-    if (itemTimerRef.current) itemTimerRef.current.mark(String(ASRS_ITEMS[currentQ].id));
-    setAnswers(prev => ({ ...prev, [ASRS_ITEMS[currentQ].id]: val }));
+    if (itemTimerRef.current) itemTimerRef.current.mark(String(ALL_ITEMS[currentQ].id));
+    setAnswers(prev => ({ ...prev, [ALL_ITEMS[currentQ].id]: val }));
   };
 
   const handleNext = () => {
-    if (currentQ < ASRS_ITEMS.length - 1) {
+    if (currentQ < ALL_ITEMS.length - 1) {
       setCurrentQ(currentQ + 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
@@ -615,10 +679,11 @@ function App() {
   useEffect(() => {
     if (phase !== "test") return;
     const handler = (e) => {
+      const optCount = (ALL_ITEMS[currentQ].options || LIKERT5).length;
       const num = parseInt(e.key);
-      if (num >= 1 && num <= 5) {
+      if (num >= 1 && num <= optCount) {
         handleSelect(num - 1);
-      } else if (e.key === "Enter" && answers[ASRS_ITEMS[currentQ].id] !== undefined) {
+      } else if (e.key === "Enter" && answers[ALL_ITEMS[currentQ].id] !== undefined) {
         handleNext();
       } else if (e.key === "ArrowLeft") {
         handlePrev();
@@ -630,18 +695,18 @@ function App() {
 
   if (phase === "intro") return React.createElement(Intro, { onStart: handleStart });
   if (phase === "test") return React.createElement(Question, {
-    item: ASRS_ITEMS[currentQ],
-    value: answers[ASRS_ITEMS[currentQ].id],
+    item: ALL_ITEMS[currentQ],
+    value: answers[ALL_ITEMS[currentQ].id],
     onSelect: handleSelect,
     index: currentQ,
-    total: ASRS_ITEMS.length,
+    total: ALL_ITEMS.length,
     onPrev: handlePrev,
     onNext: handleNext,
-    canNext: answers[ASRS_ITEMS[currentQ].id] !== undefined
+    canNext: answers[ALL_ITEMS[currentQ].id] !== undefined
   });
   if (phase === "calculating") return React.createElement(Calculating, {
     onDone: () => {
-      setProfile(calcASRS(answers));
+      setProfile({ ...calcASRS(answers), ...calcSupplementary(answers) });
       setPhase("results");
     }
   });
