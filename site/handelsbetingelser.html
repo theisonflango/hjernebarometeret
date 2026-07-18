@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Handelsbetingelser — Hjernebarometeret</title>
+<meta name="description" content="Handelsbetingelser for køb af rapporter på Hjernebarometeret.dk — priser, betaling, levering, fortrydelsesret, abonnement og klageadgang.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,500&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/styles.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#faf9f7;--bg-card:#fff;--bg-warm:#f5f2ee;--bg-dark:#1c1b1a;--text:#1c1b1a;--text-2:#5a5650;--text-3:#8a857e;--text-4:#b5b0a8;--border:#e8e5e0;--border-2:#d5d0c9;--accent:#2c5f4b;--accent-light:#e8f0ec;--serif:'Source Serif 4',Georgia,serif;--sans:'Figtree',system-ui,sans-serif}
+html{scroll-behavior:smooth}body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;-webkit-font-smoothing:antialiased;font-size:15px;line-height:1.6}
+::selection{background:var(--accent);color:#fff}a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.page-hd{padding:100px clamp(20px,4vw,48px) 12px;max-width:760px;margin:0 auto}
+.page-hd .back{font-size:13px;color:var(--accent);font-weight:500;margin-bottom:16px;display:inline-block}
+.page-hd h1{font-family:var(--serif);font-size:clamp(28px,5vw,40px);font-weight:600;letter-spacing:-.03em;margin-bottom:8px}
+.page-hd .upd{font-size:13px;color:var(--text-3)}
+.legal{max-width:760px;margin:0 auto;padding:24px clamp(20px,4vw,48px) 80px}
+.legal h2{font-family:var(--serif);font-size:20px;font-weight:600;letter-spacing:-.02em;margin:34px 0 12px;padding-top:8px}
+.legal h3{font-size:15px;font-weight:600;margin:20px 0 8px}
+.legal p{font-size:15px;color:var(--text-2);line-height:1.8;margin-bottom:14px}
+.legal ul{margin:0 0 14px 20px}.legal li{font-size:15px;color:var(--text-2);line-height:1.8;margin-bottom:6px}
+.legal strong{color:var(--text);font-weight:600}
+.legal .toc{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:18px 22px;margin:20px 0 8px}
+.legal .toc h4{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);margin-bottom:10px}
+.legal .toc ol{margin:0 0 0 18px;columns:2;column-gap:28px}.legal .toc li{font-size:13.5px;margin-bottom:5px}
+@media(max-width:560px){.legal .toc ol{columns:1}}
+.ident{background:var(--accent-light);border:1px solid #cfe0d7;border-radius:12px;padding:18px 22px;margin:8px 0 6px}
+.ident p{margin:4px 0;color:var(--text)}
+mark{background:#fff3cd;color:#7d5e00;padding:1px 6px;border-radius:4px;font-weight:600;font-family:var(--mono,monospace);font-size:.92em}
+.disclaimer-box{background:var(--bg-warm);border-radius:12px;padding:16px 20px;margin:24px 0;font-size:13px;color:var(--text-3);line-height:1.7}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div id="site-nav"></div>
+
+<section class="page-hd">
+  <a href="index.html" class="back">← Tilbage til forsiden</a>
+  <h1>Handelsbetingelser</h1>
+  <p class="upd">Gældende for køb foretaget på hjernebarometeret.dk · senest opdateret 2026</p>
+</section>
+
+<div class="legal">
+  <div class="toc">
+    <h4>Indhold</h4>
+    <ol>
+      <li><a href="#virksomhed">Virksomhedsoplysninger</a></li>
+      <li><a href="#produkter">Produkter og priser</a></li>
+      <li><a href="#betaling">Betaling</a></li>
+      <li><a href="#levering">Levering og adgang</a></li>
+      <li><a href="#abonnement">Abonnement (Ubegrænset)</a></li>
+      <li><a href="#fortrydelse">Fortrydelsesret</a></li>
+      <li><a href="#reklamation">Reklamation og mangler</a></li>
+      <li><a href="#klage">Klageadgang</a></li>
+      <li><a href="#ansvar">Ansvarsfraskrivelse</a></li>
+      <li><a href="#persondata">Persondata</a></li>
+    </ol>
+  </div>
+
+  <h2 id="virksomhed">1. Virksomhedsoplysninger</h2>
+  <p>Hjernebarometeret.dk drives af:</p>
+  <div class="ident">
+    <p><strong>Theison</strong> <mark>[BEKRÆFT: præcist CVR-registreret navn]</mark></p>
+    <p>CVR-nr.: 34360642</p>
+    <p>Adresse: <mark>[UDFYLD: gade, postnr. og by]</mark></p>
+    <p>E-mail: <a href="mailto:support@hjernebarometeret.dk">support@hjernebarometeret.dk</a></p>
+    <p>Telefon: +45 50 20 18 16</p>
+  </div>
+  <p>Alle priser er i danske kroner (DKK) og <strong>inkl. moms</strong>.</p>
+
+  <h2 id="produkter">2. Produkter og priser</h2>
+  <p>Hjernebarometeret tilbyder gratis selvtests. Selve testene og et basalt resultat er altid gratis. Du kan tilkøbe en dybdegående rapport i tre varianter:</p>
+  <ul>
+    <li><strong>Enkelt rapport — 49 kr.</strong> Adgang til den fulde rapport for én test. Engangskøb, kræver ikke konto.</li>
+    <li><strong>4-pak — 99 kr.</strong> Fire rapport-credits, som hver låser én rapport op. Kræver en gratis konto, så dine credits kan gemmes.</li>
+    <li><strong>Ubegrænset — 89 kr./md.</strong> Løbende abonnement med adgang til alle rapporter, så længe abonnementet er aktivt. Kan opsiges når som helst.</li>
+  </ul>
+  <p>Rapporternes indhold er en fortolkning af dine testsvar til informations- og selvindsigtsformål. Se også afsnit 9 om ansvarsfraskrivelse.</p>
+
+  <h2 id="betaling">3. Betaling</h2>
+  <p>Betaling håndteres sikkert af vores betalingsudbyder <strong>Stripe</strong>. Vi modtager og opbevarer ikke dine fulde kortoplysninger — de indtastes direkte hos Stripe. Vi accepterer de betalingskort og -metoder, der vises i betalingsvinduet. Beløbet trækkes ved gennemførelse af købet (for abonnement: ved hver fornyelse).</p>
+
+  <h2 id="levering">4. Levering og adgang</h2>
+  <p>Der er tale om <strong>digitalt indhold</strong>. Efter gennemført betaling gøres rapporten tilgængelig <strong>med det samme</strong> i din browser, og du kan downloade den som PDF. Køber du uden at oprette en konto, er adgangen knyttet til den enhed/browser, du købte fra — vi anbefaler at du opretter en gratis konto, så din adgang kan genfindes på tværs af enheder. Har du problemer med at få adgang efter et køb, kontakt os på <a href="mailto:kontakt@hjernebarometeret.dk">kontakt@hjernebarometeret.dk</a>, så hjælper vi dig.</p>
+
+  <h2 id="abonnement">5. Abonnement (Ubegrænset)</h2>
+  <p>Abonnementet "Ubegrænset" (89 kr./md.) fornyes automatisk hver måned, indtil du opsiger det. Du kan <strong>opsige når som helst</strong> — opsigelsen træder i kraft ved udgangen af den betalte periode, og du bevarer adgangen indtil da. Der sker ingen tilbagebetaling for en allerede påbegyndt abonnementsperiode. Opsigelse sker via din profil eller ved at kontakte os.</p>
+
+  <h2 id="fortrydelse">6. Fortrydelsesret</h2>
+  <p>Som forbruger har du som udgangspunkt <strong>14 dages fortrydelsesret</strong> efter forbrugeraftaleloven, regnet fra aftalens indgåelse.</p>
+  <p><strong>Vigtig undtagelse for digitalt indhold:</strong> Fordi rapporten leveres digitalt og gøres tilgængelig med det samme, beder vi dig ved købet om at give <strong>udtrykkeligt samtykke</strong> til, at leveringen påbegyndes straks, og at <strong>anerkende, at din fortrydelsesret dermed bortfalder</strong>, når leveringen er begyndt (jf. forbrugeraftaleloven § 18, stk. 2, nr. 13). Giver du dette samtykke og påbegyndes leveringen, kan købet af den pågældende rapport ikke fortrydes.</p>
+  <p>For abonnementet gælder de sædvanlige 14 dages fortrydelsesret fra oprettelsen, medmindre du har givet tilsvarende samtykke til øjeblikkelig levering af digitalt indhold. Uanset dette kan abonnementet altid opsiges fremadrettet, jf. afsnit 5.</p>
+  <p>Ønsker du at gøre din fortrydelsesret gældende, hvor den finder anvendelse, kan du kontakte os på <a href="mailto:kontakt@hjernebarometeret.dk">kontakt@hjernebarometeret.dk</a> inden fristens udløb.</p>
+
+  <h2 id="reklamation">7. Reklamation og mangler</h2>
+  <p>Købelovens regler om mangler gælder for dit køb. Hvis en rapport ikke leveres som beskrevet, eller der er en teknisk mangel, har du ret til at få forholdet afhjulpet — typisk ved at vi giver dig adgang på ny eller tilbagebetaler beløbet. Reklamation sker ved at kontakte <a href="mailto:kontakt@hjernebarometeret.dk">kontakt@hjernebarometeret.dk</a> inden for rimelig tid efter, at du har opdaget manglen.</p>
+
+  <h2 id="klage">8. Klageadgang</h2>
+  <p>Er du ikke tilfreds, og kan vi ikke finde en løsning sammen, kan du klage til:</p>
+  <ul>
+    <li><strong>Nævnenes Hus, Center for Klageløsning</strong>, Toldboden 2, 8800 Viborg — <a href="https://naevneneshus.dk" target="_blank" rel="noopener">naevneneshus.dk</a> (se også <a href="https://www.forbrug.dk" target="_blank" rel="noopener">forbrug.dk</a>).</li>
+    <li>Handler du fra et andet EU-land, kan du bruge EU-Kommissionens <strong>online klageportal (ODR)</strong>: <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener">ec.europa.eu/consumers/odr</a>. Angiv vores e-mail: kontakt@hjernebarometeret.dk.</li>
+  </ul>
+
+  <h2 id="ansvar">9. Ansvarsfraskrivelse</h2>
+  <p>Hjernebarometerets tests og rapporter er <strong>screeningsværktøjer til selvindsigt og læring — ikke kliniske diagnoser</strong>. De erstatter ikke undersøgelse, diagnose eller behandling hos en læge, psykolog eller anden autoriseret sundhedsperson. Resultaterne er estimater og skal læses med det forbehold. Har du sundhedsmæssige bekymringer, opfordrer vi dig altid til at søge professionel rådgivning.</p>
+
+  <h2 id="persondata">10. Persondata</h2>
+  <p>Vi behandler dine personoplysninger i overensstemmelse med vores <a href="privatlivspolitik.html">privatlivspolitik</a>, som beskriver hvilke data vi indsamler, hvorfor, og hvilke rettigheder du har.</p>
+
+  <div class="disclaimer-box">
+    Disse handelsbetingelser er udarbejdet som et gennemarbejdet udkast, der dækker de lovpligtige elementer for salg til forbrugere i Danmark/EU (e-handelsloven, forbrugeraftaleloven, aftaleloven). Da produktet berører sundhedsnære emner, anbefales en juridisk gennemgang før lancering. Felter markeret med gult skal udfyldes med virksomhedens faktiske oplysninger.
+  </div>
+</div>
+
+<div id="site-footer"></div>
+<script src="shared/nav.js"></script>
+<script src="shared/footer.js"></script>
+<script src="shared/auth.js"></script>
+<script src="shared/coupon.js"></script>
+</body>
+</html>

@@ -488,35 +488,40 @@ function Results({ profile, birthYear, answers, testStartId, testStartedAt, item
       )
     ),
 
-    // Per-item breakdown
-    React.createElement('div', { style: { ...S.cardLg, marginBottom:24 } },
-      React.createElement('h3', { style: { fontFamily:'var(--serif)', fontSize:'1.1rem', fontWeight:600, marginBottom:16, textAlign:'center' } }, 'Dine svar'),
-      ASRS_ITEMS.map((q, i) => {
-        const val = answers[q.id] ?? 0;
-        const isPartA = q.part === "A";
-        const aboveThreshold = isPartA && val >= q.threshold;
-        return React.createElement('div', { key: q.id, style: { padding:'10px 0', borderBottom: i < 17 ? '1px solid var(--border)' : 'none', display:'flex', gap:12, alignItems:'flex-start' } },
-          React.createElement('span', { style: { fontSize:'0.72rem', color:'var(--text-3)', fontWeight:600, minWidth:24, paddingTop:2 } }, `${q.id}.`),
-          React.createElement('div', { style: { flex:1 } },
-            React.createElement('p', { style: { fontSize:'0.82rem', color:'var(--text)', lineHeight:1.5, marginBottom:4 } }, q.da),
-            React.createElement('span', { style: { fontSize:'0.75rem', fontWeight:500, color: aboveThreshold ? '#C0392B' : val >= 2 ? '#D4920B' : 'var(--green)' } }, LIKERT5[val].da)
-          ),
-          isPartA && aboveThreshold && React.createElement('span', { style: { fontSize:'0.65rem', background:'#fde8e8', color:'#C0392B', padding:'2px 8px', borderRadius:10, fontWeight:600, whiteSpace:'nowrap', marginTop:2 } }, '⚠ Over cutoff')
-        );
-      })
-    ),
-
-    // Recommendation
-    profile.level !== 'low' && React.createElement('div', { style: { ...S.cardLg, marginBottom:24, borderColor: profile.level === 'high' ? '#C0392B' : '#D4920B', borderWidth:2 } },
-      React.createElement('h3', { style: { fontFamily:'var(--serif)', fontSize:'1.1rem', fontWeight:600, marginBottom:10 } }, '📋 Anbefaling'),
-      React.createElement('p', { style: { fontSize:'0.88rem', color:'var(--text-2)', lineHeight:1.7, marginBottom:16 } },
-        profile.level === 'high'
-          ? 'Din screening viser et mønster der er konsistent med ADHD. Vi anbefaler at du tager kontakt til din egen læge med henblik på en formel udredning. Tag evt. denne screenings resultater med til samtalen.'
-          : 'Din screening viser nogle træk der kan pege i retning af ADHD. Det kan være relevant at tale med din læge, især hvis symptomerne påvirker din hverdag.'
+    // Paywall — the deep breakdown (per-item, subtype, differential, treatment,
+    // action plan, doctor letter, PDF) lives in the paid report at /rapporter/adhd.html.
+    React.createElement('div', { style: { marginTop:8, marginBottom:24, padding:'28px 24px', borderRadius:16, background:'linear-gradient(135deg,#fff 0%,#eaf1f7 100%)', border:'1.5px solid rgba(46,107,158,0.28)', textAlign:'center' } },
+      React.createElement('div', { style: { fontSize:30, marginBottom:6 } }, '🔒'),
+      React.createElement('h3', { style: { fontFamily:'var(--serif)', fontSize:'1.2rem', fontWeight:600, marginBottom:6 } }, 'Få din fulde ADHD-rapport'),
+      React.createElement('p', { style: { color:'var(--text-2)', fontSize:'0.82rem', marginBottom:16, lineHeight:1.6, maxWidth:440, marginLeft:'auto', marginRight:'auto' } }, 'Dybdegående rapport med subtypeanalyse, differentialdiagnoser, per-spørgsmål-gennemgang, behandlingsguide (medicin + terapi), personlig handlingsplan, samtaleguide til din læge og PDF-download.'),
+      React.createElement('div', { style: { fontSize:'1.75rem', fontWeight:700, color:'#2e6b9e', marginBottom:4 } }, '49 kr ', React.createElement('span', { style: { fontSize:'0.8rem', fontWeight:400, color:'var(--text-3)' } }, 'engangskøb')),
+      React.createElement('table', { style: { width:'100%', maxWidth:380, margin:'16px auto', fontSize:'0.72rem', borderCollapse:'collapse', textAlign:'left' } },
+        React.createElement('thead', null,
+          React.createElement('tr', { style: { borderBottom:'1px solid var(--border-2)' } },
+            React.createElement('th', { style: { padding:'6px 8px', color:'var(--text-3)', fontWeight:500 } }, 'Indhold'),
+            React.createElement('th', { style: { padding:'6px 8px', textAlign:'center', color:'var(--text-3)', fontWeight:500 } }, 'Gratis'),
+            React.createElement('th', { style: { padding:'6px 8px', textAlign:'center', color:'#2e6b9e', fontWeight:600 } }, 'Rapport')
+          )
+        ),
+        React.createElement('tbody', null,
+          [['Part A screening-resultat','✓','✓'],['Symptomprofil (2 domæner)','✓','✓'],['Subtypeklassificering','—','✓'],['Per-spørgsmål-gennemgang','—','✓'],['Differentialdiagnoser','—','✓'],['Behandlingsguide (medicin + terapi)','—','✓'],['Personlig handlingsplan','—','✓'],['Samtaleguide til lægen','—','✓'],['PDF-rapport','—','✓']].map((row, i) =>
+            React.createElement('tr', { key:i, style: { borderBottom:'1px solid var(--border)' } },
+              React.createElement('td', { style: { padding:'6px 8px', color:'var(--text-2)' } }, row[0]),
+              React.createElement('td', { style: { padding:'6px 8px', textAlign:'center', color: row[1]==='✓' ? '#2c5f4b' : 'var(--text-4)' } }, row[1]),
+              React.createElement('td', { style: { padding:'6px 8px', textAlign:'center', color: row[2]==='✓' ? '#2e6b9e' : 'var(--text-4)' } }, row[2])
+            )
+          )
+        )
       ),
-      React.createElement('div', { style: { padding:'14px 16px', background:'var(--bg-warm)', borderRadius:8, fontSize:'0.82rem', color:'var(--text-2)', lineHeight:1.6 } },
-        React.createElement('strong', null, '💡 Vidste du? '),
-        'ASRS er en screening — ikke en diagnose. En formel ADHD-udredning inkluderer typisk en klinisk samtale, udviklingshistorie, og strukturerede diagnostiske interviews som fx DIVA-5.'
+      React.createElement('button', { onClick: () => { if (window.HB_PAY) HB_PAY.checkout('single', 'adhd'); }, style: { background:'var(--bg-dark)', color:'#fff', border:'none', padding:'13px 28px', borderRadius:10, fontSize:14, fontWeight:600, width:'100%', maxWidth:340, cursor:'pointer', marginBottom:8, fontFamily:'var(--sans)' } }, 'Køb rapport — 49 kr'),
+      React.createElement('br'),
+      React.createElement('button', { onClick: () => { if (window.HB_PAY) HB_PAY.checkout('unlimited', 'adhd'); }, style: { background:'transparent', color:'#2e6b9e', border:'1.5px solid #2e6b9e', padding:'11px 24px', borderRadius:10, fontSize:13, fontWeight:500, cursor:'pointer', marginTop:4, fontFamily:'var(--sans)' } }, 'Eller: Ubegrænset — 89 kr/md'),
+      React.createElement('div', { style: { display:'flex', justifyContent:'center', gap:14, marginTop:12, fontSize:11, color:'var(--text-4)' } },
+        React.createElement('span', null, '🔒 Sikker betaling'),
+        React.createElement('span', null, '⚡ Øjeblikkelig adgang')
+      ),
+      React.createElement('div', { style: { marginTop:14 } },
+        React.createElement('a', { href:'/rapporter/adhd.html', style: { fontSize:'0.72rem', color:'var(--text-3)', textDecoration:'underline' } }, 'Har du allerede adgang eller credits? Se din fulde rapport →')
       )
     ),
 

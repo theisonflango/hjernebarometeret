@@ -871,6 +871,7 @@ body {
 <script src="../shared/auth.js"></script>
 <script src="../shared/coupon.js"></script>
 <script src="../shared/payment.js"></script>
+<script src="../shared/analytics.js"></script>
 <script src="../shared/normdata.js"></script>
 <script src="../shared/profilecard.js"></script>
 
@@ -1002,6 +1003,7 @@ function startTest() {
     setTimeout(function() { sel.style.borderColor = 'var(--border)'; }, 2000);
     return;
   }
+  if (window.HB_ANALYTICS) HB_ANALYTICS.logTestStart('ocd', 'v1');
   // Shuffle items
   shuffledItems = items.slice();
   for (var i = shuffledItems.length - 1; i > 0; i--) {
@@ -1019,6 +1021,7 @@ function startTest() {
 function forceStart() {
   document.getElementById('underAgeWarning').style.display = 'none';
   document.querySelector('.btn-start').style.display = '';
+  if (window.HB_ANALYTICS) HB_ANALYTICS.logTestStart('ocd', 'v1');
   shuffledItems = items.slice();
   for (var i = shuffledItems.length - 1; i > 0; i--) {
     var j = Math.floor(Math.random() * (i + 1));

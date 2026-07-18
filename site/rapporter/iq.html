@@ -89,7 +89,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:
   <section class="cover">
     <div class="logo">☉ Hjernebarometeret</div>
     <h1>Din IQ-rapport</h1>
-    <p style="opacity:.6;font-size:14px">40 spørgsmål — 6 kognitive domæner</p>
+    <p style="opacity:.6;font-size:14px">28 nonverbale opgaver — matrix · figurserier · rotation</p>
     <div class="profile-label" id="cover-iq"></div>
     <div class="date" id="cover-date"></div>
     <div class="disclaimer">Denne rapport er baseret på en online IQ-screening. Resultater er estimerede og bør ikke forveksles med en klinisk IQ-test (fx WAIS-IV) administreret af en psykolog.</div>
@@ -99,9 +99,9 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:
 
   <section><h2>🧠 Din IQ-score</h2><div id="iq-display"></div><div class="bell-curve" id="bell-curve"></div></section>
 
-  <section><h2>🕸️ Kognitiv profil</h2><p style="font-size:13px;color:var(--text-3);margin-bottom:8px">Dine 6 kognitive domæner. Jo længere fra midten, jo stærkere er du i det domæne.</p><div class="radar-container" id="radar"></div></section>
+  <section><h2>🕸️ Ræsonnementsprofil</h2><p style="font-size:13px;color:var(--text-3);margin-bottom:8px">Dine tre nonverbale ræsonnementstyper. Jo længere fra midten, jo stærkere er du i den type.</p><div class="radar-container" id="radar"></div></section>
 
-  <section><h2>📊 Detaljeret kategori-analyse</h2><p style="font-size:13px;color:var(--text-3);margin-bottom:20px">Dine scores på hvert kognitivt domæne med forklaring.</p><div id="categories-detail"></div></section>
+  <section><h2>📊 Detaljeret analyse per opgavetype</h2><p style="font-size:13px;color:var(--text-3);margin-bottom:20px">Din andel rigtige på hver af de tre opgavetyper, med forklaring.</p><div id="categories-detail"></div></section>
 
   <section><h2>💎 Styrker & udviklingsområder</h2><div class="sc-grid" id="strengths-dev"></div></section>
 
@@ -112,7 +112,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:
   <section><h2>📚 Ressourcer</h2><div id="resources"></div></section>
 
   <section style="background:var(--bg-warm)">
-    <p style="font-size:12px;color:var(--text-3);line-height:1.7"><strong>Om denne rapport:</strong> Denne IQ-screening er baseret på 40 spørgsmål fordelt på 6 kognitive domæner med vægtning efter sværhedsgrad og tidsbonus. Scoren er et <strong>estimat</strong> — kun en formel IQ-test (WAIS-IV, Raven's SPM) administreret af en autoriseret psykolog giver et klinisk valideret resultat. Online-tests har typisk en standardafvigelse på ±5-10 point vs. kliniske tests.</p>
+    <p style="font-size:12px;color:var(--text-3);line-height:1.7"><strong>Om denne rapport:</strong> Denne IQ-screening bygger på 28 nonverbale ræsonnementsopgaver — matrix-ræsonnement, figurserier og mental rotation — inspireret af det public-domain instrument ICAR (International Cognitive Ability Resource, Condon &amp; Revelle, 2014). Opgaverne genereres parametrisk, så svarnøglen udledes og ikke kan slås op. Scoren er et <strong>estimat</strong> korrigeret for gættesandsynlighed og angives som et interval (±10), fordi normerne kalibreres løbende ud fra deltagernes faktiske resultater. Kun en formel test (WAIS-IV, Raven's SPM) administreret af en autoriseret psykolog giver et klinisk valideret resultat.</p>
     <p style="font-size:11px;color:var(--text-4);margin-top:12px">© Hjernebarometeret.dk</p>
   </section>
 
@@ -131,41 +131,32 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:
    IQ-RAPPORT — Hjernebarometeret
    ═══════════════════════════════════════════════════ */
 
+// 3 nonverbale ræsonnementstyper (matcher den nye ICAR-inspirerede test)
 var CATS = {
-  pattern: { name:'Mønstergenkendelse', emoji:'🔷', color:'#6b4c9a', desc:'Evnen til at identificere mønstre, sekvenser og regler i visuel information. Fundamental for abstrakt tænkning og problemløsning.' },
-  logic:   { name:'Logisk ræsonnement', emoji:'🧩', color:'#2e86c1', desc:'Evnen til at drage logiske slutninger, identificere årsag-virkning og tænke systematisk.' },
-  spatial: { name:'Spatial evne', emoji:'📐', color:'#27ae60', desc:'Evnen til at visualisere og manipulere objekter i rummet. Vigtig for ingeniørarbejde, arkitektur og navigation.' },
-  memory:  { name:'Arbejdshukommelse', emoji:'🧠', color:'#e67e22', desc:'Evnen til at fastholde og bearbejde information på kort sigt. Fundamentet for al kompleks tænkning.' },
-  verbal:  { name:'Verbal ræsonnement', emoji:'📝', color:'#8e44ad', desc:'Evnen til at forstå og bruge sprog, ordforråd og verbale analogier. Vigtig for kommunikation og læring.' },
-  numerical:{ name:'Numerisk ræsonnement', emoji:'🔢', color:'#c0392b', desc:'Evnen til at arbejde med tal, mønstre og matematiske sammenhænge.' }
+  matrix:  { name:'Matrix-ræsonnement', emoji:'▦', color:'#6b4c9a', desc:'Evnen til at opdage abstrakte regler i et visuelt mønster og udlede den manglende brik. Kernen i flydende intelligens (Gf).' },
+  series:  { name:'Figurserier', emoji:'⋯', color:'#2e86c1', desc:'Evnen til at genkende en transformation der gentager sig og forudsige det næste led. Måler induktivt ræsonnement.' },
+  rotation:{ name:'Mental rotation', emoji:'⟳', color:'#27ae60', desc:'Evnen til at rotere en figur i forestillingen og genkende den fra en ny vinkel. En central spatial evne.' }
 };
 
 var CLS_DATA = {
-  'very-superior': { label:'Meget overlegen', range:'130+', pctDesc:'Top 2%', color:'#27ae60' },
-  'superior':      { label:'Overlegen', range:'120-129', pctDesc:'Top 10%', color:'#2e86c1' },
-  'high-average':  { label:'Over gennemsnit', range:'110-119', pctDesc:'Top 25%', color:'#6b4c9a' },
-  'average':       { label:'Gennemsnit', range:'90-109', pctDesc:'Midterste 50%', color:'#D4920B' },
-  'low-average':   { label:'Under gennemsnit', range:'80-89', pctDesc:'Nederste 25%', color:'#e67e22' },
-  'borderline':    { label:'Grænseområde', range:'70-79', pctDesc:'Nederste 10%', color:'#c0392b' },
-  'extremely-low': { label:'Meget lav', range:'<70', pctDesc:'Nederste 2%', color:'#c0392b' }
+  superior: { label:'Meget højt', range:'130+', pctDesc:'Top ~2%', color:'#27ae60' },
+  high:     { label:'Højt', range:'120-129', pctDesc:'Top ~10%', color:'#2e86c1' },
+  aboveAvg: { label:'Over gennemsnit', range:'110-119', pctDesc:'Top ~25%', color:'#6b4c9a' },
+  average:  { label:'Gennemsnitligt', range:'90-109', pctDesc:'Midterste ~50%', color:'#D4920B' },
+  belowAvg: { label:'Under gennemsnit', range:'80-89', pctDesc:'Nederste ~25%', color:'#e67e22' },
+  low:      { label:'Lavt', range:'<80', pctDesc:'Nederste ~10%', color:'#c0392b' }
 };
 
 var TRAINING = {
-  pattern: ['Løs matrixpuzzles og visuelle sekvensopgaver dagligt','Spil mønstergenkendelse-spil (Raven-lignende)','Øv dig i at finde regler i talrækker og figurserier'],
-  logic:   ['Løs logikopgaver og sudoku','Øv deduktiv ræsonnement med logikpuzzles','Læs om formel logik og argumentation'],
-  spatial: ['Brug 3D-puzzles, Rubiks kube eller origami','Øv mental rotation med apps som "Spatial Vis"','Tegn fra observation — styrker rumlig bevidsthed'],
-  memory:  ['Dual N-back træning (app: Brain Workshop)','Øv dig i at huske talrækker og ordlister','Lær hukommelsesteknikker: mindpalace, chunking'],
-  verbal:  ['Læs dagligt — varieret materiale','Krydsord og ordlege','Lær nye ord og begreber systematisk'],
-  numerical:['Øv hovedregning dagligt','Løs matematiske puzzles og talrækker','Brug apps som Brilliant.org til matematik']
+  matrix:  ['Løs matrix- og mønsteropgaver (Raven-lignende) dagligt','Træn abstrakt regel-genkendelse','Spil logik- og deduktionsspil'],
+  series:  ['Øv tal- og figursekvenser','Find reglen bag en serie før du svarer','Prøv induktive ræsonnementsopgaver'],
+  rotation:['Brug 3D-puzzles, Rubiks kube eller origami','Træn mental rotation med apps','Tegn objekter fra flere vinkler']
 };
 
 var CAREER_MAP = {
-  pattern: ['Datascientist','Forsker','Softwareudvikler','Matematiker'],
-  logic:   ['Advokat','Filosof','Systemarkitekt','Analytiker'],
-  spatial: ['Arkitekt','Ingeniør','Kirurg','Pilot','3D-designer'],
-  memory:  ['Simultantolk','Trader','Flyveleder','Skuespiller'],
-  verbal:  ['Forfatter','Journalist','Underviser','Kommunikationsrådgiver'],
-  numerical:['Økonom','Aktuar','Revisor','Kvantitativ analytiker']
+  matrix:  ['Datascientist','Forsker','Softwareudvikler','Analytiker'],
+  series:  ['Ingeniør','Matematiker','Systemarkitekt','Økonom'],
+  rotation:['Arkitekt','Kirurg','Pilot','3D-designer','Ingeniør']
 };
 
 function iqInterval(iq) {
@@ -173,11 +164,11 @@ function iqInterval(iq) {
   var hi = Math.min(160, iq + 7);
   return { lo: lo, hi: hi, str: lo + '–' + hi };
 }
-function pctInterval(iq) {
+function pctInterval(loIq, hiIq) {
   // Percentile from normal CDF approximation (mean=100, sd=15)
   function normCDF(x) { var z=(x-100)/15; var t=1/(1+0.2316419*Math.abs(z)); var d=0.3989422802*Math.exp(-z*z/2); var p=d*t*(0.3193815+t*(-0.3565638+t*(1.781478+t*(-1.8212560+t*1.330274)))); return z>0?1-p:p; }
-  var lo = Math.max(0.1, normCDF(iq - 7) * 100);
-  var hi = Math.min(99.9, normCDF(iq + 7) * 100);
+  var lo = Math.max(0.1, normCDF(loIq) * 100);
+  var hi = Math.min(99.9, normCDF(hiIq) * 100);
   return { lo: lo, hi: hi, str: Math.round(lo) + '–' + Math.round(hi) + '. percentil' };
 }
 
@@ -185,20 +176,24 @@ function buildReport(data) {
   var iq = data.iq || 100;
   var pct = data.pct || 50;
   var cls = data.cls || 'average';
-  var cp = data.cp || {};
-  var cor = data.cor || 0;
-  var tot = data.tot || 40;
+  var cp = data.typeScores || data.cp || {};
+  var cor = (data.correct != null ? data.correct : (data.cor || 0));
+  var tot = (data.total != null ? data.total : (data.tot || 28));
   var time = data.time || 0;
   var clsInfo = CLS_DATA[cls] || CLS_DATA['average'];
-  var ivl = iqInterval(iq);
-  var pivl = pctInterval(iq);
+  var ivl = (data.iqLow != null && data.iqHigh != null)
+    ? { lo:data.iqLow, hi:data.iqHigh, str:data.iqLow + '–' + data.iqHigh }
+    : iqInterval(iq);
+  var pivl = pctInterval(ivl.lo, ivl.hi);
+  var community = data.community || null;
 
   // Cover
   document.getElementById('cover-iq').textContent = 'IQ ' + ivl.str + ' — ' + clsInfo.label;
   document.getElementById('cover-date').textContent = new Date().toLocaleDateString('da-DK', { year:'numeric', month:'long', day:'numeric' });
 
   // Summary
-  var summaryText = 'Din estimerede IQ ligger i intervallet <strong>'+ivl.str+'</strong>, hvilket placerer dig i kategorien <strong>"'+clsInfo.label+'"</strong>. Du scorer højere end ca. <strong>'+pivl.str+'</strong> af befolkningen. Du besvarede '+cor+' ud af '+tot+' spørgsmål korrekt på '+formatTime(time)+'.';
+  var summaryText = 'Din estimerede IQ ligger i intervallet <strong>'+ivl.str+'</strong>, hvilket placerer dig i kategorien <strong>"'+clsInfo.label+'"</strong>. Estimatet svarer til ca. <strong>'+pivl.str+'</strong> i normalbefolkningen. Du løste '+cor+' ud af '+tot+' nonverbale opgaver korrekt på '+formatTime(time)+'.';
+  if (community && community.n >= 5) { summaryText += ' Sammenlignet med de '+community.n+' der har taget denne test, klarede du dig bedre end <strong>'+community.higher_pct+'%</strong> (gennemsnit blandt brugere: '+Math.round(community.mean)+').'; }
   document.getElementById('summary-text').innerHTML = summaryText;
   document.getElementById('summary-grid').innerHTML =
     '<div class="summary-card"><div class="num" style="color:'+clsInfo.color+'">'+ivl.str+'</div><div class="lbl">Estimeret IQ-interval</div></div>'+
@@ -208,7 +203,7 @@ function buildReport(data) {
   // Disclaimer box
   var disclaimerHTML = '<div style="padding:20px;border-radius:12px;background:rgba(107,76,154,0.06);border:1.5px solid rgba(107,76,154,0.3);margin-bottom:20px">';
   disclaimerHTML += '<p style="font-size:14px;color:var(--text-2);line-height:1.7;margin:0">';
-  disclaimerHTML += '<strong style="color:var(--text)">⚠️ Vigtigt om din score</strong> — Denne IQ-screening er et groft estimat baseret på 40 online-spørgsmål. Kun en formel IQ-test (WAIS-IV) administreret af en autoriseret psykolog giver et klinisk valideret resultat. Online-tests har en usikkerhedsmargin på ±5-10 point. Din score bør derfor læses som et interval, ikke et præcist tal.';
+  disclaimerHTML += '<strong style="color:var(--text)">⚠️ Vigtigt om din score</strong> — Denne screening bygger på 28 nonverbale ræsonnementsopgaver (matrix, figurserier og mental rotation) inspireret af det public-domain instrument ICAR. Estimatet er korrigeret for gættesandsynlighed og angives som et interval, fordi normerne kalibreres løbende ud fra deltagernes faktiske resultater. Kun en formel test (fx WAIS-IV) administreret af en autoriseret psykolog giver et klinisk valideret resultat.';
   disclaimerHTML += '</p></div>';
 
   // IQ display
@@ -216,7 +211,7 @@ function buildReport(data) {
   iqHTML += '<div style="text-align:center;padding:20px 0">';
   iqHTML += '<div style="font-family:var(--serif);font-size:72px;font-weight:700;color:'+clsInfo.color+';line-height:1">'+ivl.str+'</div>';
   iqHTML += '<div style="font-size:14px;color:var(--text-3);margin-top:4px">Estimeret IQ-interval</div>';
-  iqHTML += '<div style="font-size:12px;color:var(--text-4);margin-top:2px">±7 point usikkerhedsmargin (online-test)</div>';
+  iqHTML += '<div style="font-size:12px;color:var(--text-4);margin-top:2px">±10 point usikkerhedsmargin (kort screening)</div>';
   iqHTML += '<div style="display:inline-block;margin-top:12px;padding:8px 20px;border-radius:20px;background:'+clsInfo.color+'10;border:1.5px solid '+clsInfo.color+'30;color:'+clsInfo.color+';font-size:14px;font-weight:600">'+clsInfo.label+' ('+clsInfo.range+')</div>';
   iqHTML += '<p style="margin-top:12px;font-size:14px;color:var(--text-2)">Du scorer højere end ca. <strong>'+pivl.str+'</strong> af befolkningen.</p>';
   iqHTML += '</div>';
@@ -233,7 +228,7 @@ function buildReport(data) {
   document.getElementById('iq-display').innerHTML = iqHTML;
 
   // Bell curve
-  buildBellCurve(iq);
+  buildBellCurve(iq, ivl.lo, ivl.hi);
 
   // Radar
   var catKeys = Object.keys(CATS);
@@ -288,9 +283,9 @@ function buildReport(data) {
   document.getElementById('resources').innerHTML = resHTML;
 }
 
-function buildBellCurve(iq) {
+function buildBellCurve(iq, lo, hi) {
   var w=500, h=220, pad=40, padTop=55;
-  var ivl = iqInterval(iq);
+  var ivl = (lo != null && hi != null) ? { lo:lo, hi:hi } : iqInterval(iq);
   function iqToX(v) { return pad + ((v - 55) / 105) * (w - 2*pad); }
   function bellY(v) { var z=(v-100)/15; return h-pad-Math.exp(-0.5*z*z)/Math.sqrt(2*Math.PI)*(h-padTop-pad)*6; }
   var svg = '<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg">';

@@ -532,7 +532,7 @@
         return (n || 0).toLocaleString('da-DK');
     }
 
-    const TEST_LABELS = { iq: 'IQ', adhd: 'ADHD', autisme: 'Autisme', personlighed: 'Big Five', stress: 'Stress' };
+    const TEST_LABELS = { iq: 'IQ', adhd: 'ADHD', autisme: 'Autisme', personlighed: 'Big Five', stress: 'Stress', karriere: 'Karriere', ocd: 'OCD', eq: 'EQ', virksomhed: 'Virksomhed' };
     const TEST_COLORS = { iq: 'test-iq', adhd: 'test-adhd', autisme: 'test-autisme', personlighed: 'test-personlighed', stress: 'test-stress' };
     const PLAN_BADGES = { admin: 'badge-admin', free: 'badge-free', single: 'badge-single', pack4: 'badge-pack4', unlimited: 'badge-unlimited' };
 
@@ -558,6 +558,8 @@
         settings: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
         email: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>,
         analytics: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>,
+        waitlist: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>,
+        funnel: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>,
     };
 
     // ══════════════════════════════════════════════════════
@@ -1258,6 +1260,207 @@
     // ══════════════════════════════════════════════════════
     // ANONYMOUS STATS PAGE
     // ══════════════════════════════════════════════════════
+    function FunnelPage() {
+        const [data, setData] = useState(null);
+        const [loading, setLoading] = useState(true);
+
+        useEffect(() => {
+            (async () => {
+                try {
+                    const sb = getSB();
+                    const { data: result, error } = await sb.rpc('admin_funnel_stats');
+                    if (error) throw error;
+                    setData(result);
+                } catch (err) { console.error(err); }
+                setLoading(false);
+            })();
+        }, []);
+
+        if (loading) return <div className="admin-loading"><div className="admin-spinner"></div>Henter funnel...</div>;
+        if (!data) return <p>Kunne ikke hente data</p>;
+
+        const t = data.totals || {};
+        const byTest = (data.by_test || []).filter(r => r.started > 0 || r.completed > 0 || r.checkout_clicked > 0 || r.unlocked > 0);
+        const pct = (num, den) => den > 0 ? Math.round((num / den) * 100) : null;
+        const steps = [
+            { label: 'Startet', value: t.started || 0, color: '#8a857e' },
+            { label: 'Gennemført', value: t.completed || 0, color: '#2e6b9e' },
+            { label: 'Checkout-klik', value: t.checkout_clicked || 0, color: '#b8860b' },
+            { label: 'Betaling retur', value: t.payment_returned || 0, color: '#3a7d5e' },
+            { label: 'Låst op', value: (t.unlocked || 0) + (t.credit_used || 0), color: '#2c5f4b' },
+        ];
+        const maxVal = Math.max(1, ...steps.map(s => s.value));
+
+        return (
+            <div>
+                <div className="admin-page-header">
+                    <div>
+                        <h1 className="admin-page-title">Funnel &amp; konvertering</h1>
+                        <p className="admin-page-subtitle">Fra teststart til betalt rapport &mdash; p&aring; tv&aelig;rs af alle tests</p>
+                    </div>
+                </div>
+
+                <div className="admin-panel fade-up">
+                    <div className="admin-panel-header"><span className="admin-panel-title">Samlet funnel</span></div>
+                    <div style={{ padding: '1.25rem' }}>
+                        {steps.map((s, i) => {
+                            const prev = i > 0 ? steps[i - 1].value : null;
+                            const rel = (prev && prev > 0) ? Math.round((s.value / prev) * 100) : null;
+                            return (
+                                <div key={s.label} style={{ marginBottom: 14 }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '.85rem', marginBottom: 4 }}>
+                                        <span style={{ color: 'var(--text-2)' }}>{s.label}{rel !== null && <span style={{ color: 'var(--text-4)', marginLeft: 8, fontSize: '.75rem' }}>{rel}% af forrige</span>}</span>
+                                        <span style={{ fontWeight: 700 }}>{fmtNumber(s.value)}</span>
+                                    </div>
+                                    <div style={{ height: 10, background: 'var(--bg-warm)', borderRadius: 5, overflow: 'hidden' }}>
+                                        <div style={{ height: '100%', width: (s.value / maxVal * 100) + '%', background: s.color, borderRadius: 5, transition: 'width .6s ease' }}></div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                        <p style={{ fontSize: '.75rem', color: 'var(--text-3)', marginTop: 6 }}>&laquo;Startet&raquo; kommer fra test_starts &mdash; tests der endnu ikke logger start kan undertælle her; &laquo;Gennemf&oslash;rt&raquo; kommer fra gemte resultater.</p>
+                    </div>
+                </div>
+
+                <div className="admin-panel fade-up fade-up-1">
+                    <div className="admin-panel-header"><span className="admin-panel-title">Pr. test</span></div>
+                    <table className="admin-table">
+                        <thead><tr><th>Test</th><th>Startet</th><th>Gennemf&oslash;rt</th><th>Checkout</th><th>Betaling</th><th>Credit</th><th>L&aring;st op</th><th>Konv.</th></tr></thead>
+                        <tbody>
+                            {byTest.map(r => {
+                                const conv = pct((r.unlocked || 0) + (r.credit_used || 0), r.completed);
+                                return (
+                                    <tr key={r.test_type}>
+                                        <td><span className={`test-pill ${TEST_COLORS[r.test_type] || ''}`}>{TEST_LABELS[r.test_type] || r.test_type}</span></td>
+                                        <td>{r.started}</td>
+                                        <td style={{ fontWeight: 600 }}>{r.completed}</td>
+                                        <td>{r.checkout_clicked}</td>
+                                        <td>{r.payment_returned}</td>
+                                        <td>{r.credit_used}</td>
+                                        <td style={{ fontWeight: 600 }}>{r.unlocked}</td>
+                                        <td style={{ fontWeight: 700, color: conv ? '#2c5f4b' : 'var(--text-3)' }}>{conv !== null ? conv + '%' : '—'}</td>
+                                    </tr>
+                                );
+                            })}
+                            {byTest.length === 0 && (
+                                <tr><td colSpan="8" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-3)' }}>Ingen funnel-data endnu. Tallene begynder at tælle s&aring; snart brugere tager tests og klikker k&oslash;b.</td></tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        );
+    }
+
+    // Friendly labels for waitlist features (falls back to TEST_LABELS, then raw key)
+    const WAITLIST_LABELS = { diva5: 'DIVA-5 (ADHD dybdeudredning)', eq: 'Emotionel intelligens (EQ)' };
+    const waitlistLabel = (t) => WAITLIST_LABELS[t] || TEST_LABELS[t] || t;
+
+    function WaitlistPage() {
+        const [data, setData] = useState(null);
+        const [loading, setLoading] = useState(true);
+
+        useEffect(() => {
+            (async () => {
+                try {
+                    const sb = getSB();
+                    const { data: result, error } = await sb.rpc('admin_waitlist_stats');
+                    if (error) throw error;
+                    setData(result);
+                } catch (err) { console.error(err); }
+                setLoading(false);
+            })();
+        }, []);
+
+        function exportCSV() {
+            if (!data || !data.signups) return;
+            const rows = [['email', 'funktion', 'har_konto', 'dato']];
+            data.signups.forEach(s => rows.push([s.email, waitlistLabel(s.test_type), s.has_account ? 'ja' : 'nej', s.created_at]));
+            const csv = rows.map(r => r.map(v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"').join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'hjernebarometeret-waitlist.csv';
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+
+        if (loading) return <div className="admin-loading"><div className="admin-spinner"></div>Henter waitlist...</div>;
+        if (!data) return <p>Kunne ikke hente data</p>;
+
+        const byTest = data.by_test || [];
+        const signups = data.signups || [];
+
+        return (
+            <div>
+                <div className="admin-page-header">
+                    <div>
+                        <h1 className="admin-page-title">Waitlist</h1>
+                        <p className="admin-page-subtitle">Tilmeldinger til kommende funktioner (fx DIVA-5, EQ) via &laquo;F&aring; besked&raquo;</p>
+                    </div>
+                    {signups.length > 0 && (
+                        <button className="btn-sm btn-sm-primary" onClick={exportCSV} style={{ alignSelf: 'center' }}>Eksport&eacute;r CSV</button>
+                    )}
+                </div>
+
+                <div className="stat-grid fade-up">
+                    <div className="stat-card stat-card-accent">
+                        <div className="stat-card-label">Tilmeldinger i alt</div>
+                        <div className="stat-card-value">{fmtNumber(data.total)}</div>
+                    </div>
+                    <div className="stat-card">
+                        <div className="stat-card-label">Unikke emails</div>
+                        <div className="stat-card-value">{fmtNumber(data.unique_emails)}</div>
+                    </div>
+                    <div className="stat-card">
+                        <div className="stat-card-label">Funktioner med interesse</div>
+                        <div className="stat-card-value">{fmtNumber(byTest.length)}</div>
+                    </div>
+                </div>
+
+                <div className="admin-panel fade-up fade-up-1">
+                    <div className="admin-panel-header"><span className="admin-panel-title">Interesse pr. funktion</span></div>
+                    <table className="admin-table">
+                        <thead><tr><th>Funktion</th><th>Tilmeldinger</th><th>Unikke</th><th>Seneste</th></tr></thead>
+                        <tbody>
+                            {byTest.map(b => (
+                                <tr key={b.test_type}>
+                                    <td style={{ fontWeight: 600 }}>{waitlistLabel(b.test_type)}</td>
+                                    <td style={{ fontWeight: 600 }}>{b.count}</td>
+                                    <td style={{ color: 'var(--text-3)' }}>{b.unique}</td>
+                                    <td style={{ fontSize: '.8rem', color: 'var(--text-2)' }}>{fmtDateTime(b.latest)}</td>
+                                </tr>
+                            ))}
+                            {byTest.length === 0 && (
+                                <tr><td colSpan="4" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-3)' }}>Ingen tilmeldinger endnu. N&aring;r nogen klikker &laquo;F&aring; besked&raquo; p&aring; en kommer-snart-flise, dukker de op her.</td></tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div className="admin-panel fade-up fade-up-2">
+                    <div className="admin-panel-header"><span className="admin-panel-title">Alle tilmeldinger{signups.length >= 1000 ? ' (seneste 1000)' : ''}</span></div>
+                    <table className="admin-table">
+                        <thead><tr><th>Email</th><th>Funktion</th><th>Konto</th><th>Dato</th></tr></thead>
+                        <tbody>
+                            {signups.map((s, i) => (
+                                <tr key={i}>
+                                    <td>{s.email}</td>
+                                    <td>{waitlistLabel(s.test_type)}</td>
+                                    <td>{s.has_account ? <span style={{ color: '#3a7d5e', fontWeight: 600 }}>Ja</span> : <span style={{ color: 'var(--text-3)' }}>Nej</span>}</td>
+                                    <td style={{ fontSize: '.8rem', color: 'var(--text-2)' }}>{fmtDateTime(s.created_at)}</td>
+                                </tr>
+                            ))}
+                            {signups.length === 0 && (
+                                <tr><td colSpan="4" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-3)' }}>Ingen tilmeldinger endnu</td></tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        );
+    }
+
     function AnonymousPage() {
         const [data, setData] = useState(null);
         const [loading, setLoading] = useState(true);
@@ -2393,6 +2596,8 @@
             { id: 'anonymous', icon: Icons.anonymous, label: 'Anonyme' },
             { id: 'coupons', icon: Icons.coupons, label: 'Kuponer' },
             { id: 'analytics', icon: Icons.analytics, label: 'Test Analytics' },
+            { id: 'funnel', icon: Icons.funnel, label: 'Funnel' },
+            { id: 'waitlist', icon: Icons.waitlist, label: 'Waitlist' },
             { id: 'settings', icon: Icons.settings, label: 'Indstillinger' },
         ];
 
@@ -2433,6 +2638,8 @@
                     {activePage === 'anonymous' && <AnonymousPage />}
                     {activePage === 'coupons' && <CouponsPage />}
                     {activePage === 'analytics' && <AnalyticsPage />}
+                    {activePage === 'funnel' && <FunnelPage />}
+                    {activePage === 'waitlist' && <WaitlistPage />}
                     {activePage === 'settings' && <SettingsPage />}
                 </main>
 

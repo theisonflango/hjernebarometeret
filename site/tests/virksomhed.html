@@ -863,17 +863,10 @@ function App() {
                         <span className="cta-feature">30/60/90-dages plan</span>
                         <span className="cta-feature">PDF-download</span>
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, maxWidth: 420, margin: '0 auto 16px' }}>
-                        <button className="cta-btn standard" onClick={function() { handleCheckout('standard'); }}>
-                            Standard — 89 kr
-                            <div style={{ fontSize: 11, fontWeight: 400, opacity: 0.8, marginTop: 2 }}>Claude Sonnet</div>
-                        </button>
-                        <button className="cta-btn premium" onClick={function() { handleCheckout('premium'); }}>
-                            Premium — 149 kr
-                            <div style={{ fontSize: 11, fontWeight: 400, opacity: 0.8, marginTop: 2 }}>Claude Opus</div>
-                        </button>
+                    <div style={{ maxWidth: 460, margin: '0 auto', padding: '16px 18px', borderRadius: 12, background: 'rgba(45,106,79,0.08)', border: '1px solid rgba(45,106,79,0.2)' }}>
+                        <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: 'var(--accent)' }}>🔧 Den fulde rapport er på vej</p>
+                        <p style={{ margin: '6px 0 0', fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>Den dybdegående betalte analyse er under udvikling og åbner snart. Din gratis vurdering ovenfor er allerede klar og fuldt tilgængelig.</p>
                     </div>
-                    <p className="cta-note">Engangskøb. Ingen abonnement. Analysen genereres med det samme efter betaling.</p>
                 </div>
 
                 {/* Blurred preview */}

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privatlivspolitik — Hjernebarometeret</title>
+<meta name="description" content="Privatlivspolitik for Hjernebarometeret.dk — hvilke personoplysninger vi behandler, hvorfor, hvem vi deler med, og dine rettigheder efter GDPR.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,500&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/styles.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#faf9f7;--bg-card:#fff;--bg-warm:#f5f2ee;--bg-dark:#1c1b1a;--text:#1c1b1a;--text-2:#5a5650;--text-3:#8a857e;--text-4:#b5b0a8;--border:#e8e5e0;--border-2:#d5d0c9;--accent:#2c5f4b;--accent-light:#e8f0ec;--serif:'Source Serif 4',Georgia,serif;--sans:'Figtree',system-ui,sans-serif}
+html{scroll-behavior:smooth}body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;-webkit-font-smoothing:antialiased;font-size:15px;line-height:1.6}
+::selection{background:var(--accent);color:#fff}a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.page-hd{padding:100px clamp(20px,4vw,48px) 12px;max-width:760px;margin:0 auto}
+.page-hd .back{font-size:13px;color:var(--accent);font-weight:500;margin-bottom:16px;display:inline-block}
+.page-hd h1{font-family:var(--serif);font-size:clamp(28px,5vw,40px);font-weight:600;letter-spacing:-.03em;margin-bottom:8px}
+.page-hd .upd{font-size:13px;color:var(--text-3)}
+.legal{max-width:760px;margin:0 auto;padding:24px clamp(20px,4vw,48px) 80px}
+.legal h2{font-family:var(--serif);font-size:20px;font-weight:600;letter-spacing:-.02em;margin:34px 0 12px;padding-top:8px}
+.legal h3{font-size:15px;font-weight:600;margin:20px 0 8px}
+.legal p{font-size:15px;color:var(--text-2);line-height:1.8;margin-bottom:14px}
+.legal ul{margin:0 0 14px 20px}.legal li{font-size:15px;color:var(--text-2);line-height:1.8;margin-bottom:6px}
+.legal strong{color:var(--text);font-weight:600}
+.ident{background:var(--accent-light);border:1px solid #cfe0d7;border-radius:12px;padding:18px 22px;margin:8px 0 6px}
+.ident p{margin:4px 0;color:var(--text)}
+mark{background:#fff3cd;color:#7d5e00;padding:1px 6px;border-radius:4px;font-weight:600;font-family:var(--mono,monospace);font-size:.92em}
+.hi{background:#fdf1ef;border:1px solid #f0cfc8;border-radius:12px;padding:16px 20px;margin:16px 0}
+.hi p{margin:0;color:var(--text)}.hi strong{color:#9a3b2c}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px;margin:14px 0}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:520px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top}
+thead th{background:var(--bg-warm);font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-3)}
+tbody tr:last-child td{border-bottom:none}
+.disclaimer-box{background:var(--bg-warm);border-radius:12px;padding:16px 20px;margin:24px 0;font-size:13px;color:var(--text-3);line-height:1.7}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div id="site-nav"></div>
+
+<section class="page-hd">
+  <a href="index.html" class="back">← Tilbage til forsiden</a>
+  <h1>Privatlivspolitik</h1>
+  <p class="upd">Sådan behandler vi dine personoplysninger · senest opdateret 2026</p>
+</section>
+
+<div class="legal">
+  <h2>1. Dataansvarlig</h2>
+  <p>Den dataansvarlige for behandlingen af dine personoplysninger er:</p>
+  <div class="ident">
+    <p><strong>Theison</strong> <mark>[BEKRÆFT: præcist CVR-registreret navn]</mark></p>
+    <p>CVR-nr.: 34360642</p>
+    <p>Adresse: <mark>[UDFYLD: gade, postnr. og by]</mark></p>
+    <p>E-mail: <a href="mailto:support@hjernebarometeret.dk">support@hjernebarometeret.dk</a></p>
+    <p>Telefon: +45 50 20 18 16</p>
+  </div>
+
+  <h2>2. Hvilke oplysninger vi behandler — og hvorfor</h2>
+
+  <h3>a) Test uden konto (anonymt)</h3>
+  <p>Du kan tage alle tests uden at oprette en konto. Selve besvarelsen foregår i din browser. Hvis du vælger at gemme et resultat eller købe en rapport uden konto, gemmes resultatet knyttet til en tilfældig, anonym token (ikke dit navn), så du kan tilgå det igen.</p>
+
+  <h3>b) Konto</h3>
+  <p>Opretter du en konto, behandler vi din <strong>e-mailadresse</strong> og et eventuelt <strong>visningsnavn</strong>. <br><strong>Formål:</strong> at oprette og administrere din konto, gemme dine resultater og rapport-adgang. <strong>Retsgrundlag:</strong> opfyldelse af aftale, databeskyttelsesforordningen (GDPR) art. 6, stk. 1, litra b.</p>
+
+  <h3>c) Testresultater</h3>
+  <p>Når du er logget ind og gennemfører en test, gemmer vi dine <strong>svar og scores</strong> knyttet til din konto.</p>
+  <div class="hi">
+    <p><strong>Særlige kategorier (helbredsoplysninger):</strong> Nogle tests — bl.a. ADHD, autisme, OCD og stress — vedrører psykisk helbred og udgør <strong>følsomme personoplysninger</strong> efter GDPR art. 9. Når sådanne resultater gemmes til din konto, sker det på grundlag af dit <strong>udtrykkelige samtykke</strong> (art. 9, stk. 2, litra a). Du kan til enhver tid trække samtykket tilbage og få resultaterne slettet (se afsnit 7).</p>
+  </div>
+
+  <h3>d) Køb og betaling</h3>
+  <p>Ved køb behandler vi <strong>e-mail, ordredetaljer, beløb og et kunde-/betalings-ID fra Stripe</strong>. Vi opbevarer ikke dine fulde kortoplysninger. <strong>Formål:</strong> at gennemføre og dokumentere købet. <strong>Retsgrundlag:</strong> aftale (art. 6, stk. 1, litra b) samt retlig forpligtelse til bogføring (art. 6, stk. 1, litra c, jf. bogføringsloven).</p>
+
+  <h3>e) Virksomhedsanalyse (AI)</h3>
+  <p>Bruger du virksomhedsanalyse-funktionen, sendes de oplysninger, du selv indtaster om din virksomhed, til vores AI-underleverandør (Anthropic) for at generere analysen. Indtast ikke følsomme personoplysninger her. <strong>Retsgrundlag:</strong> aftale (art. 6, stk. 1, litra b).</p>
+
+  <h3>f) Teknisk data</h3>
+  <p>Vi bruger nødvendig lokal lagring (localStorage) i din browser, så tjenesten fungerer — fx til at huske din session og din rapport-adgang. Vi kan behandle begrænsede tekniske oplysninger (fx browsertype) til at forbedre og sikre tjenesten. <strong>Retsgrundlag:</strong> vores legitime interesse i en fungerende og sikker tjeneste (art. 6, stk. 1, litra f).</p>
+
+  <h2>3. Hvem vi deler oplysninger med (databehandlere)</h2>
+  <p>Vi sælger aldrig dine oplysninger. Vi bruger følgende betroede underleverandører (databehandlere), som kun behandler data efter vores instruks:</p>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Underleverandør</th><th>Formål</th><th>Placering</th></tr></thead>
+      <tbody>
+        <tr><td>Supabase (drift på AWS)</td><td>Database, login og hosting af konto- og testdata</td><td>EU (Irland, eu-west-1)</td></tr>
+        <tr><td>Stripe</td><td>Betalingsafvikling</td><td>EU/USA</td></tr>
+        <tr><td>Anthropic</td><td>AI-generering af virksomhedsanalyse</td><td>USA</td></tr>
+        <tr><td>GitHub Pages</td><td>Hosting af selve hjemmesiden (statiske filer — ingen persondata lagres her)</td><td>USA</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><strong>Overførsel til tredjelande:</strong> Vores primære data ligger i EU. Enkelte underleverandører (Stripe, Anthropic) kan behandle data i USA. Overførsel sker på et gyldigt overførselsgrundlag, fx EU-Kommissionens standardkontraktbestemmelser (SCC) og/eller EU-US Data Privacy Framework.</p>
+
+  <h2>4. Opbevaring</h2>
+  <p>Vi opbevarer dine oplysninger, så længe det er nødvendigt til formålet:</p>
+  <ul>
+    <li><strong>Konto- og testdata:</strong> så længe din konto består. Sletter du din konto (eller beder om det), slettes disse data.</li>
+    <li><strong>Ordre- og bogføringsdata:</strong> op til 5 år efter udløbet af det pågældende regnskabsår, jf. bogføringsloven.</li>
+    <li><strong>Anonyme testresultater:</strong> opbevares uden identifikation og bruges i aggregeret form til at forbedre og kalibrere testene.</li>
+  </ul>
+
+  <h2>5. Sikkerhed</h2>
+  <p>Vi træffer passende tekniske og organisatoriske foranstaltninger for at beskytte dine oplysninger, herunder adgangsstyring, kryptering under transport og adgangskontrol på rækkeniveau i databasen.</p>
+
+  <h2>6. Cookies og lokal lagring</h2>
+  <p>Vi bruger i dag kun <strong>nødvendig, funktionel lokal lagring</strong> (login/session og rapport-adgang), som ikke kræver samtykke. Vi anvender <strong>ikke</strong> markedsførings- eller trackingcookies på nuværende tidspunkt. Hvis vi senere tilføjer statistik- eller markedsføringsværktøjer (fx et Meta-/Facebook-pixel), vil vi først indhente dit samtykke via en cookiebanner.</p>
+
+  <h2>7. Dine rettigheder</h2>
+  <p>Efter GDPR har du ret til:</p>
+  <ul>
+    <li><strong>Indsigt</strong> i de oplysninger, vi behandler om dig.</li>
+    <li><strong>Berigtigelse</strong> af forkerte oplysninger.</li>
+    <li><strong>Sletning</strong> ("retten til at blive glemt") inden for lovens rammer.</li>
+    <li><strong>Begrænsning</strong> af behandlingen.</li>
+    <li><strong>Dataportabilitet</strong> — at få udleveret dine data i et maskinlæsbart format.</li>
+    <li><strong>Indsigelse</strong> mod behandling baseret på legitim interesse.</li>
+    <li><strong>At trække samtykke tilbage</strong> til enhver tid (fx til lagring af helbredsnære testresultater), uden at det påvirker lovligheden af behandling før tilbagekaldelsen.</li>
+  </ul>
+  <p>Vil du gøre en rettighed gældende, så kontakt os på <a href="mailto:kontakt@hjernebarometeret.dk">kontakt@hjernebarometeret.dk</a>. Vi svarer hurtigst muligt og senest inden for en måned.</p>
+
+  <h2>8. Klage til Datatilsynet</h2>
+  <p>Er du utilfreds med vores behandling af dine personoplysninger, kan du klage til:</p>
+  <div class="ident">
+    <p><strong>Datatilsynet</strong></p>
+    <p>Carl Jacobsens Vej 35, 2500 Valby</p>
+    <p><a href="https://www.datatilsynet.dk" target="_blank" rel="noopener">datatilsynet.dk</a></p>
+  </div>
+
+  <div class="disclaimer-box">
+    Denne privatlivspolitik er udarbejdet som et gennemarbejdet udkast, der dækker oplysningspligten efter GDPR art. 13. Da tjenesten behandler helbredsnære (følsomme) oplysninger, anbefales en juridisk gennemgang, og at fortegnelsen efter art. 30 samt databehandleraftaler med underleverandørerne er på plads før lancering. Felter markeret med gult skal udfyldes med virksomhedens faktiske oplysninger.
+  </div>
+</div>
+
+<div id="site-footer"></div>
+<script src="shared/nav.js"></script>
+<script src="shared/footer.js"></script>
+<script src="shared/auth.js"></script>
+<script src="shared/coupon.js"></script>
+</body>
+</html>

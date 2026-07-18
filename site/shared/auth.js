@@ -146,22 +146,9 @@
         return;
       }
 
-      // Success — if signup, create profile with welcome bonus
-      if (_isSignup && result.data.user) {
-        var welcomeCredits = 0;
-        try {
-          var { data: cfg } = await sb.from('site_config').select('value').eq('key', 'welcome_credits').maybeSingle();
-          if (cfg) welcomeCredits = parseInt(cfg.value) || 0;
-        } catch(e) {}
-        await sb.from('user_profiles').insert({
-          id: result.data.user.id,
-          email: email,
-          plan: 'free',
-          report_credits: welcomeCredits
-        });
-      }
-
-      // Load profile
+      // The profile row (with welcome credits from site_config) is created
+      // server-side by the on_auth_user_created_hjernebarometeret trigger — no
+      // client insert needed (and clients can no longer write plan/credits).
       await _loadProfile(result.data.user || result.data.session.user);
       hideLogin();
       _updateNav();
@@ -187,38 +174,27 @@
     if (!user) { _plan = 'free'; _credits = 0; return; }
 
     try {
-      var { data } = await _withTimeout(
+      var { data, error } = await _withTimeout(
         sb.from('user_profiles').select('plan, report_credits, display_name').eq('id', user.id).maybeSingle(),
         8000
       );
+      if (error) {
+        // Transient/RLS read error — do NOT downgrade a possibly-elevated user to free.
+        // Keep whatever plan/credits we already had; only fall back to defaults on a truly cold load.
+        console.warn('HB_AUTH: profile read error, keeping current state', error.message);
+        return;
+      }
       if (data) {
         _plan = data.plan || 'free';
         _credits = data.report_credits || 0;
       } else {
-        // Profile doesn't exist yet — create it
-        var wcCredits = 0;
-        try {
-          var { data: wcCfg } = await _withTimeout(
-            sb.from('site_config').select('value').eq('key', 'welcome_credits').maybeSingle(),
-            5000
-          );
-          if (wcCfg) wcCredits = parseInt(wcCfg.value) || 0;
-        } catch(e) {}
+        // No row yet (trigger race — very rare). Safe defaults; server owns profile creation, so do NOT insert.
         _plan = 'free';
-        _credits = wcCredits;
-        try {
-          await _withTimeout(
-            sb.from('user_profiles').insert({
-              id: user.id, email: user.email, plan: 'free', report_credits: wcCredits
-            }),
-            5000
-          );
-        } catch(e) { /* Ignore duplicate insert or timeout */ }
+        _credits = 0;
       }
     } catch(e) {
-      console.warn('HB_AUTH: _loadProfile failed/timeout, using defaults', e.message);
-      _plan = 'free';
-      _credits = 0;
+      // Timeout/network — keep current state rather than forcing a downgrade to free.
+      console.warn('HB_AUTH: _loadProfile failed/timeout, keeping current state', e.message);
     }
   }
 

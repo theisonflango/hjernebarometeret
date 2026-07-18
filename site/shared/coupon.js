@@ -345,7 +345,7 @@
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${session.access_token}`,
-            'apikey': session.access_token,
+            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtYmJhY2hxZWRvbXZpeHZ2ZnBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3MDQ4MDksImV4cCI6MjA4NzI4MDgwOX0.dQ9GDUxyAqttisIPGI5hR20-9JpBKlFG4UvANivu4kM',
           },
           body: JSON.stringify({ code }),
         }
@@ -411,6 +411,8 @@
       if (menu && !menu.querySelector('.hb-coupon-menu-item')) {
         // Find logout-knappen og indsæt inden
         const logoutBtn = menu.querySelector('[data-action="logout"]') ||
+                          menu.querySelector('a[onclick*="logout"]') ||
+                          Array.from(menu.querySelectorAll('.hb-um-item')).pop() ||
                           Array.from(menu.querySelectorAll('button')).pop();
         
         if (logoutBtn) {

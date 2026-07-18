@@ -12,7 +12,8 @@
     personlighed: '/tests/personlighed.html',
     stress: '/tests/stress.html',
     eq: '/tests/eq.html',
-    karriere: '/tests/karriere.html'
+    karriere: '/tests/karriere.html',
+    ocd: '/tests/ocd.html'
   };
 
   // Report pages (redirected to after successful payment)
@@ -23,8 +24,36 @@
     iq: '/rapporter/iq.html',
     autisme: '/rapporter/autisme.html',
     eq: '/rapporter/eq.html',
-    karriere: '/rapporter/karriere.html'
+    karriere: '/rapporter/karriere.html',
+    ocd: '/rapporter/ocd.html'
   };
+
+  // ── Funnel event logging ──
+  // Writes directly to event_log so it works on every page payment.js loads on
+  // (report pages, test pages, pricing) without depending on analytics.js.
+  // Uses the same hb_anon_token as analytics.js so events link to one identity.
+  function _logEvent(eventType, testType, data) {
+    try {
+      var sb = window.HB_AUTH && HB_AUTH.supabase;
+      if (!sb) return;
+      var identity = {};
+      if (HB_AUTH.user) {
+        identity.user_id = HB_AUTH.user.id;
+      } else {
+        var tok = localStorage.getItem('hb_anon_token');
+        if (!tok) {
+          tok = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : 'anon-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+          localStorage.setItem('hb_anon_token', tok);
+        }
+        identity.anonymous_token = tok;
+      }
+      // .then() is required: supabase-js query builders are lazy and only send
+      // the request when awaited or .then()'d. Fire-and-forget, swallow errors.
+      sb.from('event_log').insert(Object.assign({
+        event_type: eventType, test_type: testType || null, event_data: data || null, created_at: new Date().toISOString()
+      }, identity)).then(function(){}, function(){});
+    } catch (e) { /* never block the flow on analytics */ }
+  }
 
   // ── Check report access ──
   async function hasAccess(testType) {
@@ -195,11 +224,97 @@
     } catch(e) { return []; }
   }
 
+  // ── Right-of-withdrawal consent (fortrydelsesret) ──
+  // Shows a required, unticked consent before every purchase. Wording is
+  // product-aware (single report vs. credit-pack vs. subscription). Resolves
+  // true when the user affirmatively consents, false if they cancel. The
+  // authoritative consent timestamp is set server-side (create-checkout).
+  function _showWithdrawalConsent(productType) {
+    return new Promise(function(resolve){
+      var prev = document.activeElement;
+      var existing = document.getElementById('hb-consent-overlay');
+      if (existing) existing.remove();
+
+      var texts = {
+        single: {
+          intro: 'Rapporten er digitalt indhold og gøres tilgængelig med det samme efter betaling.',
+          consent: 'Jeg samtykker til, at rapporten leveres straks, og jeg accepterer, at min <strong>fortrydelsesret bortfalder</strong>, når leveringen begynder.'
+        },
+        pack4: {
+          intro: 'Dine 4 rapport-credits gøres tilgængelige på din konto med det samme efter betaling.',
+          consent: 'Jeg samtykker til, at jeg får adgang til mine rapport-credits <strong>straks</strong> efter betaling.'
+        },
+        unlimited: {
+          intro: 'Dit abonnement og din adgang til alle rapporter starter med det samme efter betaling.',
+          consent: 'Jeg samtykker til, at mit abonnement starter <strong>straks</strong>. Jeg kan til enhver tid opsige fremadrettet (se handelsbetingelserne).'
+        }
+      };
+      var tx = texts[productType] || texts.single;
+
+      var ov = document.createElement('div');
+      ov.id = 'hb-consent-overlay';
+      ov.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(28,27,26,.55);display:flex;align-items:center;justify-content:center;padding:20px;';
+      ov.innerHTML =
+        '<div role="dialog" aria-modal="true" aria-labelledby="hb-consent-h" aria-describedby="hb-consent-desc" style="background:#fff;max-width:440px;width:100%;border-radius:16px;padding:26px 24px;box-shadow:0 20px 60px rgba(0,0,0,.3);font-family:Figtree,system-ui,sans-serif;">' +
+          '<h3 id="hb-consent-h" style="font-family:\'Source Serif 4\',Georgia,serif;font-size:20px;font-weight:600;margin:0 0 8px;color:#1c1b1a;letter-spacing:-.02em;">Bekræft dit køb</h3>' +
+          '<p id="hb-consent-desc" style="font-size:14px;color:#5a5650;line-height:1.7;margin:0 0 16px;">' + tx.intro + '</p>' +
+          '<label for="hb-consent-cb" style="display:flex;gap:11px;align-items:flex-start;font-size:13.5px;color:#1c1b1a;line-height:1.6;cursor:pointer;background:#f5f2ee;border-radius:10px;padding:14px 16px;">' +
+            '<input type="checkbox" id="hb-consent-cb" style="margin-top:2px;width:18px;height:18px;flex:none;accent-color:#2c5f4b;cursor:pointer;">' +
+            '<span>' + tx.consent + '</span>' +
+          '</label>' +
+          '<p style="font-size:11.5px;color:#8a857e;margin:10px 2px 18px;">Se <a href="/handelsbetingelser.html#fortrydelse" target="_blank" rel="noopener" style="color:#2c5f4b;">fortrydelsesret</a> i handelsbetingelserne.</p>' +
+          '<div style="display:flex;gap:10px;justify-content:flex-end;">' +
+            '<button type="button" id="hb-consent-cancel" style="background:none;border:1.5px solid #d5d0c9;color:#5a5650;padding:11px 20px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;">Annuller</button>' +
+            '<button type="button" id="hb-consent-go" disabled style="background:#1c1b1a;border:none;color:#fff;padding:11px 22px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;opacity:.4;">Fortsæt til betaling</button>' +
+          '</div>' +
+        '</div>';
+      document.body.appendChild(ov);
+      var cb = ov.querySelector('#hb-consent-cb');
+      var go = ov.querySelector('#hb-consent-go');
+      var cancel = ov.querySelector('#hb-consent-cancel');
+
+      function done(val){
+        ov.remove();
+        document.removeEventListener('keydown', onKey, true);
+        try { if (prev && prev.focus) prev.focus(); } catch(e){}
+        resolve(val);
+      }
+      function onKey(e){
+        if (e.key === 'Escape') { done(false); return; }
+        if (e.key === 'Tab') {
+          var items = [cb, cancel, go].filter(function(el){ return !el.disabled; });
+          var first = items[0], last = items[items.length - 1];
+          if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+          else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+        }
+      }
+      cb.addEventListener('change', function(){ go.disabled = !cb.checked; go.style.opacity = cb.checked ? '1' : '.4'; });
+      go.addEventListener('click', function(){ if (cb.checked) done(true); });
+      cancel.addEventListener('click', function(){ done(false); });
+      ov.addEventListener('click', function(e){ if (e.target === ov) done(false); });
+      document.addEventListener('keydown', onKey, true);
+      setTimeout(function(){ try { cb.focus(); } catch(e){} }, 50);
+    });
+  }
+
   // ── Initiate Stripe Checkout ──
   async function checkout(productType, testType, testData) {
+    _logEvent('checkout_clicked', testType || null, { product_type: productType });
     // Require login for pack4 and unlimited
     if ((productType === 'pack4' || productType === 'unlimited') && (!window.HB_AUTH || !HB_AUTH.user)) {
       if (window.HB_AUTH) HB_AUTH.showLogin();
+      return;
+    }
+
+    // Capture the initiating button now, before the consent modal steals focus.
+    var btn = (document.activeElement && document.activeElement.tagName === 'BUTTON') ? document.activeElement : null;
+    var originalText = btn ? btn.textContent : '';
+
+    // Right of withdrawal: require express consent to immediate delivery of digital
+    // content before every purchase. The server stamps the authoritative timestamp.
+    var consented = await _showWithdrawalConsent(productType);
+    if (!consented) {
+      if (btn) { btn.textContent = originalText; btn.disabled = false; }
       return;
     }
 
@@ -211,6 +326,7 @@
     var body = {
       product_type: productType,
       test_type: testType || null,
+      withdrawal_consent: true,
       success_url: window.location.origin + (testType ? (REPORT_MAP[testType] || FILE_MAP[testType]) : '/rapporter.html'),
       cancel_url: window.location.href
     };
@@ -220,11 +336,8 @@
       body.user_email = HB_AUTH.user.email;
     }
 
-    // Show loading state
-    var btn = document.activeElement;
-    var originalText = '';
-    if (btn && btn.tagName === 'BUTTON') {
-      originalText = btn.textContent;
+    // Show loading state on the initiating button (captured above)
+    if (btn) {
       btn.textContent = 'Viderestiller...';
       btn.disabled = true;
     }
@@ -248,6 +361,7 @@
       }
 
       // Redirect to Stripe Checkout
+      _logEvent('checkout_redirect', testType || null, { product_type: productType });
       window.location.href = result.checkout_url;
 
     } catch(err) {
@@ -269,6 +383,7 @@
       if (token && testType) {
         localStorage.setItem('hb_report_token_' + testType, token);
       }
+      _logEvent('payment_returned', testType || null, null);
       // Clean URL
       window.history.replaceState({}, '', window.location.pathname);
       return { success: true, token: token, testType: testType };
@@ -289,35 +404,29 @@
     if (path.includes('stress')) return 'stress';
     if (path.includes('eq')) return 'eq';
     if (path.includes('karriere')) return 'karriere';
+    if (path.includes('ocd')) return 'ocd';
     return null;
   }
 
   // ── Use a credit to unlock a report ──
+  // Atomic + server-authoritative: the spend_credit RPC checks credits > 0,
+  // decrements, and grants report_access in one transaction. Clients can no
+  // longer write report_credits or report_access directly.
   async function useCredit(testType) {
     if (!window.HB_AUTH || !HB_AUTH.user) return false;
-    if (HB_AUTH.credits <= 0) return false;
-
-    // Decrement credit and grant access
-    var { error } = await HB_AUTH.supabase
-      .from('user_profiles')
-      .update({
-        report_credits: HB_AUTH.credits - 1,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', HB_AUTH.user.id);
-
-    if (!error) {
-      // Insert report_access
-      await HB_AUTH.supabase
-        .from('report_access')
-        .insert({
-          user_id: HB_AUTH.user.id,
-          test_type: testType,
-          granted_at: new Date().toISOString()
-        });
-      return true;
+    try {
+      var { data, error } = await HB_AUTH.supabase.rpc('spend_credit', { p_test_type: testType });
+      if (error) { console.warn('spend_credit error:', error.message); return false; }
+      if (data && data.success) {
+        if (HB_AUTH.refreshCredits) { try { await HB_AUTH.refreshCredits(); } catch (e) {} }
+        _logEvent('credit_used', testType, null);
+        return true;
+      }
+      return false; // NO_CREDITS / UNAUTHORIZED / MISSING_TEST_TYPE
+    } catch (e) {
+      console.warn('spend_credit exception:', e);
+      return false;
     }
-    return false;
   }
 
   // ── Render "Brug credit" option in paywall ──

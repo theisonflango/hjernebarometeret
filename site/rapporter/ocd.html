@@ -224,27 +224,62 @@ var COGNITIVE_MODELS = {
   hoarding: 'Hamstring drives af overdreven emotionel tilknytning til ejendele, vanskelighed ved informationsbehandling (beslutninger) og frygt for at miste noget nødvendigt. I DSM-5 er dette en selvstændig diagnose adskilt fra OCD.'
 };
 
-function init() {
-  if (!window.HB_PAY) { setTimeout(init, 100); return; }
-  HB_PAY.onReady(function() {
-    HB_PAY.hasAccess('ocd').then(function(hasAccess) {
-      document.getElementById('loading').style.display = 'none';
-      if (!hasAccess) {
-        document.getElementById('no-access').style.display = 'block';
-        return;
-      }
-      var scores = HB_PAY.loadResults('ocd');
-      if (!scores || !scores.subscales) {
-        document.getElementById('no-access').style.display = 'block';
-        document.querySelector('#no-access h1').textContent = '⚠️ Ingen resultater fundet';
-        document.querySelector('#no-access p').textContent = 'Tag OCD-testen først for at generere din rapport.';
-        return;
-      }
-      renderReport(scores);
-    });
-  });
-}
-init();
+(async function init() {
+  // Handle return from Stripe
+  var paymentReturn = false;
+  if (window.HB_PAY) {
+    var ret = HB_PAY.handleReturn();
+    if (ret && ret.success) { paymentReturn = true; if (ret.token) localStorage.setItem('hb_report_token_ocd', ret.token); }
+  }
+
+  // Wait for auth to resolve (HB_AUTH.onReady — NOT HB_PAY.onReady, which does not exist)
+  if (window.HB_AUTH) await new Promise(function(r){ HB_AUTH.onReady(r); });
+
+  // Access check
+  var hasAccess = false;
+  if (window.HB_AUTH && HB_AUTH.isAdmin()) {
+    hasAccess = true;
+  } else if (paymentReturn && window.HB_PAY) {
+    document.querySelector('#loading p').textContent = 'Bekræfter betaling...';
+    hasAccess = await HB_PAY.waitForAccess('ocd', 10);
+  } else if (window.HB_PAY) {
+    hasAccess = await HB_PAY.hasAccess('ocd');
+  }
+
+  if (!hasAccess) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('no-access').style.display = 'block';
+    if (window.HB_PAY) HB_PAY.renderCreditOption('ocd');
+    return;
+  }
+
+  // Load results (localStorage → DB fallback for logged-in users on a new device)
+  var data = null;
+  if (window.HB_PAY) data = HB_PAY.loadResults('ocd');
+  if ((!data || !data.subscales) && window.HB_PAY) data = await HB_PAY.loadResultsFromDB('ocd');
+
+  if (!data || !data.subscales) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('no-access').style.display = 'block';
+    document.querySelector('#no-access h1').textContent = '⚠️ Ingen resultater fundet';
+    document.querySelector('#no-access p').textContent = 'Tag OCD-testen først for at generere din rapport.';
+    return;
+  }
+
+  try {
+    renderReport(data);
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('report').style.display = 'block';
+  } catch (err) {
+    console.error('renderReport fejl:', err);
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('no-access').style.display = 'block';
+    document.querySelector('#no-access h1').textContent = '⚠️ Noget gik galt';
+    document.querySelector('#no-access p').textContent = 'Der opstod en fejl ved visning af rapporten. Prøv at tage testen igen.';
+    document.querySelector('#no-access .buy-btn').textContent = 'Tag OCD-testen igen';
+    document.querySelector('#no-access .buy-btn').onclick = function(){ window.location.href = '/tests/ocd.html'; };
+  }
+})();
 
 function renderReport(s) {
   var total = s.total_score;

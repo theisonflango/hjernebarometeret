@@ -574,20 +574,18 @@ document.addEventListener('DOMContentLoaded', function() {
     renderReports(reportsRes.data || []);
     renderOrders(ordersRes.data || []);
 
-    // For unlimited/admin users, show all reports as accessible
+    // For unlimited/admin users, show reports for tests they've actually completed
     if (HB_AUTH.plan === 'unlimited' || HB_AUTH.plan === 'admin') {
-      var allReports = (reportsRes.data || []);
-      // If they have unlimited but no specific report_access rows, show all tests as available
-      if (allReports.length === 0) {
-        var allTests = ['iq', 'adhd', 'autisme', 'personlighed', 'stress', 'eq', 'karriere'];
-        var syntheticReports = allTests.map(function(t) {
+      var completedTests = (resultsRes.data || []).map(function(r) { return r.test_type; });
+      // Deduplicate
+      var uniqueTests = completedTests.filter(function(t, i) { return completedTests.indexOf(t) === i; });
+      if (uniqueTests.length > 0) {
+        var syntheticReports = uniqueTests.map(function(t) {
           return { test_type: t, granted_at: null };
         });
         renderReports(syntheticReports);
-        document.getElementById('stat-reports').textContent = '∞';
-      } else {
-        document.getElementById('stat-reports').textContent = '∞';
       }
+      document.getElementById('stat-reports').textContent = '∞';
     }
 
   } catch (e) {

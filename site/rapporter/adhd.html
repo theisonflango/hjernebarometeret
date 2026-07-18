@@ -188,7 +188,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:
   <!-- 3. SUBTYPEKLASSIFICERING -->
   <section>
     <h2>🧩 Subtypeklassificering</h2>
-    <p style="font-size:13px;color:var(--text-3);margin-bottom:16px">ADHD præsenterer sig i tre undertyper ifølge DSM-5. Din profil matcher den markerede type.</p>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:16px">Din svarprofil hælder mod en af de tre kendte ADHD-præsentationer. Dette er en vejledende indikation ud fra dine to domæne-scores — ikke en formel DSM-5-klassifikation, som kun kan stilles ved klinisk udredning.</p>
     <div class="subtype-grid" id="subtypes"></div>
     <div id="subtype-detail" style="margin-top:16px"></div>
   </section>
@@ -196,7 +196,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:
   <!-- 4. RADAR DIAGRAM -->
   <section>
     <h2>🕸️ Symptomprofil</h2>
-    <p style="font-size:13px;color:var(--text-3);margin-bottom:8px">Dit symptommønster på tværs af domæner. Jo længere fra midten, jo stærkere er symptomerne i det domæne.</p>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:8px">Dit resultat på ASRS Del A-screeningen (de 6 nøglespørgsmål) og dine to symptomdomæner: uopmærksomhed og hyperaktivitet/impulsivitet.</p>
     <div class="radar-container" id="radar"></div>
   </section>
 
@@ -265,7 +265,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:
   <!-- 14. DISCLAIMER -->
   <section style="background:var(--bg-warm)">
     <p style="font-size:12px;color:var(--text-3);line-height:1.7">
-      <strong>Om denne rapport:</strong> Denne rapport er genereret af Hjernebarometeret.dk baseret på validerede ADHD-screeningsinstrumenter. Hurtig screening anvender etablerede symptomdomæner, mens DIVA-moden følger DSM-5's diagnostiske kriterier. Rapporten er til personlig indsigt og dialog med sundhedsfaglige — den er <strong>ikke en diagnose</strong>. Kun en psykiater eller speciallæge kan stille en ADHD-diagnose efter formel udredning.
+      <strong>Om denne rapport:</strong> Denne rapport er genereret af Hjernebarometeret.dk baseret på ASRS v1.1 (Adult ADHD Self-Report Scale, WHO/Kessler et al. 2005) — et internationalt anerkendt selvrapporterings-screeningsværktøj for voksen-ADHD. Rapporten er til personlig indsigt og dialog med sundhedsfaglige — den er <strong>ikke en diagnose</strong>. Kun en psykiater eller speciallæge kan stille en ADHD-diagnose efter formel udredning.
     </p>
     <p style="font-size:12px;color:var(--text-3);line-height:1.7;margin-top:8px">
       <strong>Behandlingsinformation:</strong> Medicin- og terapidata er baseret på meta-analyser fra Lancet Psychiatry (Cortese et al. 2018; Ostinelli et al. 2024). Behandlingsvalg bør altid ske i samråd med din læge.
@@ -401,26 +401,34 @@ var THERAPIES = [
   { name:'Søvnhygiejne', evidence:'Stærk indirekte', helps:'Søvnkvalitet → bedre symptomkontrol', duration:'Daglig', note:'50-70% med ADHD har søvnproblemer' }
 ];
 
-// ── Build report ──
+// Part A shaded-box thresholds (WHO/Kessler 2005): items 1-3 count from "Sommetider" (>=2),
+// items 4-6 from "Ofte" (>=3). A positive screen is >=4 of the 6.
+var ASRS_PARTA_THRESH = { 1:2, 2:2, 3:2, 4:3, 5:3, 6:3 };
+
+// ── Build report (ASRS v1.1 — the only shipped ADHD instrument) ──
 function buildReport(data) {
-  var isQuick = data.mode === 'quick';
   var pct = data.totalPct || 0;
   var level = data.level || 'low';
   var profileType = data.profileType || 'kombineret';
   var color = data.color || '#2e6b9e';
   var label = data.label || 'Ukendt';
   var sub = SUBTYPES[profileType] || SUBTYPES['kombineret'];
+  var attnPct = data.inattPct || 0;
+  var hyperPct = data.hyperPct || 0;
+  var partAScore = (data.partAScore != null) ? data.partAScore : 0;
+  var partATotal = data.partATotal || 6;
+  var partAPos = (data.partAAboveThreshold != null) ? data.partAAboveThreshold : (partAScore >= 4);
 
   // Cover
-  document.getElementById('cover-mode').textContent = isQuick ? 'Hurtig screening — 30 spørgsmål' : 'DIVA-5-inspireret DSM-5 udredning — 48 kriterier';
+  document.getElementById('cover-mode').textContent = 'ASRS v1.1 screening — 18 spørgsmål (WHO)';
   document.getElementById('cover-profile').textContent = '« ' + sub.short + ' — ' + label + ' »';
   document.getElementById('cover-profile').style.color = color;
   document.getElementById('cover-date').textContent = new Date().toLocaleDateString('da-DK', { year:'numeric', month:'long', day:'numeric' });
 
   // Red flags
   var flags = '';
-  if (level === 'high') {
-    flags = '<div class="red-flag"><h4>⚠️ Forhøjet score — professionel vurdering anbefales</h4><p>Din screening viser et markant symptommønster. Vi anbefaler at du drøfter resultatet med din læge og beder om henvisning til psykiatrisk udredning. Brug "Til din læge"-sektionen nedenfor som udgangspunkt for samtalen.</p></div>';
+  if (partAPos || level === 'high') {
+    flags = '<div class="red-flag"><h4>⚠️ Positiv screening — professionel vurdering anbefales</h4><p>Din Del A-screening ligger i det klinisk signifikante område ('+partAScore+' af 6). Det betyder ikke at du har ADHD — men at dit symptommønster er konsistent med ADHD, og at en formel psykiatrisk udredning er relevant. Brug "Til din læge"-sektionen nedenfor som udgangspunkt for samtalen.</p></div>';
   }
   document.getElementById('red-flags').innerHTML = flags;
 
@@ -428,23 +436,19 @@ function buildReport(data) {
   document.getElementById('summary-text').innerHTML = sub.desc;
 
   // Summary grid
-  var attnPct = isQuick ? (data.attention || 0) : (data.aPct || 0);
-  var hyperPct = isQuick ? (data.hyperactivity || 0) : (data.hiPct || 0);
   document.getElementById('summary-grid').innerHTML =
-    '<div class="summary-card"><div class="num" style="color:'+color+'">'+pct+'%</div><div class="lbl">Samlet score</div></div>' +
+    '<div class="summary-card"><div class="num" style="color:'+color+'">'+partAScore+'/'+partATotal+'</div><div class="lbl">Screening (Del A)</div></div>' +
     '<div class="summary-card"><div class="num" style="color:'+color+'">'+sub.short+'</div><div class="lbl">Subtype</div></div>' +
-    '<div class="summary-card"><div class="num" style="color:'+color+'">'+label+'</div><div class="lbl">Niveau</div></div>';
+    '<div class="summary-card"><div class="num" style="color:'+color+'">'+label+'</div><div class="lbl">Vurdering</div></div>';
 
-  // Top findings
+  // Top findings — led by the validated Part A screener, then the two domains
   var findings = [];
-  if (pct >= 58) findings.push('🔴 Din samlede score på <strong>'+pct+'%</strong> ligger i den høje zone og indikerer et markant symptommønster.');
-  if (attnPct >= 60) findings.push('🎯 Markant forhøjet <strong>opmærksomhedsscore</strong> ('+attnPct+'%) — dette domæne kræver særlig opmærksomhed.');
-  if (hyperPct >= 60) findings.push('⚡ Markant forhøjet <strong>hyperaktivitet/impulsivitet</strong> ('+hyperPct+'%) — et fremtrædende symptomdomæne.');
-  if (isQuick && (data.regulation || 0) >= 60) findings.push('🌊 Forhøjet <strong>emotionel dysregulering</strong> — dine følelser svinger mere end gennemsnittet.');
-  if (isQuick && (data.functioning || 0) >= 60) findings.push('📉 Markant <strong>funktionspåvirkning</strong> — symptomerne rammer din daglige funktion.');
-  if (findings.length > 0) {
-    document.getElementById('top-findings').innerHTML = '<h3>🔍 Vigtigste fund</h3>' + findings.slice(0,4).map(function(f){ return '<p style="font-size:14px;color:var(--text-2);margin:8px 0;line-height:1.6">'+f+'</p>'; }).join('');
-  }
+  if (partAPos) findings.push('🔴 <strong>'+partAScore+' af 6</strong> screening-spørgsmål (Del A) ligger i det klinisk signifikante område — en positiv screening (≥4) er konsistent med ADHD.');
+  else if (partAScore >= 2) findings.push('🟡 <strong>'+partAScore+' af 6</strong> screening-spørgsmål ligger i det signifikante område — under tærsklen for en positiv screening (≥4), men enkelte symptomer er til stede.');
+  else findings.push('🟢 <strong>'+partAScore+' af 6</strong> screening-spørgsmål i det signifikante område — under screeningstærsklen. Dit svarmønster peger ikke stærkt mod ADHD.');
+  if (attnPct >= 60) findings.push('🎯 Forhøjet <strong>uopmærksomhed</strong> ('+attnPct+'% af maks) — et fremtrædende symptomdomæne.');
+  if (hyperPct >= 60) findings.push('⚡ Forhøjet <strong>hyperaktivitet/impulsivitet</strong> ('+hyperPct+'% af maks) — et fremtrædende symptomdomæne.');
+  document.getElementById('top-findings').innerHTML = '<h3>🔍 Vigtigste fund</h3>' + findings.slice(0,4).map(function(f){ return '<p style="font-size:14px;color:var(--text-2);margin:8px 0;line-height:1.6">'+f+'</p>'; }).join('');
 
   // Differential diagnoses
   if (level === 'high' || level === 'moderate') {
@@ -474,34 +478,32 @@ function buildReport(data) {
   document.getElementById('subtypes').innerHTML = subtypeHTML;
   document.getElementById('subtype-detail').innerHTML = '<p style="font-size:14px;color:var(--text-2);line-height:1.7">'+sub.desc+'</p>';
 
-  // Radar
-  if (isQuick) {
-    buildRadar(QUICK_KEYS.map(function(k){ return { name:DOMAINS[k].name, pct:data[k]||0, color:DOMAINS[k].color }; }));
-  } else {
-    buildRadar(DIVA_DISPLAY.map(function(d){ return { name:d.name, pct:data[d.key]||0, color:d.color }; }));
+  // Symptomprofil — Part A screening dots + the two ASRS symptom domains
+  var partaDots = '';
+  for (var pi = 1; pi <= 6; pi++) {
+    var above = false;
+    if (Array.isArray(data.answers)) {
+      var it = data.answers.filter(function(a){ return a.id === pi; })[0];
+      if (it && it.chosen != null) above = it.chosen >= (ASRS_PARTA_THRESH[pi] || 2);
+    } else { above = pi <= partAScore; }
+    partaDots += '<span title="Spørgsmål '+pi+'" style="width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;'+(above?('background:'+color+';color:#fff'):'background:var(--border);color:var(--text-4)')+'">'+pi+'</span>';
   }
+  var profHTML = '<div style="max-width:440px;margin:0 auto;text-align:left">';
+  profHTML += '<div style="margin-bottom:24px"><div style="font-size:12px;color:var(--text-3);margin-bottom:10px">Del A — de 6 screening-spørgsmål (markeret = svar i klinisk signifikant område)</div><div style="display:flex;gap:8px;margin-bottom:10px">'+partaDots+'</div><div style="font-size:13px;color:'+color+';font-weight:600">'+partAScore+' af 6 — '+(partAPos?'positiv screening (≥4)':'under screeningstærsklen (≥4)')+'</div></div>';
+  profHTML += buildProfileBar('Uopmærksomhed', attnPct, DOMAINS.attention.color);
+  profHTML += buildProfileBar('Hyperaktivitet / impulsivitet', hyperPct, DOMAINS.hyperactivity.color);
+  profHTML += '</div>';
+  document.getElementById('radar').innerHTML = profHTML;
 
-  // Domain detail
+  // Domain detail — the two ASRS domains
   var domainsHTML = '';
-  if (isQuick) {
-    QUICK_KEYS.forEach(function(k){
-      var dom = DOMAINS[k];
-      var dp = data[k] || 0;
-      var lv = dp >= 60 ? 'high' : dp >= 35 ? 'mid' : 'low';
-      var impactKey = dp >= 50 ? 'impact_high' : 'impact_mid';
-      var impacts = dom[impactKey] || [];
-      domainsHTML += buildDomainBlock(dom.emoji, dom.name, dp, dom.color, dom[lv], impacts);
-    });
-  } else {
-    DIVA_DISPLAY.forEach(function(d){
-      var dp = data[d.key] || 0;
-      var DIVA_KEY_MAP = { aPct:'attention', hiPct:'hyperactivity', aPctChild:'attention', hiPctChild:'hyperactivity', funcPct:'functioning' };
-      var baseKey = DIVA_KEY_MAP[d.key] || 'attention';
-      var dom = DOMAINS[baseKey] || DOMAINS.attention;
-      var lv = dp >= 60 ? 'high' : dp >= 35 ? 'mid' : 'low';
-      domainsHTML += buildDomainBlock(d.emoji, d.name, dp, d.color, dom[lv], []);
-    });
-  }
+  [['attention', attnPct], ['hyperactivity', hyperPct]].forEach(function(pair){
+    var dom = DOMAINS[pair[0]];
+    var dp = pair[1];
+    var lv = dp >= 60 ? 'high' : dp >= 35 ? 'mid' : 'low';
+    var impacts = dom[dp >= 50 ? 'impact_high' : 'impact_mid'] || [];
+    domainsHTML += buildDomainBlock(dom.emoji, dom.name, dp, dom.color, dom[lv], impacts);
+  });
   document.getElementById('domains-detail').innerHTML = domainsHTML;
 
   // Everyday impact
@@ -514,8 +516,6 @@ function buildReport(data) {
   ];
   if (attnPct >= 50) { impactAreas[0].items.push('Svært ved at fokusere i møder og på opgaver der ikke er interessante'); impactAreas[2].items.push('Glemmer aftaler, nøgler og daglige gøremål'); }
   if (hyperPct >= 50) { impactAreas[1].items.push('Afbryder andre i samtaler, virker utålmodig'); impactAreas[0].items.push('Svært ved stillesiddende kontorarbejde, søger variation'); }
-  if (isQuick && (data.regulation || 0) >= 50) { impactAreas[1].items.push('Hurtige humørskift der kan overraske partnere og venner'); impactAreas[3].items.push('Overvældelse og emotionel udmattelse i pressede perioder'); }
-  if (isQuick && (data.functioning || 0) >= 50) { impactAreas[2].items.push('Uforholdsmæssigt meget energi på at holde styr på hverdagen'); impactAreas[3].items.push('Risiko for stress, angst eller udbrændthed som sekundær konsekvens'); }
   // Defaults
   impactAreas.forEach(function(a){ if(a.items.length===0) a.items.push('Mindre påvirket baseret på dine scores'); });
   impactHTML = impactAreas.map(function(a){
@@ -588,15 +588,11 @@ function buildReport(data) {
   // Doctor section
   var docHTML = '<div style="font-size:14px;line-height:1.8;color:var(--text-2)">';
   docHTML += '<h3 style="margin-bottom:12px">Klinisk opsummering</h3>';
-  docHTML += '<p><strong>Test:</strong> '+(isQuick?'Hurtig ADHD-screening (30 spørgsmål, 5 domæner)':'DIVA-5-inspireret DSM-5 udredning (48 kriterier)')+'</p>';
+  docHTML += '<p><strong>Test:</strong> ADHD-screening — ASRS v1.1 (WHO/Kessler et al. 2005), 18 spørgsmål</p>';
   docHTML += '<p><strong>Dato:</strong> '+new Date().toLocaleDateString('da-DK')+'</p>';
-  docHTML += '<p><strong>Samlet score:</strong> '+pct+'% — '+label+'</p>';
-  docHTML += '<p><strong>Subtypeprofil:</strong> '+sub.label+'</p>';
-  if (isQuick) {
-    docHTML += '<p><strong>Domænescores:</strong> Opmærksomhed '+(data.attention||0)+'% · Hyperaktivitet '+(data.hyperactivity||0)+'% · Regulering '+(data.regulation||0)+'% · Barndom '+(data.childhood||0)+'% · Funktionsniveau '+(data.functioning||0)+'%</p>';
-  } else {
-    docHTML += '<p><strong>DSM-5 kriterier:</strong> A-kriterier (voksen) '+(data.aAdult||0)+'/9 · HI-kriterier (voksen) '+(data.hiAdult||0)+'/9 · Funktionspåvirkning '+(data.funcCount||0)+'/5</p>';
-  }
+  docHTML += '<p><strong>Del A (screening):</strong> '+partAScore+' af 6 spørgsmål i det klinisk signifikante område — '+(partAPos?'<strong>positiv screening</strong> (≥4)':'negativ screening (&lt;4)')+'.</p>';
+  docHTML += '<p><strong>Symptomdomæner (andel af maks):</strong> Uopmærksomhed '+attnPct+'% · Hyperaktivitet/impulsivitet '+hyperPct+'%</p>';
+  docHTML += '<p><strong>Symptomprofil:</strong> '+sub.label+'</p>';
   docHTML += '<h3 style="margin-top:20px;margin-bottom:12px">Samtaleguide — sætninger du kan bruge</h3>';
   docHTML += '<ul style="padding-left:18px">';
   docHTML += '<li>"Jeg har taget en valideret ADHD-screening online og scorer i den '+(level==='high'?'høje':level==='moderate'?'moderate':'lave')+' zone."</li>';
@@ -606,7 +602,7 @@ function buildReport(data) {
     docHTML += '<li>"Jeg har medbragt en opsummering af mine resultater og vil gerne bede om en henvisning til psykiatrisk vurdering."</li>';
   }
   docHTML += '</ul>';
-  docHTML += '<p style="margin-top:12px;font-size:12px;color:var(--text-3)"><strong>Klinisk cutoff:</strong> Screeningen bruger '+(isQuick?'Likert-4 skala over 5 symptomdomæner':'DSM-5 kriterier (≥5/9 for voksne)')+ '. Kun formel psykiatrisk udredning kan stille en ADHD-diagnose.</p>';
+  docHTML += '<p style="margin-top:12px;font-size:12px;color:var(--text-3)"><strong>Om instrumentet:</strong> ASRS v1.1 er WHO\'s selvrapporterings-screeningsværktøj for voksen-ADHD. En positiv screening = ≥4 af de 6 Del A-spørgsmål i det klinisk signifikante ("skraverede") interval. ASRS er et screeningsværktøj — ikke et diagnostisk instrument. Kun formel psykiatrisk udredning kan stille en ADHD-diagnose.</p>';
   docHTML += '</div>';
   document.getElementById('doctor-section').innerHTML = docHTML;
 
@@ -652,6 +648,18 @@ function buildDomainBlock(emoji, name, pct, color, desc, impacts) {
   }
   html += '</div>';
   return html;
+}
+
+// ── Helper: simple labelled profile bar (ASRS symptom domains) ──
+function buildProfileBar(name, pct, color) {
+  return '<div style="margin-bottom:16px">' +
+    '<div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:14px">' +
+      '<span style="color:var(--text-2);font-weight:500">'+name+'</span>' +
+      '<span style="color:'+color+';font-weight:700">'+pct+'%</span>' +
+    '</div>' +
+    '<div style="height:10px;background:var(--border);border-radius:5px;overflow:hidden">' +
+      '<div style="height:100%;width:'+pct+'%;background:'+color+';border-radius:5px;transition:width 1s ease"></div>' +
+    '</div></div>';
 }
 
 // ── Radar chart ──
