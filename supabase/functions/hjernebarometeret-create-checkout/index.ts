@@ -38,6 +38,15 @@ Deno.serve(async (req: Request) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  // F-01 pause: every product on this endpoint sells access to reports under review.
+  const reportSalesPaused = true;
+  if (reportSalesPaused) {
+    return new Response(
+      JSON.stringify({ error: "REPORT_SALES_PAUSED", message: "Rapportsalget er på pause." }),
+      { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
   try {
     const body = await req.json();
     const { product_type, test_type, user_id, user_email, success_url, cancel_url, withdrawal_consent } = body;

@@ -18,6 +18,15 @@ Deno.serve(async (req) => {
     );
   }
 
+  // F-01 pause: keep codes available until their reports can be sold again.
+  const couponsPaused = true;
+  if (couponsPaused) {
+    return new Response(
+      JSON.stringify({ success: false, error: "COUPONS_PAUSED", message: "Indløsning af kuponer er på pause." }),
+      { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
