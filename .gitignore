@@ -26,8 +26,9 @@ _legacy/
 CLAUDE.md
 claude.md
 
-# Internal docs
-docs/
+# Internal docs (the product plan is public)
+docs/*
+!docs/produkt/
 
 # Dev files
 *.zip

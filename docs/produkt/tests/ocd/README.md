@@ -1,0 +1,24 @@
+# Tvangssymptomer hos voksne · OCI-R
+
+[Ejeroversigt](../../START-HER.md) · [Fælles opgaver](../../FAELLES.md) · [Udviklingsproces](../../PIPELINE.md)
+
+**Ejer og fase.** Produktejer og OCD-kliniker. Selvstændigt testprojekt i fase 2, Instrument og rettigheder. OCD-2 skal identificere en brugbar dansk udgave, før fase 3, Dansk indhold, kan godkendes. Lokale summer og delskalaer fungerede i det tidligere tjek. Prioritér den risikable tilbagemelding i første uge. En ny dansk udgave og en eventuel betalt rapport må vente på afklaret brugsret og kapacitet efter karrierepiloten.
+
+**Anvendelse.** En voksen kan bruge en korrekt besvaret OCI-R til at beskrive, hvilke oplevelser der har plaget vedkommende den seneste måned, og forberede en samtale. Ønsket besked efter rettet instruktion kunne være: *“Din sum var 12 af 72. Alle 12 point lå i spørgsmål om vask. Overvej, hvordan det påvirker din hverdag. Hvis det belaster dig, kan du tale med din læge.”* Total, relevante temaer, periodens betydning og vej videre skal fremgå gratis. En betalt samtaleside kan hjælpe med egne eksempler, tidsforbrug og påvirkning af dagligdagen.
+
+**Kontrol 18. november 2026.** Aktuel testfil matchede tidligere undersøgte revision byte for byte. I de fiktive forløb gav maksimal belastning på henholdsvis vask og tjek begge 12/72. Nul, maksimum og øvrige afprøvede totaler stemte. Alligevel kunne rapporten kalde profilen inden for normalområdet. Instruktionen om ubehag i seneste måned står i en kodekommentar, og totalsummen inddeles via lokale grænser ved 10, 20, 30 og 45. Det kan give falsk tryghed ved højt ubehag på ét område. [Instruktion i testkilden](https://github.com/theisonflango/hjernebarometeret/blob/02d3aebf58446b0d5d7aa491ec045cb6d47ab878/site/tests/ocd.html#L900) · [Sværhedsbeskeder](https://github.com/theisonflango/hjernebarometeret/blob/02d3aebf58446b0d5d7aa491ec045cb6d47ab878/site/tests/ocd.html#L1205)
+
+[Fiktive besvarelser og observerede resultater](../../grundlag/Hjernebarometeret-fiktive-testcases.json)
+
+**Næste ejerbeslutning.** Fastslå, hvem der råder over præcis den danske ordlyd, og hvilke vilkår der gælder for en kommerciel webudgave og rapport. Originalstudiet dokumenterer seks delskalaer. Senere forskning har undersøgt OCD- og hamstringsspørgsmål separat. Disse kilder kan ikke alene begrunde de fem lokale sværhedsgrader eller personlige behandlingsanvisninger. [Foa m.fl. om OCI-R](https://pubmed.ncbi.nlm.nih.gov/12501574/) · [Evaluering af særskilte skalaer](https://pubmed.ncbi.nlm.nih.gov/25664634/)
+
+| ID | Leverance | Ejer | Afhænger af | Skøn | Færdig når |
+|---|---|---|---|---|---|
+| OCD-1 · P0 | Afskærm modstridende normalitets-/alvorlighedsbeskeder og køb af rapport med disse udsagn. | Produktejer + udvikler | F-01 | 2–3 t | Både den fiktive vask- og tjekprofil møder en neutral status frem for en misvisende tekst. Direkte test- og købsvej er omfattet. Ejer har taget stilling til tidligere køb. |
+| OCD-2 · P1 | Dokumentér dansk OCI-R eller tag tilbuddet ud af aktivt katalog. | Produktejer + OCD-kliniker | F-03 | ½–1 persondag + ekstern svartid | Instrumentkortet anfører kilde, oversætter/version, målgruppe, evidens, ret til digital brug og kommerciel rapport. Ved uafklaret ret er næste kontakt eller en stopbeslutning registreret. |
+| OCD-3 · P1 | Synliggør original svarinstruktion og efterprøv alle nøgler. | Udvikler + uafhængig scorer | OCD-2 | 1–2 persondage | Instruktionen er synlig før besvarelse og præciserer ubehag i den seneste måned. Kontrol af 18 items bekræfter delskalaernes tilknytning, 0–72 og begge 12/72-profiler. Manglende svar håndteres efter dokumenteret regel. |
+| OCD-4 · P1 | Skriv én sammenhængende klinisk fortolkning. | OCD-kliniker + produktejer | OCD-3 | 1–2 persondage | Reviewer har gennemgået lav, høj og blandet belastning, høj enkeltskala og hamstring. Samme total med forskelligt tema giver korrekt tekst. Alle viste grænser har dokumentation for deres anvendelse. Udokumenterede grader, diagnoser og behandlingsvalg er fjernet. |
+| OCD-5 · P1 | Kontrollér forståelse og levering. | Brugerresearcher + udvikler | OCD-4, F-02 | 1–2 persondage + rekruttering | Deltagere kan forklare, hvad de vurderer og hvordan et højt belastet område kan optræde sammen med en beskeden total. Uafhængig kontrol viser samme sum og delskalaer på gratisresultat, rapport og PDF, også efter genåbning. |
+| OCD-6 · P2 | Afprøv samtalesidens pris og brug. | Produktejer | OCD-5, F-04, F-05 | 1–2 persondage + 7 dages opfølgning | Gratisdelen er fuldt forståelig alene. Interviewnotat viser, om nogen faktisk brugte den betalte opsummering til en samtale eller forberedelse og hvorfor. Ejer vælger at fortsætte, ændre eller droppe betalingen. |
+
+**Stoppunkt.** Hvis rettigheder eller en klinisk forsvarlig brugerbesked ikke kan dokumenteres, forbliver instrumentet afskærmet. En ny selvstændigt skrevet refleksionsøvelse kræver en særskilt beslutning om formål og ressourcer.
