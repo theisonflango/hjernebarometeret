@@ -49,26 +49,11 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:
 .badge-free{background:var(--bg-warm);color:var(--text-3)}
 
 /* ── Stats grid ── */
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:20px}
 @media(max-width:500px){.stats{grid-template-columns:1fr}}
 .stat{padding:16px;border-radius:12px;background:var(--bg-warm);text-align:center}
 .stat-num{font-family:var(--serif);font-size:28px;font-weight:700;color:var(--text)}
 .stat-label{font-size:12px;color:var(--text-3);margin-top:2px}
-
-/* ── Test results list ── */
-.result-item{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--border)}
-.result-item:last-child{border-bottom:none}
-.result-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-.result-icon.iq{background:#f0ebf5}.result-icon.adhd{background:#eaf1f7}
-.result-icon.autisme{background:#eaf5ef}.result-icon.personlighed{background:#faf5eb}
-.result-icon.stress{background:#faf0ed}.result-icon.eq{background:#faf5eb}.result-icon.karriere{background:#eaf5f7}
-.result-info{flex:1;min-width:0}
-.result-test{font-weight:600;font-size:14px}
-.result-score{font-size:13px;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.result-date{font-size:12px;color:var(--text-4);flex-shrink:0}
-.result-actions{flex-shrink:0}
-.result-btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;border:1px solid var(--border);background:none;color:var(--text-2);cursor:pointer;transition:all .2s}
-.result-btn:hover{border-color:var(--accent);color:var(--accent)}
 
 /* ── Orders list ── */
 .order-item{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--border)}
@@ -109,13 +94,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:
 .btn-danger{padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;border:1.5px solid #d9534f;background:none;color:#d9534f;cursor:pointer;transition:all .2s}
 .btn-danger:hover{background:#d9534f;color:#fff}
 
-/* ── Upgrade banner ── */
-.upgrade-banner{background:linear-gradient(135deg,var(--accent),#3a8066);color:#fff;border-radius:16px;padding:28px;margin-bottom:20px;text-align:center}
-.upgrade-banner h3{font-family:var(--serif);font-size:20px;font-weight:600;margin-bottom:8px}
-.upgrade-banner p{font-size:14px;opacity:.85;margin-bottom:16px}
-.upgrade-banner .btn-upgrade{display:inline-block;padding:12px 28px;border-radius:10px;background:#fff;color:var(--accent);font-weight:700;font-size:14px;border:none;cursor:pointer;transition:all .2s}
-.upgrade-banner .btn-upgrade:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.15)}
-
 /* ── Login prompt ── */
 .login-prompt{text-align:center;padding:80px 20px}
 .login-prompt h1{font-family:var(--serif);font-size:clamp(24px,4vw,32px);font-weight:600;margin-bottom:12px}
@@ -127,35 +105,27 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:
 .loading .spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* ── Coupon input ── */
-.coupon-input-row{display:flex;gap:10px;margin-bottom:12px}
-.coupon-input{flex:1;padding:12px 16px;font-family:var(--sans);font-size:15px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;border:1.5px solid var(--border);border-radius:10px;background:var(--bg);color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s}
-.coupon-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(44,95,75,.1)}
-.coupon-input::placeholder{text-transform:none;letter-spacing:0;font-weight:400;color:var(--text-4)}
-.coupon-input.error{border-color:#c2553a;box-shadow:0 0 0 3px rgba(194,85,58,.1)}
-.coupon-submit{white-space:nowrap;padding:12px 20px}
-.coupon-feedback{font-size:14px;line-height:1.5;padding:12px 16px;border-radius:10px;display:none}
-.coupon-feedback.visible{display:block}
-.coupon-feedback.success{background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9}
-.coupon-feedback.error{background:#fbe9e7;color:#c2553a;border:1px solid #ffccbc}
-@media(max-width:500px){.coupon-input-row{flex-direction:column}.coupon-submit{width:100%}}
-
 /* ── Responsive ── */
 @media(max-width:600px){
   .profile-info{flex-direction:column;text-align:center}
   .profile-meta{justify-content:center}
   .result-date{display:none}
 }
+.page p a{color:var(--accent);text-decoration:underline;text-underline-offset:2px}
+.card p + p,.login-prompt button + p{margin-top:1rem}
 </style>
 </head>
 <body>
 
 <div id="site-nav" data-active="profil"></div>
 
+<noscript><style>#loading{display:none}</style><div class="page"><h1>Min profil</h1><p>Login kræver JavaScript. Få hjælp til tidligere køb på <a href="mailto:kontakt@hjernebarometeret.dk">kontakt@hjernebarometeret.dk</a>. <a href="mailto:kontakt@hjernebarometeret.dk?subject=Opsigelse%20af%20abonnement">Skriv for at opsige dit abonnement</a>.</p></div></noscript>
+
 <!-- Loading state -->
 <div id="loading" class="loading">
   <div class="spinner"></div>
-  <p>Indlæser profil...</p>
+  <p>Indlæser profil …</p>
+  <p><a href="rapporter.html">Hjælp med tidligere køb og abonnementer</a></p>
 </div>
 
 <!-- Login prompt (shown when not logged in) -->
@@ -167,15 +137,17 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:
     <line x1="50" y1="50" x2="50" y2="18" stroke="#1c1b1a" stroke-width="3" stroke-linecap="round" transform="rotate(-30,50,50)"/>
   </svg>
   <h1>Log ind for at se din profil</h1>
-  <p>Opret en gratis konto eller log ind for at gemme dine testresultater, se dine rapporter og administrere din konto.</p>
-  <button class="btn-primary" onclick="if(window.HB_AUTH)HB_AUTH.showLogin()">Log ind / Opret konto</button>
+  <p>Log ind for at administrere din konto og se tidligere køb. Har du købt uden konto, kan du skrive til <a href="mailto:kontakt@hjernebarometeret.dk">kontakt@hjernebarometeret.dk</a>.</p>
+  <button class="btn-primary" id="profile-login" onclick="if(window.HB_AUTH)HB_AUTH.showLogin()">Log ind</button>
+  <p hidden id="login-unavailable">Login er midlertidigt utilgængeligt.</p>
+  <p><a href="mailto:kontakt@hjernebarometeret.dk?subject=Opsigelse%20af%20abonnement">Skriv for at opsige dit abonnement</a>.</p>
 </div>
 
 <!-- Profile content (shown when logged in) -->
 <div id="profile" class="page" style="display:none">
   <div class="page-header">
     <h1>Min profil</h1>
-    <p>Administrer din konto, se testresultater og rapporter</p>
+    <p>Administrer din konto og se tidligere køb.</p>
   </div>
 
   <!-- Profile info -->
@@ -191,58 +163,26 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:
       </div>
     </div>
     <div class="stats" id="stats">
-      <div class="stat"><div class="stat-num" id="stat-tests">0</div><div class="stat-label">Tests taget</div></div>
-      <div class="stat"><div class="stat-num" id="stat-reports">0</div><div class="stat-label">Rapporter</div></div>
+      <div class="stat"><div class="stat-num" id="stat-reports">—</div><div class="stat-label">Rapportadgange</div></div>
       <div class="stat"><div class="stat-num" id="stat-credits">0</div><div class="stat-label">Credits</div></div>
     </div>
   </div>
 
-  <!-- Upgrade banner (shown for free users) -->
-  <div class="upgrade-banner" id="upgrade-banner" style="display:none">
-    <h3>Opgrader til ubegrænset adgang</h3>
-    <p>Fri adgang til alle rapporter for kun 89 kr/md. Afmeld nemt med et klik.</p>
-    <button class="btn-upgrade" onclick="if(window.HB_PAY)HB_PAY.checkout('unlimited')">Opgrader nu</button>
-  </div>
-
-  <!-- Coupon code -->
-  <div class="card" id="coupon-card">
-    <h2>
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h14v4"/><path d="M20 12v4H6a2 2 0 0 0 0 4h14v-4"/><circle cx="16" cy="12" r="1"/></svg>
-      Indløs kuponkode
-    </h2>
-    <p style="color:var(--text-2);font-size:14px;margin-bottom:16px">Har du modtaget en kuponkode? Indtast den herunder for at få rapport-credits.</p>
-    <div class="coupon-input-row">
-      <input type="text" id="coupon-input" class="coupon-input" placeholder="Fx VENNER2026" maxlength="30" autocomplete="off" spellcheck="false">
-      <button class="btn-primary coupon-submit" id="coupon-btn" onclick="redeemCoupon()">Indløs</button>
-    </div>
-    <div id="coupon-feedback" class="coupon-feedback"></div>
-    <p style="font-size:12px;color:var(--text-3);margin-top:12px">Credits bruges til at låse op for fulde rapporter. Hver rapport koster 1 credit.</p>
-  </div>
-
-  <!-- Test results -->
-  <div class="card">
-    <h2>
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-      Mine testresultater
-    </h2>
-    <div id="results-list">
-      <div class="empty">
-        <p>Du har ikke taget nogen tests endnu.</p>
-        <a href="/#tests">Tag din første test</a>
-      </div>
-    </div>
-  </div>
+  <section class="card">
+    <h2>Testresultater og abonnement</h2>
+    <p>Visning af tidligere testresultater og rapporter er på pause. Det gælder også deling, PDF og brug af credits. Har du spørgsmål til et køb, kan du skrive til <a href="mailto:kontakt@hjernebarometeret.dk">kontakt@hjernebarometeret.dk</a>.</p>
+    <p><a href="mailto:kontakt@hjernebarometeret.dk?subject=Opsigelse%20af%20abonnement">Skriv for at opsige dit abonnement</a>.</p>
+  </section>
 
   <!-- Report access -->
   <div class="card">
     <h2>
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
-      Mine rapporter
+      Registrerede rapportadgange
     </h2>
     <div id="reports-list">
       <div class="empty">
-        <p>Du har ikke adgang til nogen rapporter endnu.</p>
-        <a href="/rapporter.html">Se rapport-muligheder</a>
+        <p>Indlæser rapportadgange …</p>
       </div>
     </div>
   </div>
@@ -255,7 +195,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:
     </h2>
     <div id="orders-list">
       <div class="empty">
-        <p>Ingen betalinger endnu.</p>
+        <p>Indlæser betalingshistorik …</p>
       </div>
     </div>
   </div>
@@ -278,18 +218,12 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:
 <script src="shared/nav.js"></script>
 <script src="shared/footer.js"></script>
 <script src="shared/auth.js"></script>
-<script src="shared/coupon.js"></script>
-<script src="shared/payment.js"></script>
 <script>
-// ── Test labels & icons ──
-var TEST_INFO = {
-  iq: { name: 'IQ-test', icon: '🧠', color: '#6b4c9a', report: '/rapporter/iq.html', test: '/tests/iq.html' },
-  adhd: { name: 'ADHD-screening', icon: '⚡', color: '#2e6b9e', report: '/rapporter/adhd.html', test: '/tests/adhd.html' },
-  autisme: { name: 'Autisme-test (AQ-50)', icon: '🧩', color: '#3a7d5e', report: '/rapporter/autisme.html', test: '/tests/autisme.html' },
-  personlighed: { name: 'Personlighedstest', icon: '🎭', color: '#b8860b', report: '/rapporter/personlighed.html', test: '/tests/personlighed.html' },
-  stress: { name: 'Stress & udbrændthed', icon: '🔥', color: '#c2553a', report: '/rapporter/stress.html', test: '/tests/stress.html' },
-  eq: { name: 'Emotionel intelligens', icon: '💡', color: '#7a6b3a', report: '/rapporter/eq.html', test: '/tests/eq.html' },
-  karriere: { name: 'Karrieretest', icon: '🧭', color: '#2a7d8f', report: '/rapporter/karriere.html', test: '/tests/karriere.html' }
+var TEST_NAMES = {
+  iq: 'IQ-test', adhd: 'ADHD-screening', autisme: 'Autisme-test',
+  personlighed: 'Personlighedstest', stress: 'Stress og udbrændthed',
+  eq: 'Emotionel intelligens', karriere: 'Karrieretest', ocd: 'OCD-screening',
+  virksomhed: 'Virksomhedsanalyse'
 };
 
 var PLAN_LABELS = {
@@ -342,76 +276,44 @@ function renderProfile(user, plan, credits) {
   badge.className = 'badge ' + planInfo.cls;
 
   document.getElementById('stat-credits').textContent = credits || 0;
-
-  // Show upgrade banner for free users
-  if (plan === 'free' || plan === 'single') {
-    document.getElementById('upgrade-banner').style.display = 'block';
-  }
 }
 
-// ── Render test results ──
-function renderResults(results) {
-  var container = document.getElementById('results-list');
-  document.getElementById('stat-tests').textContent = results.length;
-
-  if (!results.length) return;
-
-  var html = '';
-  results.forEach(function(r) {
-    var info = TEST_INFO[r.test_type] || { name: r.test_type, icon: '📋', color: '#888' };
-    html += '<div class="result-item">' +
-      '<div class="result-icon ' + r.test_type + '">' + info.icon + '</div>' +
-      '<div class="result-info">' +
-        '<div class="result-test">' + info.name + '</div>' +
-        '<div class="result-score">' + (r.score_summary || 'Gennemført') + '</div>' +
-      '</div>' +
-      '<div class="result-date">' + fmtDate(r.completed_at) + '</div>' +
-      '<div class="result-actions">' +
-        '<button class="result-btn" onclick="window.location.href=\'' + info.test + '\'">Tag igen</button>' +
-      '</div>' +
-    '</div>';
-  });
-  container.innerHTML = html;
-}
-
-// ── Render report access ──
+// List purchase records without loading scores or opening paused reports.
 function renderReports(reports) {
   var container = document.getElementById('reports-list');
   document.getElementById('stat-reports').textContent = reports.length;
-
-  if (!reports.length) return;
-
-  var html = '';
-  reports.forEach(function(r) {
-    var info = TEST_INFO[r.test_type] || { name: r.test_type, icon: '📋' };
-    html += '<div class="access-item">' +
-      '<div class="access-dot" style="background:' + (info.color || 'var(--accent)') + '"></div>' +
-      '<div class="access-info">' +
-        '<div class="access-test">' + info.name + '</div>' +
-        '<div class="access-date">Adgang siden ' + fmtDate(r.granted_at) + '</div>' +
-      '</div>' +
-      '<div class="access-link">' +
-        '<a href="' + (info.report || '#') + '">Se rapport</a>' +
-      '</div>' +
-    '</div>';
+  container.replaceChildren();
+  if (!reports.length) {
+    container.textContent = 'Ingen særskilte rapportadgange registreret på denne konto.';
+    return;
+  }
+  reports.forEach(function(report) {
+    var row = document.createElement('p');
+    row.className = 'access-item';
+    var name = TEST_NAMES[report.test_type] || 'Rapport';
+    row.textContent = name + ' · Registreret ' + fmtDate(report.granted_at);
+    container.appendChild(row);
   });
-  container.innerHTML = html;
 }
 
 // ── Render order history ──
 function renderOrders(orders) {
   var container = document.getElementById('orders-list');
 
-  if (!orders.length) return;
+  if (!orders.length) {
+    container.textContent = 'Ingen betalinger registreret på denne konto.';
+    return;
+  }
 
   var html = '';
   orders.forEach(function(o) {
-    var statusCls = o.status || 'pending';
-    var statusLabel = { completed: 'Gennemført', pending: 'Afventer', refunded: 'Refunderet', cancelled: 'Annulleret' }[statusCls] || statusCls;
-    var productLabel = PRODUCT_LABELS[o.product_type] || o.product_type;
+    var statusLabels = { completed: 'Gennemført', pending: 'Afventer', refunded: 'Refunderet', cancelled: 'Annulleret' };
+    var statusCls = Object.hasOwn(statusLabels, o.status) ? o.status : '';
+    var statusLabel = statusLabels[statusCls] || 'Ukendt status';
+    var productLabel = PRODUCT_LABELS[o.product_type] || 'Køb';
     if (o.test_type && o.product_type === 'single') {
-      var tInfo = TEST_INFO[o.test_type];
-      if (tInfo) productLabel = tInfo.name + ' — Rapport';
+      var name = TEST_NAMES[o.test_type];
+      if (name) productLabel = name + ' · Rapport';
     }
     var amount = o.amount_dkk ? (o.amount_dkk / 100).toFixed(0) + ' kr' : '—';
 
@@ -427,101 +329,6 @@ function renderOrders(orders) {
   container.innerHTML = html;
 }
 
-// ── Redeem coupon code ──
-var _redeeming = false;
-async function redeemCoupon() {
-  if (_redeeming) return;
-  var input = document.getElementById('coupon-input');
-  var btn = document.getElementById('coupon-btn');
-  var fb = document.getElementById('coupon-feedback');
-  var code = input.value.trim();
-
-  if (!code) { input.classList.add('error'); input.focus(); return; }
-
-  _redeeming = true;
-  btn.disabled = true;
-  btn.textContent = 'Tjekker...';
-  fb.className = 'coupon-feedback';
-  fb.style.display = 'none';
-
-  try {
-    var session = (await HB_AUTH.supabase.auth.getSession()).data.session;
-    if (!session) { showCouponFeedback('error', 'Du skal være logget ind.'); return; }
-
-    var res = await fetch(
-      'https://pmbbachqedomvixvvfpj.supabase.co/functions/v1/hjernebarometeret-redeem-coupon',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + session.access_token,
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtYmJhY2hxZWRvbXZpeHZ2ZnBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3MDQ4MDksImV4cCI6MjA4NzI4MDgwOX0.dQ9GDUxyAqttisIPGI5hR20-9JpBKlFG4UvANivu4kM'
-        },
-        body: JSON.stringify({ code: code })
-      }
-    );
-    var data = await res.json();
-
-    if (data.success) {
-      showCouponFeedback('success',
-        '✓ ' + data.message +
-        '<br><span style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;background:var(--accent-light);color:var(--accent);border-radius:6px;font-size:13px;font-weight:600;margin-top:6px">' +
-        data.total_credits + ' credits i alt</span>'
-      );
-      input.value = '';
-      input.disabled = true;
-      btn.style.display = 'none';
-
-      // Opdater credits-visning
-      document.getElementById('stat-credits').textContent = data.total_credits;
-      window.dispatchEvent(new CustomEvent('hb-credits-change', {
-        detail: { credits: data.total_credits, granted: data.credits_granted }
-      }));
-    } else {
-      var msgs = {
-        'INVALID_CODE': 'Koden findes ikke. Tjek at du har tastet den korrekt.',
-        'INACTIVE_CODE': 'Denne kode er ikke længere aktiv.',
-        'EXPIRED_CODE': 'Denne kode er udløbet.',
-        'MAX_USES_REACHED': 'Denne kode er allerede brugt det maksimale antal gange.',
-        'ALREADY_REDEEMED': 'Du har allerede indløst denne kode.'
-      };
-      showCouponFeedback('error', msgs[data.error] || data.message || 'Noget gik galt.');
-      input.classList.add('error');
-      input.select();
-    }
-  } catch (err) {
-    console.error('Coupon error:', err);
-    showCouponFeedback('error', 'Kunne ikke forbinde til serveren. Prøv igen.');
-  } finally {
-    _redeeming = false;
-    btn.disabled = false;
-    if (btn.style.display !== 'none') btn.textContent = 'Indløs';
-  }
-}
-
-function showCouponFeedback(type, html) {
-  var fb = document.getElementById('coupon-feedback');
-  fb.className = 'coupon-feedback ' + type + ' visible';
-  fb.innerHTML = html;
-  fb.style.display = 'block';
-}
-
-// Clear error on input
-document.addEventListener('DOMContentLoaded', function() {
-  var ci = document.getElementById('coupon-input');
-  if (ci) {
-    ci.addEventListener('input', function() {
-      ci.classList.remove('error');
-      var fb = document.getElementById('coupon-feedback');
-      fb.className = 'coupon-feedback';
-      fb.style.display = 'none';
-    });
-    ci.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') redeemCoupon();
-    });
-  }
-});
-
 // ── Init ──
 (async function init() {
   // Wait for auth
@@ -534,6 +341,10 @@ document.addEventListener('DOMContentLoaded', function() {
   // Not logged in — show login prompt
   if (!window.HB_AUTH || !HB_AUTH.user) {
     document.getElementById('login-prompt').style.display = 'block';
+    if (!window.HB_AUTH) {
+      document.getElementById('profile-login').hidden = true;
+      document.getElementById('login-unavailable').hidden = false;
+    }
 
     // Listen for login
     window.addEventListener('hb-auth-change', function(e) {
@@ -553,14 +364,9 @@ document.addEventListener('DOMContentLoaded', function() {
   var userId = HB_AUTH.user.id;
 
   try {
-    var [resultsRes, reportsRes, ordersRes] = await Promise.all([
-      sb.from('test_results')
-        .select('test_type, score_summary, completed_at')
-        .eq('user_id', userId)
-        .order('completed_at', { ascending: false })
-        .limit(50),
+    var [reportsRes, ordersRes] = await Promise.all([
       sb.from('report_access')
-        .select('test_type, granted_at, expires_at')
+        .select('test_type, granted_at')
         .eq('user_id', userId)
         .order('granted_at', { ascending: false }),
       sb.from('orders')
@@ -570,25 +376,13 @@ document.addEventListener('DOMContentLoaded', function() {
         .limit(20)
     ]);
 
-    renderResults(resultsRes.data || []);
-    renderReports(reportsRes.data || []);
-    renderOrders(ordersRes.data || []);
-
-    // For unlimited/admin users, show reports for tests they've actually completed
-    if (HB_AUTH.plan === 'unlimited' || HB_AUTH.plan === 'admin') {
-      var completedTests = (resultsRes.data || []).map(function(r) { return r.test_type; });
-      // Deduplicate
-      var uniqueTests = completedTests.filter(function(t, i) { return completedTests.indexOf(t) === i; });
-      if (uniqueTests.length > 0) {
-        var syntheticReports = uniqueTests.map(function(t) {
-          return { test_type: t, granted_at: null };
-        });
-        renderReports(syntheticReports);
-      }
-      document.getElementById('stat-reports').textContent = '∞';
-    }
-
+    if (reportsRes.error) document.getElementById('reports-list').textContent = 'Rapportadgange kunne ikke indlæses.';
+    else renderReports(reportsRes.data || []);
+    if (ordersRes.error) document.getElementById('orders-list').textContent = 'Betalinger kunne ikke indlæses.';
+    else renderOrders(ordersRes.data || []);
   } catch (e) {
+    document.getElementById('reports-list').textContent = 'Rapportadgange kunne ikke indlæses.';
+    document.getElementById('orders-list').textContent = 'Betalinger kunne ikke indlæses.';
     console.error('Profil data fejl:', e);
   }
 })();

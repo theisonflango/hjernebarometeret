@@ -41,7 +41,6 @@
       '<a href="/rapporter.html" class="sn-link' + act('rapporter') + '">Rapporter</a>' +
       '<a href="/om-os.html" class="sn-link' + act('om-os') + '">Om os</a>' +
       '<a href="/#faq" class="sn-link' + act('faq') + '">FAQ</a>' +
-      '<a href="/#tests" class="sn-cta">Tag en test</a>' +
       '<a href="/profil.html" class="sn-link' + act('profil') + '">Min profil</a>' +
       '<a href="#" class="sn-login" onclick="event.preventDefault();if(window.HB_AUTH)HB_AUTH.showLogin();">' + userSvg + ' Log ind</a>' +
     '</div>' +
@@ -57,7 +56,6 @@
     '<a href="/rapporter.html" class="sn-link' + act('rapporter') + '">Rapporter</a>' +
     '<a href="/om-os.html" class="sn-link' + act('om-os') + '">Om os</a>' +
     '<a href="/#faq" class="sn-link' + act('faq') + '">FAQ</a>' +
-    '<a href="/#tests" class="sn-cta">Tag en test</a>' +
     '<a href="/profil.html" class="sn-link' + act('profil') + '">Min profil</a>' +
     '<a href="#" class="sn-login" onclick="event.preventDefault();if(window.HB_AUTH)HB_AUTH.showLogin();">' + userSvg + ' Log ind</a>';
   document.body.appendChild(mobileOverlay);

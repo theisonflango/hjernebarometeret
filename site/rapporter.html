@@ -2,6 +2,16 @@
 <html lang="da">
 <head>
 <meta charset="UTF-8">
+<meta name="referrer" content="no-referrer">
+<script>
+  // Older checkout sessions can return here for both packs and subscriptions.
+  const returnUrl = new URL(window.location.href);
+  if (returnUrl.searchParams.has('payment') || returnUrl.searchParams.has('session_id')) {
+    document.documentElement.classList.add('billing-return');
+    for (const key of ['payment', 'session_id', 'token']) returnUrl.searchParams.delete(key);
+    history.replaceState(history.state, '', returnUrl.pathname + returnUrl.search + returnUrl.hash);
+  }
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Rapporter & priser — Hjernebarometeret</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,81 +30,33 @@ nav{display:flex;justify-content:space-between;align-items:center;padding:0 clam
 footer{padding:36px clamp(20px,4vw,48px);border-top:1px solid var(--border);max-width:1080px;margin:0 auto}.ft-bot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}.ft-bot p{font-size:11px;color:var(--text-4);line-height:1.6}
 @media(max-width:800px){.pricing-grid{grid-template-columns:1fr}.nav-a.hm{display:none}}
 .rv{opacity:0;transform:translateY(14px);transition:opacity .6s ease,transform .6s ease}.rv.v{opacity:1;transform:translateY(0)}.d1{transition-delay:.05s}.d2{transition-delay:.1s}
+.content a,.page-hd a{color:var(--accent);text-decoration:underline;text-underline-offset:2px}
+.return-help{display:none}.billing-return .return-help{display:block}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <div id="site-nav" data-active="rapporter"></div>
-<section class="page-hd"><p style="margin-bottom:16px"><a href="index.html" style="font-size:13px;color:var(--accent);font-weight:500;text-decoration:none">← Tilbage til forsiden</a></p><h1 class="rv">Rapporter & priser</h1><p class="rv d1">Alle tests og resultater er gratis. Efter afsluttet test har du mulighed for at købe en rapport med dybdegående analyse, værktøjer til personlig udvikling, konkrete strategier og en eventuel handleplan.</p></section>
-<div class="content">
-
-<!-- 1) Gratis resultat vs. rapport -->
-<div class="section-block rv">
-<h2>Gratis resultat vs. rapport</h2>
-<div class="vs">
-<div class="vs-row" style="border-bottom:2px solid var(--border);padding-bottom:10px;margin-bottom:4px"><span class="vs-head"></span><span class="vs-free vs-head">Gratis</span><span class="vs-paid vs-head">Rapport</span></div>
-<div class="vs-row"><span>Score og klassificering</span><span class="vs-free">✓</span><span class="vs-paid">✓</span></div>
-<div class="vs-row"><span>Overordnet vurdering</span><span class="vs-free">✓</span><span class="vs-paid">✓</span></div>
-<div class="vs-row"><span>Detaljeret kategori-breakdown</span><span class="vs-free">—</span><span class="vs-paid">✓</span></div>
-<div class="vs-row"><span>Personlige styrker & udfordringer</span><span class="vs-free">—</span><span class="vs-paid">✓</span></div>
-<div class="vs-row"><span>Percentil & sammenligninger</span><span class="vs-free">—</span><span class="vs-paid">✓</span></div>
-<div class="vs-row"><span>Visuelt profildiagram</span><span class="vs-free">—</span><span class="vs-paid">✓</span></div>
-<div class="vs-row"><span>Strategier & handlingsplan</span><span class="vs-free">—</span><span class="vs-paid">✓</span></div>
-<div class="vs-row"><span>PDF-rapport til lægen</span><span class="vs-free">—</span><span class="vs-paid">✓</span></div>
-<div class="vs-row"><span>Delbart profilkort</span><span class="vs-free">—</span><span class="vs-paid">✓</span></div>
-<div class="vs-row"><span>Terapeut-matching baseret på dine resultater</span><span class="vs-free">—</span><span class="vs-paid" style="font-size:11px;font-weight:600;letter-spacing:.02em">Kommer snart</span></div>
-</div>
-</div>
-
-<!-- 2) Din personlige udviklingsrapport -->
-<div class="section-block features rv d1">
-<h2>Din personlige udviklingsrapport</h2>
-<h4>Personlig indsigt</h4>
-<div class="feat"><span class="ck">✓</span>Detaljeret breakdown af hver kategori med forklaring</div>
-<div class="feat"><span class="ck">✓</span>Hvad dine scores konkret betyder i din hverdag</div>
-<div class="feat"><span class="ck">✓</span>Konkrete eksempler på hvordan din profil viser sig i dagligdagen</div>
-<div class="feat"><span class="ck">✓</span>Personlige styrker og udfordringer</div>
-<div class="feat"><span class="ck">✓</span>Subtypeklassificering hvor relevant (fx ADHD: uopmærksom vs. kombineret)</div>
-<h4>Sammenligninger</h4>
-<div class="feat"><span class="ck">✓</span>Sammenligning med normalbefolkningen</div>
-<div class="feat"><span class="ck">✓</span>Percentil-rangering ("du scorer højere end X%")</div>
-<div class="feat"><span class="ck">✓</span>Køns- og alderskorrigeret data</div>
-<div class="feat"><span class="ck">✓</span>Visuelt profildiagram (radarplot)</div>
-<div class="feat"><span class="ck">✓</span>Farvekodede risikozoner (grøn/gul/rød)</div>
-<h4>Værktøjer til din udvikling</h4>
-<div class="feat"><span class="ck">✓</span>Konkrete strategier og anbefalinger du kan bruge i morgen</div>
-<div class="feat"><span class="ck">✓</span>Coping-strategier målrettet dine specifikke udfordringer</div>
-<div class="feat"><span class="ck">✓</span>Tjekliste: "Ting du kan gøre i morgen"</div>
-<div class="feat"><span class="ck">✓</span>Rød-flag-markering ved scores der anbefaler fagperson</div>
-<div class="feat"><span class="ck">✓</span>Anbefalede bøger, apps og ressourcer tilpasset din profil</div>
-<h4>Til din læge</h4>
-<div class="feat"><span class="ck">✓</span>PDF-rapport til download</div>
-<div class="feat"><span class="ck">✓</span>Samtaleguide med konkrete sætninger til lægebesøg</div>
-<h4>Del og gem</h4>
-<div class="feat"><span class="ck">✓</span>"Din profil i ét ord" — en label du kan dele (fx "Dagdrømmeren")</div>
-<div class="feat"><span class="ck">✓</span>Delbart profilkort til Instagram og stories</div>
-<div class="feat"><span class="ck">✓</span>Med gratis konto: gem rapporter og følg din udvikling over tid</div>
-<h4>Næste skridt</h4>
-<div class="feat"><span class="ck" style="opacity:.55">◔</span>Terapeut-matching: vi matcher dig med kvalificerede danske fagpersoner baseret på dine resultater <em style="color:var(--text-3);font-style:normal;font-size:.9em">(kommer snart)</em></div>
-</div>
-
-<!-- 3) Vælg din plan -->
-<div class="section-block pricing rv d2">
-<h2>Vælg din plan</h2>
-<div class="pricing-grid">
-<div class="pc"><div class="pc-label">Enkelt rapport</div><div class="pc-price">49 kr</div><p class="pc-desc">Én personlig rapport. Engangskøb — ingen login krævet. Rapport vises med det samme.</p><a href="index.html#tests" class="pc-btn pc-btn-o">Tag en test først</a></div>
-<div class="pc ft"><div class="pc-label">4-pakke</div><div class="pc-price">99 kr <span>— spar 50%</span></div><p class="pc-desc">4 rapport-credits til valgfrie tests. Kræver gratis konto. Credits udløber ikke.</p><span class="pc-tag">Bedste værdi</span><button onclick="if(window.HB_PAY)HB_PAY.checkout('pack4',null)" class="pc-btn pc-btn-s" style="border:none;width:100%">Køb 4-pakke</button></div>
-<div class="pc"><div class="pc-label">Ubegrænset</div><div class="pc-price">89 kr<span>/md</span></div><p class="pc-desc">Alle rapporter inkl. fremtidige tests. Afmeld når som helst med ét klik.</p><button onclick="if(window.HB_PAY)HB_PAY.checkout('unlimited',null)" class="pc-btn pc-btn-o" style="border:1.5px solid var(--border-2);width:100%">Start abonnement</button></div>
-</div>
-</div>
-
-</div>
+<main>
+  <section class="page-hd"><p><a href="index.html">← Til forsiden</a></p>
+    <h1>Rapporter og tidligere køb</h1>
+    <p>Salget er midlertidigt lukket, mens vi gennemgår testene. Det gælder enkeltrapporter, pakker med credits og nye abonnementer.</p>
+  </section>
+  <div class="content">
+    <section class="section-block return-help"><h2>Vendte du tilbage fra betaling?</h2>
+      <p>Se din kvittering, eller log ind på <a href="profil.html">Min profil</a> for at kontrollere et køb knyttet til din konto. Har du brug for hjælp, kan du skrive til <a href="mailto:kontakt@hjernebarometeret.dk">kontakt@hjernebarometeret.dk</a>.</p>
+    </section>
+    <section class="section-block"><h2>Har du købt en rapport eller credits?</h2>
+      <p>Rapportvisning og brug af credits er på pause. Log ind på <a href="profil.html">Min profil</a> for at se køb knyttet til din konto. Har du købt uden konto, eller har du brug for hjælp til en tidligere betaling, kan du skrive til <a href="mailto:kontakt@hjernebarometeret.dk">kontakt@hjernebarometeret.dk</a>. Du kan oplyse ordrenummeret fra din kvittering.</p>
+    </section>
+    <section class="section-block"><h2>Har du et abonnement?</h2>
+      <p><a href="mailto:kontakt@hjernebarometeret.dk?subject=Opsigelse%20af%20abonnement">Skriv for at opsige dit abonnement</a>, eller kontakt os på <a href="mailto:kontakt@hjernebarometeret.dk">kontakt@hjernebarometeret.dk</a> med spørgsmål om betaling. Se også <a href="handelsbetingelser.html#abonnement">abonnementsvilkårene</a>.</p>
+    </section>
+  </div>
+</main>
 <div id="site-footer"></div>
 <script src="shared/nav.js"></script>
 <script src="shared/footer.js"></script>
 <script src="shared/auth.js"></script>
-<script src="shared/coupon.js"></script>
-<script src="shared/payment.js"></script>
-<script>const o=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('v')})},{threshold:.08});document.querySelectorAll('.rv').forEach(e=>o.observe(e));</script>
 </body>
 </html>

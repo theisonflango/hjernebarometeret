@@ -2,8 +2,18 @@
 <html lang="da">
 <head>
 <meta charset="UTF-8">
+<meta name="referrer" content="no-referrer">
+<script>
+  // Handle old purchase links before loading the questionnaire or external scripts.
+  const returnUrl = new URL(window.location.href);
+  if (returnUrl.searchParams.has('status') || returnUrl.searchParams.has('payment') || returnUrl.searchParams.has('session_id')) {
+    document.documentElement.classList.add('business-return');
+    for (const key of ['status', 'payment', 'session_id', 'tier', 'token']) returnUrl.searchParams.delete(key);
+    history.replaceState(history.state, '', returnUrl.pathname + returnUrl.search + returnUrl.hash);
+  }
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Gratis AI-drevet virksomhedsanalyse. 35 spørgsmål, 15 minutters investering. Få markedsanalyse, SWOT, vækststrategi og handlingsplan.">
+<meta name="description" content="Et spørgeforløb om din virksomhed med en gratis AI-forhåndsvurdering. Den fulde rapport er under udvikling.">
 <title>Virksomhedsanalyse — Hjernebarometeret.dk</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,500&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -218,11 +228,18 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); line
   .swot-grid { grid-template-columns: 1fr; }
   .cta-features { flex-direction: column; align-items: center; }
 }
+.purchase-help{display:none}.business-return .purchase-help{display:block}
 </style>
 </head>
 <body>
 <div id="site-nav" data-active="tests" data-test-mode="true"></div>
 
+<section class="hero purchase-help">
+  <h1>Den fulde virksomhedsrapport er under udvikling</h1>
+  <p class="hero-sub">Har du en tidligere betaling, kan du skrive til <a href="mailto:kontakt@hjernebarometeret.dk">kontakt@hjernebarometeret.dk</a> med dit ordrenummer.</p>
+  <a href="virksomhed.html" class="btn-primary">Til virksomhedsanalysen</a>
+</section>
+<noscript><section class="hero"><h1>Virksomhedsanalyse</h1><p>Spørgeforløbet kræver JavaScript. Den fulde rapport er under udvikling. <a href="../rapporter.html">Få hjælp med tidligere køb</a>.</p></section></noscript>
 <div id="app"></div>
 
 <div id="site-footer"></div>
@@ -230,11 +247,9 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); line
 <script src="../shared/nav.js"></script>
 <script src="../shared/footer.js"></script>
 <script src="../shared/auth.js"></script>
-<script src="../shared/coupon.js"></script>
-<script src="../shared/payment.js"></script>
 
 <script type="text/babel">
-const { useState, useEffect, useCallback, useRef } = React;
+const { useState } = React;
 
 // ─── SUPABASE ───
 var SUPABASE_URL = 'https://pmbbachqedomvixvvfpj.supabase.co';
@@ -274,7 +289,7 @@ var QUESTIONS = [
       options: ['Ikke startet endnu', 'Under 6 måneder', '6-12 måneder', '1-3 år', '3+ år'] },
     { id: 'q6', section: 0, required: false, type: 'text',
       text: 'Har du en hjemmeside?',
-      help: 'Angiv URL. Vi analyserer din hjemmeside og giver konkret feedback på messaging, positionering og brugeroplevelse.',
+      help: 'Angiv adressen på virksomhedens hjemmeside, hvis du ønsker at dele den.',
       placeholder: 'https://...' },
     { id: 'q7', section: 0, required: false, type: 'text',
       text: 'Har du aktive sociale medier? (angiv URL\'er)',
@@ -316,7 +331,7 @@ var QUESTIONS = [
       options: ['Ja, jeg kender dem godt', 'Ja, nogle stykker', 'Nej, ikke rigtigt', 'Jeg tror ikke jeg har direkte konkurrenter'] },
     { id: 'q16', section: 2, required: false, type: 'text',
       text: 'Nævn op til 3 konkurrenter (navn eller URL)',
-      help: 'Angiv URL\'er for den bedste analyse. Vi sammenligner deres positionering med din.',
+      help: 'Angiv navn og eventuelt webadresse på de nærmeste konkurrenter.',
       placeholder: 'Fx: konkurrent1.dk, konkurrent2.dk' },
     { id: 'q17', section: 2, required: false, type: 'textarea',
       text: 'Hvad adskiller dig fra konkurrenterne?',
@@ -333,7 +348,7 @@ var QUESTIONS = [
       options: ['Abonnement / SaaS', 'Engangssalg af produkt', 'Freemium (gratis + betalt opgradering)', 'Markedsplads / provision', 'Reklameindtægter', 'Service / timebetaling', 'Licens / franchise', 'Andet'] },
     { id: 'q20', section: 3, required: false, type: 'text',
       text: 'Hvad er din prissætning?',
-      help: 'Vi sammenligner med branchenormer og vurderer om du underpriser eller overpriser.',
+      help: 'Beskriv de priser, som dine kunder betaler.',
       placeholder: 'Fx: 299 kr/md, 49 kr pr. stk, 800 kr/time...' },
     { id: 'q21', section: 3, required: false, type: 'text',
       text: 'Hvad er dine vigtigste omkostninger?',
@@ -402,21 +417,19 @@ var QUESTIONS = [
 
 var LOADING_STEPS = [
     'Analyserer din forretning...',
-    'Undersøger dit marked...',
-    'Evaluerer konkurrenter...',
-    'Bygger din strategi...',
+    'Læser dine svar om markedet...',
+    'Gennemgår dine oplysninger om konkurrenter...',
+    'Opsummerer dine oplysninger...',
     'Genererer din vurdering...'
 ];
 
 // ─── APP ───
 function App() {
-    var [phase, setPhase] = useState('hero'); // hero | questions | transition | loading | results | full_report | error
-    var [selectedTier, setSelectedTier] = useState(null); // 'standard' | 'premium'
+    var [phase, setPhase] = useState('hero');
     var [currentQ, setCurrentQ] = useState(0);
     var [answers, setAnswers] = useState({});
     var [loadingStep, setLoadingStep] = useState(0);
     var [freeResult, setFreeResult] = useState(null);
-    var [analysisId, setAnalysisId] = useState(null);
     var [errorMsg, setErrorMsg] = useState('');
     var [retryCount, setRetryCount] = useState(0);
 
@@ -543,115 +556,12 @@ function App() {
             if (result.error) throw new Error(result.error);
 
             setFreeResult(result);
-            setAnalysisId(result.analysis_id);
             setLoadingStep(LOADING_STEPS.length);
-
-            // Save answers for potential full report generation after payment
-            localStorage.setItem('hb_virksomhed_answers', JSON.stringify(answers));
 
             setTimeout(function() { setPhase('results'); window.scrollTo(0, 0); }, 800);
         } catch (err) {
             clearInterval(stepInterval);
             console.error('Analysis error:', err);
-            setErrorMsg(err.message || 'Noget gik galt. Prøv igen.');
-            setPhase('error');
-            window.scrollTo(0, 0);
-        }
-    }
-
-    // ── FULL REPORT: Checkout for Standard/Premium ──
-    async function handleCheckout(tier) {
-        setSelectedTier(tier);
-        localStorage.setItem('hb_virksomhed_tier', tier);
-        localStorage.setItem('hb_virksomhed_answers', JSON.stringify(answers));
-        var productType = tier === 'premium' ? 'virksomhed_premium' : 'virksomhed_standard';
-        try {
-            await HB_PAY.startCheckout('virksomhed', productType);
-        } catch (err) {
-            console.error('Checkout error:', err);
-            alert('Fejl ved checkout: ' + (err.message || 'Prøv igen'));
-        }
-    }
-
-    // Check for payment callback on mount (return from Stripe)
-    useEffect(function() {
-        var params = new URLSearchParams(window.location.search);
-        var status = params.get('status');
-        if (status === 'success') {
-            var tier = params.get('tier') || localStorage.getItem('hb_virksomhed_tier') || 'standard';
-            var savedAnswers = localStorage.getItem('hb_virksomhed_answers');
-            if (savedAnswers) {
-                try {
-                    var parsed = JSON.parse(savedAnswers);
-                    setAnswers(parsed);
-                    setSelectedTier(tier);
-                    window.history.replaceState({}, '', window.location.pathname);
-                    submitFullReport(parsed, tier);
-                } catch(e) { console.error('Failed to parse saved answers:', e); }
-            }
-        } else if (status === 'cancel') {
-            var savedAnswers2 = localStorage.getItem('hb_virksomhed_answers');
-            if (savedAnswers2) { try { setAnswers(JSON.parse(savedAnswers2)); } catch(e) {} }
-            setPhase('results'); // Go back to free preview with paywall
-            window.history.replaceState({}, '', window.location.pathname);
-        }
-    }, []);
-
-    // ── FULL REPORT: Generate after payment ──
-    async function submitFullReport(paidAnswers, tier) {
-        setPhase('loading');
-        setLoadingStep(0);
-        window.scrollTo(0, 0);
-
-        var stepInterval = setInterval(function() {
-            setLoadingStep(function(prev) {
-                if (prev >= LOADING_STEPS.length - 1) { clearInterval(stepInterval); return prev; }
-                return prev + 1;
-            });
-        }, 4000);
-
-        try {
-            var token = null;
-            var userId = null;
-            if (window.HB_AUTH && HB_AUTH.user) {
-                userId = HB_AUTH.user.id;
-                var session = HB_AUTH.supabase ? (await HB_AUTH.supabase.auth.getSession()).data.session : null;
-                token = session ? session.access_token : null;
-            }
-
-            var body = {
-                answers: paidAnswers,
-                tier: tier,
-                user_id: userId,
-                anonymous_token: userId ? null : localStorage.getItem('hb_anon_token')
-            };
-
-            var headers = { 'Content-Type': 'application/json' };
-            headers['Authorization'] = 'Bearer ' + (token || SUPABASE_ANON);
-
-            var response = await fetch(EDGE_URL, {
-                method: 'POST',
-                headers: headers,
-                body: JSON.stringify(body)
-            });
-
-            clearInterval(stepInterval);
-
-            if (!response.ok) throw new Error((await response.text()) || 'Server error ' + response.status);
-            var result = await response.json();
-            if (result.error) throw new Error(result.error);
-
-            setFreeResult(result);
-            setAnalysisId(result.analysis_id);
-            setSelectedTier(tier);
-            setLoadingStep(LOADING_STEPS.length);
-            localStorage.removeItem('hb_virksomhed_answers');
-            localStorage.removeItem('hb_virksomhed_tier');
-
-            setTimeout(function() { setPhase('full_report'); window.scrollTo(0, 0); }, 800);
-        } catch (err) {
-            clearInterval(stepInterval);
-            console.error('Full report error:', err);
             setErrorMsg(err.message || 'Noget gik galt. Prøv igen.');
             setPhase('error');
             window.scrollTo(0, 0);
@@ -664,21 +574,14 @@ function App() {
         await submitFreeAnalysis();
     }
 
-    // Save prompt for anonymous users
-    useEffect(function() {
-        if (phase === 'results' && window.HB_PAY) {
-            HB_PAY.renderSavePrompt('hb-save-prompt-virksomhed', 'virksomhed');
-        }
-    }, [phase]);
-
     // ── HERO ──
     if (phase === 'hero') {
         return (
             <div className="hero fade-in-up">
                 <div className="hero-badge">AI-drevet forretningsanalyse</div>
-                <h1>Få dit <em>forretnings&shy;kompas</em> kalibreret</h1>
+                <h1>Virksomhedsanalyse</h1>
                 <p className="hero-sub">
-                    35 spørgsmål om din virksomhed. Én AI-genereret analyse med markedsvurdering, SWOT, vækststrategi og konkret handlingsplan.
+                    Besvar 35 spørgsmål om din virksomhed og anmod om en gratis AI-genereret forhåndsvurdering. Den fulde rapport er under udvikling.
                 </p>
                 <div className="hero-stats">
                     <div className="hero-stat"><strong>35</strong><span>spørgsmål</span></div>
@@ -687,14 +590,13 @@ function App() {
                     <div className="hero-stat"><strong>AI</strong><span>analyse</span></div>
                 </div>
                 <button className="btn-primary" onClick={function() { setPhase('questions'); window.scrollTo(0,0); }}>
-                    Start analyse →
+                    Start spørgeforløb →
                 </button>
 
                 <div className="science-box" style={{ marginTop: 48 }}>
                     <h3>Hvad får du?</h3>
                     <p>
-                        Besvar 35 strukturerede spørgsmål om din forretning. Baseret på dine svar genererer vi en AI-drevet analyse
-                        med markedsvurdering, konkurrentanalyse, SWOT og vækststrategi — skræddersyet til din specifikke situation.
+                        Dine svar danner grundlag for en kort AI-vurdering af virksomhedens styrker, svagheder, muligheder og trusler.
                     </p>
                     <div className="sections-grid">
                         {SECTIONS.map(function(s) {
@@ -795,7 +697,7 @@ function App() {
             <div className="results-container fade-in-up">
                 <div className="results-header">
                     <h1>Din virksomhedsanalyse</h1>
-                    <p>Gratis smagsprøve baseret på dine svar. Få den fulde rapport med markedsanalyse, konkurrentvurdering og handlingsplan.</p>
+                    <p>Gratis AI-genereret forhåndsvurdering baseret på dine svar.</p>
                 </div>
 
                 {/* Profile label */}
@@ -850,59 +752,9 @@ function App() {
                     </div>
                 )}
 
-                {/* Paywall — full report */}
                 <div className="cta-box">
-                    <h3>Få den fulde analyse</h3>
-                    <p>Din gratis vurdering er kun begyndelsen. Den fulde rapport indeholder 10 dybdegående sektioner med konkret, handlingsrettet rådgivning.</p>
-                    <div className="cta-features">
-                        <span className="cta-feature">Markedsanalyse</span>
-                        <span className="cta-feature">Konkurrentvurdering</span>
-                        <span className="cta-feature">Forretningsmodel</span>
-                        <span className="cta-feature">Vækststrategi</span>
-                        <span className="cta-feature">Risikovurdering</span>
-                        <span className="cta-feature">30/60/90-dages plan</span>
-                        <span className="cta-feature">PDF-download</span>
-                    </div>
-                    <div style={{ maxWidth: 460, margin: '0 auto', padding: '16px 18px', borderRadius: 12, background: 'rgba(45,106,79,0.08)', border: '1px solid rgba(45,106,79,0.2)' }}>
-                        <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: 'var(--accent)' }}>🔧 Den fulde rapport er på vej</p>
-                        <p style={{ margin: '6px 0 0', fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>Den dybdegående betalte analyse er under udvikling og åbner snart. Din gratis vurdering ovenfor er allerede klar og fuldt tilgængelig.</p>
-                    </div>
-                </div>
-
-                {/* Blurred preview */}
-                <div className="result-card" style={{ position: 'relative' }}>
-                    <h3>Markedsanalyse</h3>
-                    <div className="blurred" style={{ minHeight: 120 }}>
-                        <div className="result-content">
-                            <p>Dit marked viser tegn på stærk vækst inden for de seneste 24 måneder. Baseret på din branche og positionering identificerer vi tre primære trends der påvirker din forretning direkte. Den samlede adresserbare markedsstørrelse estimeres til...</p>
-                            <p>Konkurrenceintensiteten i din niche er moderat, hvilket giver plads til differentiering gennem focused positioning. De mest succesfulde aktører i din sektor har typisk...</p>
-                        </div>
-                    </div>
-                    <div style={{ position: 'absolute', bottom: 16, left: 0, right: 0, textAlign: 'center' }}>
-                        <span style={{ fontSize: 13, color: 'var(--accent)', fontWeight: 600 }}>Inkluderet i den fulde rapport ↑</span>
-                    </div>
-                </div>
-
-                {/* Save prompt for anonymous */}
-                <div id="hb-save-prompt-virksomhed"></div>
-
-                {/* Cross-sell */}
-                <div className="cross-sell">
-                    <h3>Relevante tests</h3>
-                    <div className="cross-sell-grid">
-                        <a href="karriere.html" className="cross-sell-card">
-                            <div className="name">🧭 Karrieretest</div>
-                            <div className="sub">Find din karriereprofil</div>
-                        </a>
-                        <a href="personlighed.html" className="cross-sell-card">
-                            <div className="name">🌟 Personlighedstest</div>
-                            <div className="sub">Forstå din lederstil</div>
-                        </a>
-                        <a href="stress.html" className="cross-sell-card">
-                            <div className="name">🔥 Stresstest</div>
-                            <div className="sub">Er du i balance?</div>
-                        </a>
-                    </div>
+                    <h3>Den fulde rapport er under udvikling</h3>
+                    <p>Her kan du kun få den gratis forhåndsvurdering.</p>
                 </div>
 
                 <p className="results-disclaimer">
@@ -1006,7 +858,9 @@ function App() {
 }
 
 // ── MOUNT ──
-ReactDOM.createRoot(document.getElementById('app')).render(<App />);
+if (!document.documentElement.classList.contains('business-return')) {
+    ReactDOM.createRoot(document.getElementById('app')).render(<App />);
+}
 </script>
 </body>
 </html>

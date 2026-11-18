@@ -3,6 +3,8 @@
    Exposes window.HB_PAY for Stripe Checkout integration.
 */
 (function(){
+  // F-01: all report purchases and new unlocks are paused during review.
+  var reportSalesPaused = true;
   var CHECKOUT_URL = 'https://pmbbachqedomvixvvfpj.supabase.co/functions/v1/hjernebarometeret-create-checkout';
 
   var FILE_MAP = {
@@ -299,6 +301,10 @@
 
   // ── Initiate Stripe Checkout ──
   async function checkout(productType, testType, testData) {
+    if (reportSalesPaused) {
+      alert('Rapportsalget er på pause, mens vi gennemgår testene.');
+      return;
+    }
     _logEvent('checkout_clicked', testType || null, { product_type: productType });
     // Require login for pack4 and unlimited
     if ((productType === 'pack4' || productType === 'unlimited') && (!window.HB_AUTH || !HB_AUTH.user)) {
@@ -413,6 +419,7 @@
   // decrements, and grants report_access in one transaction. Clients can no
   // longer write report_credits or report_access directly.
   async function useCredit(testType) {
+    if (reportSalesPaused) return false;
     if (!window.HB_AUTH || !HB_AUTH.user) return false;
     try {
       var { data, error } = await HB_AUTH.supabase.rpc('spend_credit', { p_test_type: testType });
@@ -432,6 +439,7 @@
   // ── Render "Brug credit" option in paywall ──
   // Call this from report pages after showing #no-access
   function renderCreditOption(testType) {
+    if (reportSalesPaused) return;
     if (!window.HB_AUTH || !HB_AUTH.user || HB_AUTH.credits <= 0) return;
 
     var container = document.getElementById('no-access');

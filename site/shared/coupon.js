@@ -12,6 +12,8 @@
 (function () {
   'use strict';
 
+  // F-01: preserve unused codes while the reports they unlock are paused.
+  const couponsPaused = true;
   const SUPABASE_URL = 'https://pmbbachqedomvixvvfpj.supabase.co';
 
   // ── State ──────────────────────────────────────────────
@@ -261,6 +263,10 @@
 
   // ── Show / Hide ────────────────────────────────────────
   function showModal() {
+    if (couponsPaused) {
+      alert('Indløsning af kuponer er på pause, mens vi gennemgår testene.');
+      return;
+    }
     // Tjek om brugeren er logget ind
     if (typeof HB_AUTH !== 'undefined' && !HB_AUTH.user) {
       HB_AUTH.showLogin();
@@ -308,7 +314,7 @@
 
   // ── Submit ─────────────────────────────────────────────
   async function submitCode() {
-    if (isSubmitting) return;
+    if (couponsPaused || isSubmitting) return;
 
     const input = modalEl.querySelector('.hb-coupon-input');
     const submitBtn = modalEl.querySelector('.hb-coupon-btn');
@@ -405,6 +411,7 @@
   // ── Integration: Tilføj menuitem ───────────────────────
   // Kalder denne for at tilføje "Indløs kode" til user-menu dropdown
   function injectMenuItem() {
+    if (couponsPaused) return;
     // Vent på at user-menu renders (det sker dynamisk)
     const observer = new MutationObserver(() => {
       const menu = document.querySelector('.hb-user-menu');
