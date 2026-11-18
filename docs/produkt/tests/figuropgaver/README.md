@@ -16,6 +16,10 @@ I den isolerede tælleserie viste to svarmuligheder de samme fire figurer, mens 
 
 Se rundernes råtal og produktets tidligere omregninger. [Fiktive testcases](../../grundlag/Hjernebarometeret-fiktive-testcases.json)
 
+## Fagligt fund · prøv hver opgave som den faktisk tegnes
+
+Mensa Danmark giver sin onlineøvelse et afgrænset formål og beskriver den særskilte adgangsprøve. ICAR-forskerne afprøvede deres konkrete opgavetyper på deltagere. Begge dele har en konsekvens for vores figurer. Beskriv en runde som øvelse, og giv en forklaring på den konkrete regel. Før en opgave får lov at tælle, skal en anden person kunne finde samme entydige svar på de figurer, der bliver tegnet på mobil og desktop. Gem det viste eksempel ved en fejl, så to ens svarmuligheder kan genskabes. Et eventuelt mål for intelligens kræver en egen undersøgelse af de faktiske opgaver og en relevant referencegruppe. [Mensa Danmarks beskrivelse af onlineøvelsen](https://mensa.dk/hvor-hoej-er-din-intelligens) · [ICAR-originalstudiet](https://www.personality-project.org/revelle/publications/condon.icar.14.pdf)
+
 ## Opgaver
 
 | ID | Opgave og ejer | Afhænger af | Estimat | Færdig når |

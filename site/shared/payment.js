@@ -165,8 +165,10 @@
       switch(testType) {
         case 'iq':
           return 'IQ: ' + (d.iq || '?') + ' (' + (d.cls || '?') + '), ' + (d.cor||0) + '/' + (d.tot||40) + ' korrekte';
-        case 'adhd':
-          return 'ADHD ' + (d.mode||'?') + ': ' + (d.totalPct||0).toFixed(0) + '%, ' + (d.level||'?') + ', ' + (d.profileType||'?');
+        case 'adhd': {
+          var partA = window.HB_ADHD && window.HB_ADHD.fromRecord(d);
+          return partA ? 'ADHD-screening · ' + partA.score + ' af 6 svar i tællefeltet' : 'ADHD-screening';
+        }
         case 'autisme':
           return 'AQ: ' + (d.t||0) + '/50, kategori: ' + (d.category||'?');
         case 'personlighed':
@@ -175,8 +177,10 @@
             return 'O:' + (t.O||0) + ' C:' + (t.C||0) + ' E:' + (t.E||0) + ' A:' + (t.A||0) + ' N:' + (t.N||0);
           }
           return 'Big Five completed';
-        case 'stress':
-          return 'PSS: ' + (d.pssTotal||0) + '/40 (' + (d.pssPct||0).toFixed(0) + '%), ' + (d.burnoutProfile||'?');
+        case 'stress': {
+          var stressScore = window.HB_STRESS && window.HB_STRESS.score(d);
+          return Number.isInteger(stressScore) ? 'Oplevet stress · ' + stressScore + ' af 40 point' : 'Oplevet stress';
+        }
         case 'eq':
           return 'EQ: ' + (d.total||0) + '/' + (d.max||165) + ' (' + (d.percentile||0) + '%)';
         case 'karriere':

@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+  <title>Mit næste jobspor · Hjernebarometeret</title>
+  <style>
+    :root {
+      --paper: #f7f5ed; --panel: #fffef9; --ink: #182f32; --dim: #485e5e;
+      --line: #bccbc6; --teal: #15545b; --pale: #e4efea; --red: #923c2b;
+      --serif: "Source Serif 4", Georgia, serif;
+      --sans: Figtree, system-ui, -apple-system, sans-serif;
+    }
+    *, *::after, *::before { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font: 1rem/1.5 var(--sans); }
+    main, header, footer { width: min(100% - 2rem, 62rem); margin-inline: auto; }
+    header { min-height: 4.4rem; display: flex; justify-content: space-between; align-items: center; gap: .75rem; border-bottom: 1px solid var(--line); }
+    .brand { font: 600 1.15rem var(--serif); }
+    header small, footer { color: var(--dim); font-size: .83rem; }
+    .intro { margin: clamp(1.6rem, 4vw, 3.3rem) 0 1.7rem; }
+    h1, h2, h3, p { margin: 0; }
+    h1 { font: 500 clamp(2.55rem, 6.4vw, 5.1rem)/1.04 var(--serif); letter-spacing: -.045em; }
+    h1 em { color: var(--teal); font-weight: 400; }
+    .intro p { font-size: 1.08rem; max-width: 48rem; color: var(--dim); margin-top: .8rem; }
+    nav { display: flex; margin-bottom: 1.8rem; border-block: 1px solid var(--line); }
+    nav button { flex: 1; justify-content: center; background: none; border: 0; border-bottom: .22rem solid transparent; border-radius: 0; color: var(--dim); }
+    nav button[aria-current] { color: var(--teal); border-bottom-color: currentColor; font-weight: 700; }
+    nav .number { display: inline-grid; place-items: center; width: 1.55rem; height: 1.55rem; border: 1px solid currentColor; border-radius: 50%; font-size: .75rem; }
+    nav button[aria-current] .number { color: white; background: var(--teal); border-color: var(--teal); }
+    h2 { font: 500 clamp(1.65rem, 4vw, 2.4rem)/1.15 var(--serif); letter-spacing: -.035em; }
+    h3 { font: 600 1.28rem/1.25 var(--serif); }
+    .section-intro { margin: .45rem 0 1.05rem; color: var(--dim); max-width: 51rem; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 1rem; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: .7rem; padding: clamp(.9rem, 2vw, 1.4rem); overflow-wrap: anywhere; min-width: 0; }
+    .activity { display: flex; flex-direction: column; }
+    .activity p { color: var(--dim); margin: .35rem 0 1.1rem; }
+    fieldset { margin: auto 0 0; padding: 0; border: 0; min-width: 0; }
+    .options { display: flex; flex-wrap: wrap; gap: .4rem; }
+    .option { position: relative; cursor: pointer; }
+    .option input, .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+    .option span { display: inline-flex; align-items: center; min-height: 2.75rem; padding: .45rem .68rem; border: 1px solid var(--line); border-radius: .4rem; font-size: .9rem; }
+    .option input:checked + span { background: var(--teal); color: white; border-color: var(--teal); font-weight: 650; }
+    .option:hover span, button.secondary:hover { border-color: var(--teal); }
+    button, select, input, textarea { font: inherit; }
+    button { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-height: 2.8rem; padding: .55rem 1rem; cursor: pointer; font-weight: 600; }
+    button.primary, button.secondary { border-radius: .45rem; border: 1px solid var(--teal); }
+    button.primary { background: var(--teal); color: white; }
+    button.primary:hover { background: #103f44; }
+    button.secondary { background: transparent; color: var(--teal); }
+    :focus-visible, .option input:focus-visible + span { outline: 3px solid #b1491a; outline-offset: 3px; }
+    .controls { display: flex; align-items: center; flex-wrap: wrap; justify-content: space-between; gap: 1rem; margin-top: 1.4rem; }
+    .hint { font-size: .91rem; color: var(--dim); }
+    .insight { margin: 1rem 0; padding: .9rem 1.1rem; border-left: .25rem solid var(--teal); background: var(--pale); }
+    .decision { max-width: 37rem; margin: 1.1rem 0; }
+    .label, .card label:not(.option) { display: block; font-weight: 650; margin-bottom: .3rem; }
+    .card .field { margin-top: .85rem; }
+    input[type=text], select, textarea { background: white; border: 1px solid #81928c; color: var(--ink); width: 100%; min-height: 2.8rem; padding: .55rem .7rem; border-radius: .38rem; }
+    textarea { resize: vertical; }
+    .role-detail { color: var(--dim); margin-top: .6rem; }
+    .note { white-space: pre-line; color: var(--dim); margin-top: .45rem; }
+    .plan { margin-top: 1.4rem; }
+    .error { color: var(--red); font-weight: 650; margin-top: .6rem; }
+    [aria-invalid=true] { border-color: var(--red); }
+    section[hidden], [hidden] { display: none !important; }
+    footer { border-top: 1px solid var(--line); margin-block: 2rem 1rem; padding-top: 1rem; }
+    @media(max-width: 42rem) {
+      .grid { grid-template-columns: 1fr; }
+      nav button { padding-inline: .15rem; gap: .3rem; font-size: .91rem; min-width: 0; }
+      .intro { margin-block: 1.6rem 1.1rem; }
+      .controls .primary { width: 100%; }
+    }
+    @media print {
+      body { background: white; } nav, .controls, footer, .intro p { display: none; }
+      .intro, section { margin-block: 1rem; }
+    }
+  </style>
+</head>
+<body>
+<header><span class="brand">Hjernebarometeret</span><small>Karriere · lokalt udkast</small></header>
+<main>
+  <div class="intro">
+    <h1>Mit næste <em>jobspor</em></h1>
+    <p>Find arbejdsopgaver, du er nysgerrig på. Vælg to jobspor, og beslut, hvad du vil undersøge i virkeligheden.</p>
+  </div>
+  <noscript>Åbn arbejdsarket i en browser med JavaScript slået til. Filen fungerer offline.</noscript>
+  <div id="worksheet" hidden>
+    <nav aria-label="Trin i arbejdsarket">
+      <button type="button" data-step="0" aria-current="step"><span class="number" aria-hidden="true">1</span> Aktiviteter</button>
+      <button type="button" data-step="1"><span class="number" aria-hidden="true">2</span> To jobspor</button>
+      <button type="button" data-step="2"><span class="number" aria-hidden="true">3</span> Min plan</button>
+    </nav>
+    <section id="activities" aria-labelledby="activities-title">
+      <h2 id="activities-title" tabindex="-1">Hvad ville du have lyst til at prøve?</h2>
+      <p class="section-intro">Tænk på din lyst til opgaven, uanset erfaring. Vælg “Neutral”, hvis du kender opgaven og hverken hælder til eller fra. Vælg “Usikker”, hvis du har brug for at vide mere.</p>
+      <div class="grid" id="activity-list"></div>
+      <div class="controls"><p class="hint">Du kan også gå direkte til dine egne jobspor.</p><button class="primary" type="button" data-step="1">Vælg to jobspor →</button></div>
+    </section>
+    <section id="tracks" aria-labelledby="tracks-title" hidden>
+      <h2 id="tracks-title" tabindex="-1">Hvilke to spor vil du sammenligne?</h2>
+      <p class="section-intro">Vælg et emne, der betyder noget for dig. Brug vores eksempler eller skriv selv to forskellige spor.</p>
+      <p id="activity-feedback" class="insight"></p>
+      <div class="decision">
+        <label class="label" for="criterion">Det vil jeg sammenligne</label>
+        <input id="criterion" type="text" list="criteria" maxlength="180" value="Arbejdsopgaver i en typisk uge">
+        <datalist id="criteria"><option value="Arbejdsopgaver i en typisk uge"></option><option value="Arbejdstid og placering"></option><option value="Uddannelse og oplæring"></option><option value="Kontakt med andre mennesker"></option></datalist>
+      </div>
+      <div class="grid" id="track-list"></div>
+      <p id="track-error" class="error" role="alert" hidden></p>
+      <div class="controls"><button class="secondary" type="button" data-step="0">Tilbage til aktiviteter</button><button class="primary" type="button" data-step="2">Lav min plan →</button></div>
+    </section>
+    <section id="summary" aria-labelledby="summary-title" hidden>
+      <h2 id="summary-title" tabindex="-1">Min plan for de to spor</h2>
+      <p class="insight" id="summary-criterion"></p>
+      <div class="grid" id="summary-list"></div>
+      <div class="plan">
+        <label class="label" for="action">Hvad vil du gøre som det første?</label>
+        <p class="hint" id="action-hint">Vælg et lille skridt, du kan tage inden for en uge. Du kan redigere forslaget.</p>
+        <textarea rows="3" maxlength="1200" id="action" aria-describedby="action-hint"></textarea>
+      </div>
+      <p id="action-error" class="error" role="alert" hidden></p>
+      <div class="controls"><button class="secondary" type="button" data-step="1">Ret min sammenligning</button><button class="primary" type="button" id="save">Gem planen som tekst</button></div>
+      <p class="hint" id="save-status" role="status"></p>
+    </section>
+  </div>
+</main>
+<footer>Arbejdsarket fungerer offline. Dine valg forsvinder, når du lukker eller genindlæser fanen. Du kan gemme din plan som en tekstfil.</footer>
+<script>
+  'use strict';
+
+  const activities = [
+    { id: 'felt', title: 'Indsamle prøver i felten', detail: 'Du besøger et vandløb, tager prøver forskellige steder og noterer dine observationer.', job: 'Miljøtekniker' },
+    { id: 'lab', title: 'Undersøge en prøve', detail: 'Du arbejder ved et laboratoriebord, sammenligner to målinger og undersøger en mulig afvigelse.', job: 'Laborant' },
+    { id: 'cykel', title: 'Finde og udbedre en fejl', detail: 'Et cykelgear springer. Du undersøger årsagen, justerer gearet og prøver det af.', job: 'Cykelmekaniker' },
+    { id: 'it', title: 'Hjælpe en person videre', detail: 'Du taler med en kollega om et computerproblem og guider personen gennem løsningen.', job: 'It-supporter' }
+  ];
+  const ratings = [
+    ['lyst', 'Har lyst'], ['neutral', 'Neutral'], ['usikker', 'Usikker'], ['nej', 'Helst ikke']
+  ];
+  const sections = ['activities', 'tracks', 'summary'];
+  const tracks = [];
+  const notes = new Map();
+  const answers = new Map();
+  let suggestedAction = '';
+  const get = id => document.getElementById(id);
+
+  function element(tag, text, className) {
+    const node = document.createElement(tag);
+    if (text !== undefined) node.textContent = text;
+    if (className) node.className = className;
+    return node;
+  }
+
+  function makeActivity(item) {
+    const card = element('article', undefined, 'card activity');
+    card.append(element('h3', item.title), element('p', item.detail));
+    const field = element('fieldset');
+    field.append(element('legend', 'Din lyst til at ' + item.title.toLocaleLowerCase('da'), 'sr'));
+    const choices = element('div', undefined, 'options');
+    for (const [value, label] of ratings) {
+      const wrap = element('label', undefined, 'option');
+      const input = element('input');
+      input.type = 'radio'; input.name = item.id; input.value = value;
+      input.addEventListener('change', () => answers.set(item.id, value));
+      wrap.append(input, element('span', label));
+      choices.append(wrap);
+    }
+    field.append(choices); card.append(field);
+    return card;
+  }
+
+  function activityFeedback() {
+    const interested = activities.filter(item => answers.get(item.id) === 'lyst');
+    const unsure = activities.filter(item => answers.get(item.id) === 'usikker');
+    const first = interested.length
+      ? 'Her er jobspor med eksempler på de opgaver, du har lyst til at prøve. ' + interested.map(item => item.job + ' · ' + item.title.toLocaleLowerCase('da')).join('. ') + '. Du vælger selv de to spor.'
+      : 'Du kan vælge frit blandt eksemplerne eller skrive dine egne jobspor.';
+    const second = unsure.length
+      ? ' Du var usikker på ' + unsure.map(item => '“' + item.title + '”').join(', ') + '. Et jobopslag eller en samtale kan gøre opgaven mere konkret.'
+      : '';
+    return first + second;
+  }
+
+  function trackName(track) {
+    return track.select.value === 'eget' ? track.custom.value.trim() : track.select.value;
+  }
+
+  function keyFor(text) {
+    return text.trim().toLocaleLowerCase('da').replace(/\s+/g, ' ');
+  }
+
+  function clearTrackError() {
+    get('track-error').hidden = true;
+    for (const field of get('tracks').querySelectorAll('[aria-invalid]')) field.removeAttribute('aria-invalid');
+  }
+
+  function makeTrack(letter) {
+    const card = element('div', undefined, 'card');
+    const label = element('label', 'Jobspor ' + letter);
+    const select = element('select');
+    select.id = 'spor-' + letter; label.htmlFor = select.id;
+    select.add(new Option('Vælg et spor', ''));
+    for (const item of activities) select.add(new Option(item.job, item.job));
+    select.add(new Option('Skriv mit eget spor', 'eget'));
+    const customField = element('div', undefined, 'field');
+    const customLabel = element('label', 'Navn på dit eget spor ' + letter);
+    const custom = element('input'); custom.type = 'text'; custom.maxLength = 90;
+    custom.id = 'eget-' + letter; customLabel.htmlFor = custom.id;
+    customField.append(customLabel, custom); customField.hidden = true;
+    const detail = element('p', undefined, 'role-detail');
+    const noteField = element('div', undefined, 'field');
+    const noteLabel = element('label', 'Min note om spor ' + letter + ' (valgfri)');
+    const note = element('textarea'); note.rows = 2; note.maxLength = 1000;
+    note.id = 'note-' + letter; noteLabel.htmlFor = note.id; note.placeholder = 'Hvad ved du, og hvad vil du gerne finde ud af?';
+    noteField.append(noteLabel, note); noteField.hidden = true;
+    card.append(label, select, customField, detail, noteField);
+
+    const track = { select, custom, note };
+    function noteKey() {
+      return select.value === 'eget' ? 'eget-' + letter : select.value;
+    }
+    function showTrack() {
+      clearTrackError();
+      customField.hidden = select.value !== 'eget';
+      const item = activities.find(example => example.job === select.value);
+      detail.textContent = item ? 'Et eksempel på arbejdet er at ' + item.title.toLocaleLowerCase('da') + '.' : '';
+      noteField.hidden = !trackName(track);
+      note.value = notes.get(noteKey()) || '';
+    }
+    select.addEventListener('change', showTrack);
+    custom.addEventListener('input', showTrack);
+    note.addEventListener('input', () => notes.set(noteKey(), note.value));
+    tracks.push(track);
+    return card;
+  }
+
+  function trackError(message, input) {
+    const area = get('track-error');
+    area.hidden = false; area.textContent = message;
+    input.setAttribute('aria-invalid', 'true');
+    input.focus();
+  }
+
+  function go(step, moveFocus = true) {
+    if (step === 2) {
+      go(1, false);
+      clearTrackError();
+      const criterion = get('criterion').value.trim();
+      if (!criterion) return trackError('Skriv, hvad du vil sammenligne.', get('criterion'));
+      for (const [i, track] of tracks.entries()) {
+        if (!trackName(track)) return trackError('Vælg eller skriv et navn til jobspor ' + (i ? 'B.' : 'A.'), track.select.value === 'eget' ? track.custom : track.select);
+      }
+      if (keyFor(trackName(tracks[0])) === keyFor(trackName(tracks[1]))) {
+        return trackError('Vælg to forskellige spor, så du kan sammenligne dem.', tracks[1].select.value === 'eget' ? tracks[1].custom : tracks[1].select);
+      }
+      get('summary-criterion').textContent = 'Mit emne er “' + criterion + '”.';
+      const list = get('summary-list'); list.replaceChildren();
+      for (const track of tracks) {
+        const card = element('article', undefined, 'card');
+        const name = trackName(track);
+        card.append(element('h3', name), element('p', track.note.value.trim() || 'Jeg mangler endnu at undersøge dette spor.', 'note'));
+        list.append(card);
+      }
+      const action = get('action');
+      const draft = 'Find et dansk jobopslag for hvert spor (“' + trackName(tracks[0]) + '” og “' + trackName(tracks[1]) + '”). Skriv én konkret forskel om “' + criterion + '”.';
+      if (action.value === suggestedAction) action.value = draft;
+      suggestedAction = draft;
+      get('save-status').textContent = '';
+      get('action-error').hidden = true;
+      action.removeAttribute('aria-invalid');
+    }
+    if (step === 1) get('activity-feedback').textContent = activityFeedback();
+    for (const [i, id] of sections.entries()) get(id).hidden = i !== step;
+    for (const button of document.querySelectorAll('nav button')) {
+      if (Number(button.dataset.step) === step) button.setAttribute('aria-current', 'step');
+      else button.removeAttribute('aria-current');
+    }
+    if (moveFocus) get(sections[step] + '-title').focus();
+  }
+
+  function savePlan() {
+    const action = get('action').value.trim();
+    if (!action) {
+      get('action-error').textContent = 'Skriv dit næste skridt, før du gemmer planen.';
+      get('action-error').hidden = false; get('action').setAttribute('aria-invalid', 'true'); get('action').focus(); return;
+    }
+    const lines = ['Mit næste jobspor', '', 'Mit emne', get('criterion').value.trim(), ''];
+    for (const track of tracks) lines.push(trackName(track), track.note.value.trim() || 'Skal undersøges.', '');
+    lines.push('Mit første skridt', action);
+    const url = URL.createObjectURL(new Blob([lines.join('\n') + '\n'], { type: 'text/plain;charset=utf-8' }));
+    const link = element('a'); link.href = url; link.download = 'min-karriereplan.txt';
+    document.body.append(link); link.click(); link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    get('save-status').textContent = 'Din tekstfil er klar i browserens overførsler.';
+  }
+
+  for (const item of activities) get('activity-list').append(makeActivity(item));
+  for (const letter of ['A', 'B']) get('track-list').append(makeTrack(letter));
+  for (const button of document.querySelectorAll('[data-step]')) button.addEventListener('click', () => go(Number(button.dataset.step)));
+  get('criterion').addEventListener('input', clearTrackError);
+  get('action').addEventListener('input', () => {
+    get('action-error').hidden = true; get('action').removeAttribute('aria-invalid'); get('save-status').textContent = '';
+  });
+  get('save').addEventListener('click', savePlan);
+  get('worksheet').hidden = false;
+</script>
+</body>
+</html>

@@ -8,7 +8,7 @@
 
 ## De fem første opgaver
 
-Rækkefølgen angiver ejerens prioritet. Udvikleren kan arbejde på 2–3, mens ejeren forbereder 4–5. P0 angiver en alvorlig fejl, som skal sikres nu eller inden køb. P1 er nødvendig for næste valgte udgave. P2 kræver en senere investeringsbeslutning. F-01 er **i gang**. Ændringen er afprøvet lokalt og afventer beslutning om tidligere kunder og udgivelse. De fire øvrige opgaver er planlagte. [F-01 · pull request og kontroller](https://github.com/theisonflango/hjernebarometeret/pull/1)
+Rækkefølgen angiver ejerens prioritet. Udvikleren kan arbejde på 2–3, mens ejeren forbereder 4–5. P0 angiver en alvorlig fejl, som skal sikres nu eller inden køb. P1 er nødvendig for næste valgte udgave. P2 kræver en senere investeringsbeslutning. F-01 er **i gang**. Ændringen er afprøvet lokalt og afventer beslutning om tidligere kunder og udgivelse. Der foreligger nu et lokalt udkast til KAR-4. Interviews og opfølgning med deltagere afventer. Der er også lavet faglige rettelser til de to kliniske resultater. [F-01 · pull request og kontroller](https://github.com/theisonflango/hjernebarometeret/pull/1)
 
 | Nr. | Åbn | Hvem tager den? | Hvad skal du kunne se? |
 |---|---|---|---|
@@ -20,15 +20,15 @@ Rækkefølgen angiver ejerens prioritet. Udvikleren kan arbejde på 2–3, mens 
 
 ## Porteføljen
 
-**Status pr. 18. november 2026.** Første kolonne linker til hele opgavelisten for området. Faserne er de åbne faglige spørgsmål for den ønskede udgave. Dispositionsforslaget for de direkte adgangs- og købsveje er afprøvet på F-01-grenen. En lukket karrierepilot er planlagt.
+**Status pr. 18. november 2026.** Første kolonne linker til hele opgavelisten for området. Faserne er de åbne faglige spørgsmål for den ønskede udgave. Dispositionsforslaget for de direkte adgangs- og købsveje er afprøvet på F-01-grenen. Karrierearket er klar til en første lukket brugertest.
 
 | Område | Beslutning om projekt og timing | Næste faglige afgørelse |
 |---|---|---|
 | [Karriere](tests/karriere/README.md) | Første pilot. Sikr salget og ret den publicerede rapport. Arbejdsark om egne jobspor kan afprøves separat. | Fase 1 for arket og 2 for testen. Giver arket værdi? Hvilket studie og hvilke vilkår kræver dansk O*NET? |
-| [ADHD](tests/adhd/README.md) | Selvstændigt klinisk projekt. Afskærm nu. Videre udvikling venter. | Fase 2. Vælg dansk voksenudgave og brugsret. |
+| [ADHD](tests/adhd/README.md) | Seks svar fra afsnit A kan kontrolleres lokalt mod en dansk 18-spørgsmålsformular. | NYU tillader kommerciel brug af uændret 6Q. Identificér dansk patientformular og få dens konkrete visning vurderet. |
 | [Autistiske træk](tests/autistiske-traek/README.md) | Selvstændigt klinisk projekt. Afskærm nu, herunder ny rapport efter gentagelse. | Fase 2 og kendt fejl i fase 4. Kan det valgte AQ-formål og den korrekte nøgle godkendes? |
 | [OCD](tests/ocd/README.md) | Bevar særskilt kort. Afskærm de modstridende alvorlighedsbeskeder. Genopbygning afventer kliniker og dansk materiale. | Fase 2. Afklar præcis OCI-R-udgave og ret til digital brug. |
-| [Oplevet stress](tests/oplevet-stress/README.md) | Selvstændig faglig udgave med PSS-10. Afgræns det fælles nuværende forløb. | Fase 2. Afklar dansk version og rettigheder til det smallere formål. |
+| [Oplevet stress](tests/oplevet-stress/README.md) | Lokal pointkontrol af ti svar efter den danske konsensusversion fra 16.10.2012. | Indhent konkrete vilkår for web og rapport, og få formidlingen vurderet af en arbejds- eller sundhedspsykolog. |
 | [Udbrændthed](tests/udbraendthed/README.md) | Udfas syndromfortolkningen fra de 20 lokale spørgsmål. Muligt senere projekt med CBI. | Fase 1. Vælg voksne i arbejde, relevant intakt delskala og faglig ejer. |
 | [Figurer og IQ](tests/figuropgaver/README.md) | Afskærm nuværende IQ-løfte. Foreslå figurøvelse med entydigt facit. Et normeret IQ-produkt kræver en ny investering. | Fase 1 og kendt fejl i fase 4. Vælg øveformålet, før der bestilles mere udvikling. |
 | [Personlighed](tests/personlighed/README.md) | Afgræns offentlig rang- og typefortolkning. Senere kandidat til fem brede træk med dansk IPIP. | Fase 1→2. Afgræns frivillig brug for voksne, og vælg den danske udgave og forsvarlig fortolkning. |
@@ -38,6 +38,7 @@ Kommende tilbud har korte statuskort for [EQ](tests/emotionel-intelligens/README
 
 ## Arbejdsmateriale
 
+- [Åbn de tre udkast lokalt](README.md#arbejdsudkast-til-faglig-gennemgang) · [Læs den efterfølgende research](grundlag/FAGLIG-OPFOELGNING.md)
 - [Roadmap · første uge og dag 30, 60 og 90](ROADMAP.md)
 - [Pipeline · syv trin, godkendere og ændringer efter udgivelse](PIPELINE.md)
 - [Mappestruktur · alternativer, begrundelse og hvor materialet hører hjemme](STRUKTUR.md)

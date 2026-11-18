@@ -10,6 +10,10 @@
 
 **Fase og næste godkendelse.** 60-udgaven er publiceret. For 120-spørgsmålsudgaven afventer **1 · Formål** ejerens beslutning om frivillig voksenbrug. Næste trin er **2 · Instrument og rettigheder**. IPIP frigiver sit materiale til kommerciel brug. Vedel, Gøtzsche-Astrup og Holm undersøgte den danske 120-spørgsmålsudgave hos 525 veterinærstuderende og dimittender fra ét universitet. Dokumentationen giver en konkret start for netop den danske form. Nationale rangplaceringer for voksne og præcise tolkninger af den lokale 60-form kræver andre data. En ekstern personlighedspsykolog eller psykometriker godkender den præcise brug. [IPIP’s vilkår](https://ipip.ori.org/newPermission.htm) · [Den danske tekst og nøgle](https://ipip.ori.org/DanishIPIP-NEO-120.htm) · [Dansk valideringsstudie](https://pure.au.dk/portal/da/publications/the-danish-ipip-neo-120-a-free-validated-five-factor-measure-of-p/)
 
+## Fagligt fund · hvordan en deltager læser sine fem træk
+
+IPIP beskriver træk langs skalaer og anbefaler at vise deres kontinuerte karakter. Skeln i feedbacken mellem hvor ofte en person tilsluttede sig udsagn, og hvordan vedkommende ligger i en bestemt referencegruppe. I vores åbne profil kunne maksimum på skalaen blive til “højere end 100 % af befolkningen”. Erstat påstanden med en beskrivelse af svarene og et frivilligt eksempel fra hverdagen. Ved fremtidig afprøvning skal deltageren kunne forklare grafen korrekt uden at kende begrebet percentil. Brug samme grundtekst på skærm og kort. [IPIP om individuel fortolkning](https://ipip.ori.org/InterpretingIndividualIPIPScaleScores.htm) · [IPIP om sammenligningsgrupper](https://ipip.ori.org/newNorms.htm)
+
 ## Opgaver i prioriteret rækkefølge
 
 Estimater er arbejdstimer. Ekstern reviewtid og udviklertid skal ind i samme kapacitetsplan som karrierepiloten.

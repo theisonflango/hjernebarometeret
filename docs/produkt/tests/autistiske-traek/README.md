@@ -12,6 +12,10 @@
 
 **Næste ejerbeslutning.** Skal teamet finansiere en autoriseret dansk AQ med snæver selvrapporteret fortolkning? Cambridge stiller dansk materiale til rådighed og henviser kommerciel brug til Cambridge Enterprise. Universitetet beskriver oversættelsens kvalitet som oversætterens ansvar. En forskningshenvisning alene bærer hverken dansk befolkningsrang eller personlige sensoriske råd. [AQ og dansk udgave](https://www.autismresearchcentre.com/tests/autism-spectrum-quotient-aq-adult/) · [Cambridges vilkår](https://www.autismresearchcentre.com/research/tests/terms-and-conditions-for-translations/)
 
+## Fagligt fund · spørg hvad resultatet skal hjælpe personen med
+
+NICE anvender den korte AQ-10 i en britisk klinisk arbejdsgang, hvor en fagperson kan gå videre med udredning ud fra både scoren og sit kliniske skøn. Hjernebarometeret bruger AQ-50 på en dansk selvbetjeningsside. En grænse fra AQ-10 kan derfor ikke fungere som godkendelse af vores kategorier. For AQ-5 kan et frivilligt spørgsmål ved enhver score lyde: *“Hvilken konkret situation vil du gerne kunne forklare til en fagperson?”* Kontroller at både en bruger under og over en tærskel forstår, hvad tallet omfatter. Prøv også to gennemførsler efter hinanden, så brugeren ser den rigtige besvarelse. [NICE om identifikation og vurdering](https://www.nice.org.uk/guidance/cg142/chapter/Recommendations#identification-and-assessment) · [Cambridge om AQ-50 til voksne](https://www.autismresearchcentre.com/tests/autism-spectrum-quotient-aq-adult/)
+
 | ID | Leverance | Ejer | Afhænger af | Skøn | Færdig når |
 |---|---|---|---|---|---|
 | AQ-1 · P0 | Afskærm ny AQ-scoring og salg. | Produktejer + udvikler | F-01 | 2–3 t | Katalog og direkte links leder til neutral status. Der kan ikke genereres en ny misvisende kategori eller købes en rapport med et forældet resultat. Ejer har valgt opfølgning for eventuelt berørte købere. |

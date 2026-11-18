@@ -16,6 +16,10 @@ Frontenden har 35 spørgsmål, kalder en ekstern analysefunktion og viser den fu
 
 Den tidligere afprøvning beskriver adgangen til modellen og rapporten. [Audit af testkvalitet og leverance](../../grundlag/Hjernebarometeret-testkvalitet-og-betalingsvaerdi.pdf)
 
+## Fagligt fund · kontrollér om rådet ændrer sig med oplysningerne
+
+Kvalitet i denne tjeneste kan afprøves som en rådgivningsopgave. Giv to fiktive virksomheder samme spørgsmål om at ansætte en medarbejder, men forskellig likviditet. En erhvervsrådgiver angiver før forsøget, hvilke oplysninger der mangler, og hvad der kan udledes i hver case. Bedøm derefter hver anbefaling mod de oplyste tal, dens kilder og det næste skridt, som ejeren kan tage. Den hidtidige afprøvning har kun dækket brugerfladen og et fiktivt modelsvar. Et aktuelt modelsvar og en rådgivers uafhængige bedømmelse er fortsat en opgave i AI-2 og AI-3. [Isoleret rutekontrol](../../grundlag/F-01.md) · [NIST om vurdering af generativ AI](https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf)
+
 ## Opgaver
 
 | ID | Opgave og ejer | Afhænger af | Estimat | Færdig når |
