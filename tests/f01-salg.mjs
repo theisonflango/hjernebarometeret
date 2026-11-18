@@ -111,3 +111,48 @@ for (const [slug, expectedError] of [
     assert.deepEqual(attempts, []);
   });
 }
+
+test('kvitteringen giver købsstatus og hjælp i både HTML og tekst for alle tre produkter', async () => {
+  const deliveries = [];
+  const js = stripTypeScriptTypes(source('supabase/functions/hjernebarometeret-stripe-webhook/index.ts')
+    .replace(/^import [^\n]+;\n/gm, ''));
+  const webhook = {
+    Stripe: class {
+      static createFetchHttpClient() {}
+      static createSubtleCryptoProvider() {}
+    },
+    createClient: () => ({}),
+    Deno: { env: { get: key => key === 'RESEND_API_KEY' ? 'fixture' : undefined }, serve() {} },
+    fetch(url, request) {
+      assert.equal(url, 'https://api.resend.com/emails');
+      assert.equal(request.method, 'POST');
+      deliveries.push(JSON.parse(request.body));
+      return { ok: true };
+    }
+  };
+  vm.runInNewContext(js, webhook);
+
+  const cases = [
+    { productType: 'single', testType: 'ocd', name: 'Fuld rapport — OCD-screening', price: '49 kr', page: 'rapporter/ocd.html', terms: 'bortfalder ved levering' },
+    { productType: 'pack4', testType: null, name: '4 rapport-credits', price: '99 kr', page: 'profil.html', terms: 'ikke-indløste credits kan fortrydes i 14 dage' },
+    { productType: 'unlimited', testType: null, name: 'Ubegrænset abonnement', price: '89 kr/md', page: 'profil.html', terms: 'opsige abonnementet med virkning fremadrettet' }
+  ];
+  for (const { productType, testType, name, price, page, terms } of cases) {
+    const to = productType + '@example.invalid';
+    await webhook.sendReceiptEmail({ to, productType, testType, orderId: 'ab123456-fixture', sessionId: 'fixture' });
+    assert.equal(deliveries.length, 1);
+    const message = deliveries.pop();
+    assert.deepEqual(message.to, [to]);
+    const url = 'https://hjernebarometeret.dk/' + page;
+    assert.ok(message.html.includes('href="' + url + '"'));
+    assert.match(message.html, />Se status for dit køb<\/a>/);
+    assert.match(message.html, /href="mailto:kontakt@hjernebarometeret\.dk"/);
+    assert.ok(message.text.includes('Se status for dit køb: ' + url));
+    for (const body of [message.html, message.text]) {
+      for (const field of [name, price, terms, 'AB123456', 'kontakt@hjernebarometeret.dk', 'ordrereferencen ovenfor']) {
+        assert.ok(body.includes(field), productType + ' mangler ' + field);
+      }
+      assert.doesNotMatch(body, /Åbn din rapport/);
+    }
+  }
+});
