@@ -8,6 +8,8 @@ Produkterne deler infrastruktur, men de kan have forskellige faglige udgivelsesb
 
 ## F-01 · P0 · Sikr berørte resultater og købsveje
 
+**I gang · 18. november 2026.** Webændring og serverstop er afprøvet isoleret. Udgivelse afventer ejerbeslutning om eksisterende kunder samt verifikation af rettigheder og åbne betalingsveje i drift. [Pull request](https://github.com/theisonflango/hjernebarometeret/pull/1) · [Ruter og verifikation på arbejdsgrenen](https://github.com/theisonflango/hjernebarometeret/blob/baac824/docs/produkt/grundlag/F-01.md)
+
 **Ejer og omfang.** Produktejer træffer og daterer beslutningen. Udvikler gennemfører og kontrollerer pr. rute. Ingen teknisk forgænger. Skøn for fælles overblik og første gennemførelse er 6–12 timer, afhængigt af ruter og håndtering af eksisterende adgang.
 
 | Tilbud | Anbefalet midlertidig disposition til ejerens beslutning |
