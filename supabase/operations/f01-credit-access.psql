@@ -1,0 +1,92 @@
+-- Run with psql -X -f from a fresh, private directory. This reads only catalogs
+-- and writes two LOCAL review files. It never executes the proposed changes.
+\set ON_ERROR_STOP on
+\pset format unaligned
+\pset tuples_only on
+BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY;
+SET LOCAL search_path = pg_catalog;
+
+-- Stop if the production API differs from the contract in the two callers.
+DO $preflight$
+DECLARE
+  matching integer;
+  relevant integer;
+  names integer;
+BEGIN
+  SELECT count(*), count(DISTINCT p.proname), count(*) FILTER (WHERE p.prokind = 'f' AND (
+    (p.proname = 'spend_credit' AND p.proargnames = ARRAY['p_test_type']::text[] AND
+      p.pronargs = 1 AND p.proargtypes[0] = 'text'::regtype) OR
+    (p.proname = 'redeem_coupon' AND p.pronargs = 2 AND
+      p.proargnames @> ARRAY['p_code', 'p_user_id']::text[] AND
+      p.proargtypes[array_position(p.proargnames, 'p_user_id') - 1] = 'uuid'::regtype AND
+      p.proargtypes[array_position(p.proargnames, 'p_code') - 1] = 'text'::regtype)
+  )) INTO relevant, names, matching
+  FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+  WHERE n.nspname = 'hjernebarometeret' AND p.proname IN ('spend_credit', 'redeem_coupon');
+  IF relevant <> 2 OR names <> 2 OR matching <> 2 THEN
+    RAISE EXCEPTION 'F-01: kontrollér de to forventede HB-funktioners signaturer før en ændring';
+  END IF;
+  IF (SELECT count(*) FROM pg_roles WHERE rolname IN ('anon', 'authenticated', 'service_role')) <> 3 THEN
+    RAISE EXCEPTION 'F-01: kontrollér API-rollerne';
+  END IF;
+  IF EXISTS (
+    SELECT FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+    CROSS JOIN LATERAL aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
+    WHERE n.nspname = 'hjernebarometeret' AND p.proname IN ('spend_credit', 'redeem_coupon')
+      AND (a.grantee = 0 OR pg_get_userbyid(a.grantee) IN ('anon', 'authenticated', 'service_role'))
+      AND (a.grantor <> p.proowner OR a.grantee = p.proowner)
+  ) THEN
+    RAISE EXCEPTION 'F-01: kontrollér ejer og videredelegerede rettigheder manuelt';
+  END IF;
+END $preflight$;
+
+WITH targets AS (
+  SELECT p.oid, p.oid::regprocedure::text AS signature,
+         coalesce(p.proacl, acldefault('f', p.proowner)) AS permissions
+  FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+  WHERE n.nspname = 'hjernebarometeret' AND p.proname IN ('spend_credit', 'redeem_coupon')
+), original_grants AS (
+  SELECT t.signature, CASE WHEN a.grantee = 0 THEN 'PUBLIC'
+                          ELSE quote_ident(pg_get_userbyid(a.grantee)) END AS recipient,
+         a.is_grantable
+  FROM targets t CROSS JOIN LATERAL aclexplode(t.permissions) a
+  WHERE a.privilege_type = 'EXECUTE'
+    AND (a.grantee = 0 OR pg_get_userbyid(a.grantee) IN ('anon', 'authenticated', 'service_role'))
+), check_snapshot AS (
+  SELECT format(
+    $sql$DO $check$
+BEGIN
+  IF (SELECT md5(pg_get_functiondef(oid) || ARRAY(
+        SELECT a::text FROM aclexplode(coalesce(proacl, acldefault('f', proowner))) a ORDER BY 1
+      )::text) FROM pg_proc WHERE oid = %L::regprocedure) IS DISTINCT FROM %L THEN
+    RAISE EXCEPTION 'F-01: funktionsdefinition eller rettigheder er ændret siden udtrækket';
+  END IF;
+END $check$;$sql$,
+    t.signature, md5(pg_get_functiondef(t.oid) || ARRAY(
+      SELECT a::text FROM aclexplode(t.permissions) a ORDER BY 1
+    )::text)) AS command
+  FROM targets t
+), check_pause AS (
+  SELECT format(
+    'DO $check$ BEGIN IF has_function_privilege(%L, %L, ''EXECUTE'') THEN RAISE EXCEPTION ''F-01: en API-rolle har stadig adgang''; END IF; END $check$;',
+    r.rolname, t.signature) AS command
+  FROM targets t CROSS JOIN pg_roles r WHERE r.rolname IN ('anon', 'authenticated', 'service_role')
+)
+SELECT
+  coalesce(string_agg(format('REVOKE EXECUTE ON FUNCTION %s FROM %s RESTRICT;', signature, recipient),
+                      E'\n' ORDER BY signature, recipient), '-- Ingen direkte EXECUTE-rettigheder.') AS revoke_sql,
+  coalesce(string_agg(format('GRANT EXECUTE ON FUNCTION %s TO %s%s;', signature, recipient,
+                             CASE WHEN is_grantable THEN ' WITH GRANT OPTION' ELSE '' END),
+                      E'\n' ORDER BY signature, recipient), '-- Ingen direkte EXECUTE-rettigheder.') AS restore_sql,
+  (SELECT string_agg(command, E'\n' ORDER BY command) FROM check_pause) AS check_sql,
+  (SELECT string_agg(command, E'\n' ORDER BY command) FROM check_snapshot) AS snapshot_sql
+FROM original_grants
+\gset
+COMMIT;
+
+SELECT E'\\set ON_ERROR_STOP on\nBEGIN;\nSET LOCAL search_path = pg_catalog;\n' ||
+       :'snapshot_sql' || E'\n' || :'revoke_sql' || E'\n' || :'check_sql' || E'\nCOMMIT;'
+\g f01-credit-pause.psql
+SELECT E'\\set ON_ERROR_STOP on\nBEGIN;\nSET LOCAL search_path = pg_catalog;\n' ||
+       :'check_sql' || E'\n' || :'restore_sql' || E'\n' || :'snapshot_sql' || E'\nCOMMIT;'
+\g f01-credit-restore.psql

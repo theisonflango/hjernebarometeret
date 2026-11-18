@@ -98,10 +98,10 @@ async function sendReceiptEmail(opts: {
     `<tr style="border-top:1px solid #e8e5e0"><td style="padding:14px 18px;color:#5a5650">Ordre-ref.</td><td style="padding:14px 18px;text-align:right;font-weight:600">${orderRef}</td></tr>` +
     `</table>` +
     `<div style="text-align:center;margin:24px 0">` +
-    `<a href="${link}" style="display:inline-block;background:#2c5f4b;color:#fff;text-decoration:none;padding:12px 24px;border-radius:999px;font-weight:600">Åbn din rapport</a>` +
+    `<a href="${link}" style="display:inline-block;background:#2c5f4b;color:#fff;text-decoration:none;padding:12px 24px;border-radius:999px;font-weight:600">Se status for dit køb</a>` +
     `</div>` +
     `<p style="font-size:13px;color:#5a5650;background:#f5f2ee;border-radius:10px;padding:14px 16px;margin:0 0 24px">${withdrawal}</p>` +
-    `<p style="font-size:13px;color:#8a857e;margin:0 0 4px">Spørgsmål? Skriv til <a href="mailto:support@hjernebarometeret.dk" style="color:#2c5f4b">support@hjernebarometeret.dk</a></p>` +
+    `<p style="font-size:13px;color:#8a857e;margin:0 0 4px">Har du spørgsmål til dit køb? Skriv til <a href="mailto:kontakt@hjernebarometeret.dk" style="color:#2c5f4b">kontakt@hjernebarometeret.dk</a> og oplys gerne ordrereferencen ovenfor.</p>` +
     `<p style="font-size:12px;color:#b5b0a8;margin:16px 0 0">Hjernebarometeret · CVR 34360642 · hjernebarometeret.dk</p>` +
     `</div></body></html>`;
 
@@ -110,9 +110,9 @@ async function sendReceiptEmail(opts: {
     `Produkt: ${product}\n` +
     `Beløb: ${price}\n` +
     `Ordre-ref.: ${orderRef}\n\n` +
-    `Åbn din rapport: ${link}\n\n` +
+    `Se status for dit køb: ${link}\n\n` +
     `${withdrawal}\n\n` +
-    `Spørgsmål? support@hjernebarometeret.dk\n` +
+    `Har du spørgsmål til dit køb? Skriv til kontakt@hjernebarometeret.dk og oplys gerne ordrereferencen ovenfor.\n` +
     `Hjernebarometeret · CVR 34360642`;
 
   const payload: Record<string, unknown> = {
