@@ -30,9 +30,10 @@
     </section>
     <article id="report" hidden>
       <div id="report-content">
-        <h1>Måneden før min besvarelse</h1>
+        <h1 id="report-title">Måneden før min besvarelse</h1>
         <p id="completion-date" hidden></p>
         <p id="score"></p>
+        <p id="source-version"></p>
         <p id="origin-note"></p>
         <div id="interpretation" hidden>
           <p>Et højere pointtal betyder, at dine svar samlet beskriver mere oplevet stress i den måned. Forskellige oplevelser kan give samme sum. Tallet alene kan hverken fastslå en diagnose eller vise, hvad der belastede dig.</p>
@@ -73,10 +74,15 @@
         dateLine.textContent = 'Besvaret ' + new Date(completed).toLocaleDateString('da-DK', { dateStyle: 'long' });
       }
       const note = document.getElementById('origin-note');
+      const fictional = points !== null && data.test_version === HB_STRESS.version;
+      document.getElementById('report-title').textContent = fictional ? 'Eksempel på et samtaleark' : 'Måneden før min besvarelse';
+      document.getElementById('source-version').textContent = points === null ? '' : HB_STRESS.sourceLabel(data);
       if (points === null) {
         note.textContent = 'Vi skal kunne genfinde ti gyldige svar fra en kendt udgave for at vise et pointtal. Det kunne vi ikke for denne besvarelse.';
-      } else if (data.test_version === HB_STRESS.version) {
-        note.textContent = 'Scoren bygger på dine ti svar om den seneste måned. Denne lokale udgave er baseret på PSS-10, og ordlyden er under faglig gennemgang.';
+      } else if (fictional) {
+        note.textContent = 'Dette eksempel viser en beregning på ti fiktive svar. Spørgsmålene nedenfor illustrerer, hvordan et færdigt samtaleark kan bruges.';
+      } else if (data.test_version === HB_STRESS.earlierPilot) {
+        note.textContent = 'Denne sum kommer fra den tidligere lokale prøve med ti omformulerede spørgsmål. Sammenhold med den danske konsensusversion viste forskelle i ordlyden.';
       } else {
         note.textContent = 'Dette er en tidligere besvarelse. Vi har beregnet summen igen ud fra dine ti svar om måneden før besvarelsen. De supplerende spørgsmål fra det gamle forløb indgår ikke i pointtallet. Vi har trukket den tidligere profilfortolkning tilbage, fordi den manglede fagligt grundlag.';
       }
@@ -113,7 +119,7 @@
         const query = new URLSearchParams(location.search);
         if (query.has('pilot') || query.has('forloeb')) {
           const draft = JSON.parse(sessionStorage.getItem(HB_STRESS.sessionKey));
-          if (query.get('pilot') !== '1' || !draft || draft.test_version !== HB_STRESS.version ||
+          if (query.get('pilot') !== '1' || !draft || ![HB_STRESS.version, HB_STRESS.earlierPilot].includes(draft.test_version) ||
               !draft.attemptId || draft.attemptId !== query.get('forloeb')) {
             return unavailable('Åbn samtalearket fra dit resultat i den samme browserfane.');
           }

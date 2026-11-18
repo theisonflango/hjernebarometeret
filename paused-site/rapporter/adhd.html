@@ -71,6 +71,7 @@
       get('interpretation').textContent = result.interpretation;
       get('limitation').textContent = result.limitation;
       get('draft-note').textContent = result.draftNote;
+      // Del B findes kun i gamle poster. Gengiv svartrinnet fra den gamle webudgave.
       const frequency = ['Aldrig', 'Sjældent', 'Sommetider', 'Ofte', 'Meget ofte'];
       if (result.legacy && Array.isArray(data.answers)) {
         const list = get('part-b-list');
@@ -112,7 +113,7 @@
             showStatus('Ingen pilotbesvarelse i denne fane', 'Åbn samtalearket fra dit resultat i den samme browserfane.');
             return;
           }
-          buildReport(data, result, 'Arket bygger på dine seks svar om de seneste seks måneder i denne fane.');
+          buildReport(data, result, 'Prøveark fra de seks svar, der blev indtastet i denne fane for afsnit A. Svarene vedrører de seneste seks måneder.');
           return;
         }
 

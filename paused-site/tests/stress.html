@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Ti spørgsmål om oplevet stress i den seneste måned. Lokalt udkast til afprøvning.">
-<title>Oplevet stress · Hjernebarometeret</title>
+<meta name="description" content="Lokal pointkontrol med ti fiktive svar til den danske PSS-10.">
+<title>Pointkontrol af PSS-10 · Hjernebarometeret</title>
 <link rel="stylesheet" href="../shared/styles.css">
 <style>
 :root {
@@ -318,10 +318,11 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--text); outline-
   <div class="container">
     <div class="intro">
       <button class="lang-toggle" onclick="toggleLang()" id="langBtn">English</button>
-      <h1 data-en="Perceived stress">Oplevet stress</h1>
-      <p class="lead" data-en="Thinking about the past month, how often did you feel under pressure? Answer ten questions to get a score and a question to reflect on.">Tænk tilbage på den seneste måned. Hvor ofte har du følt dig under pres? Svar på ti spørgsmål og få et samlet pointtal og et spørgsmål til eftertanke.</p>
-      <p class="lead" data-en="A draft for adults, based on PSS-10. The wording is under review. Use the result for personal reflection.">Udkast til voksne baseret på PSS-10. Ordlyden er under faglig gennemgang. Du kan bruge resultatet til at reflektere over din hverdag.</p>
-      <button class="btn-start" onclick="startTest()" data-en="Answer the questions">Besvar spørgsmålene</button>
+      <h1 data-en="PSS-10 scoring check">Pointkontrol af PSS-10</h1>
+      <p class="lead" data-en="Internal review for the Danish version. Keep the source PDF open beside this page. Enter one fictional answer for each numbered item. The PDF covers the frequency of feelings and thoughts over the past month.">Intern afprøvning med fiktive svar. Hav det danske kildeskema åbent ved siden af denne side. Registrér ét svar for hvert nummer. Skemaet handler om, hvor ofte en følelse eller tanke er opstået i den seneste måned.</p>
+      <p class="lead" data-en="The source is the Danish consensus form, revision 16 October 2012. The response options are in Danish. Commercial digital use requires clarification.">Kilden er den danske konsensusversion, revideret 16.10.2012. Kommerciel digital brug af skemaet afventer rettighedsafklaring.</p>
+      <p><a href="https://www.fagperson.regionshospitalet-goedstrup.dk/siteassets/01.-afdelinger/arbejdsmedicin/forskning/varktojer/perceived-stress-scale/pss-konsensusversion.pdf" target="_blank" rel="noopener noreferrer" data-en="Open the Danish source PDF in a new tab">Åbn det danske kildeskema i en ny fane (PDF)</a></p>
+      <button class="btn-start" onclick="startTest()" data-en="Enter fictional answers">Indtast fiktive svar</button>
     </div>
   </div>
 </div>
@@ -334,14 +335,15 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--text); outline-
       <div class="progress-text" id="progressText">1 / 10</div>
     </div>
     <div class="question-screen">
-      <div class="q-number" id="qNumber"></div>
+      <p class="q-number" data-en="Danish PSS-10 · 16 October 2012">Dansk PSS-10 · 16.10.2012</p>
 
       <h2 class="q-text" id="qText" tabindex="-1"></h2>
-      <div class="likert" id="likertOptions" role="group" aria-labelledby="qText"></div>
+      <div lang="da" class="likert" id="likertOptions" role="group" aria-labelledby="qText"></div>
       <div class="q-nav">
         <button class="btn-nav" id="btnPrev" onclick="prevQuestion()" data-da="← Tilbage" data-en="← Back">← Tilbage</button>
         <button class="btn-nav primary" id="btnNext" onclick="nextQuestion()" disabled data-da="Næste →" data-en="Next →">Næste →</button>
       </div>
+      <p><a href="https://www.fagperson.regionshospitalet-goedstrup.dk/siteassets/01.-afdelinger/arbejdsmedicin/forskning/varktojer/perceived-stress-scale/pss-konsensusversion.pdf" target="_blank" rel="noopener noreferrer" data-en="Open the Danish source PDF in a new tab">Åbn det danske kildeskema i en ny fane (PDF)</a></p>
       <div class="keyboard-hint" data-da="<kbd>1</kbd>–<kbd>5</kbd> vælg · <kbd>←</kbd> tilbage" data-en="<kbd>1</kbd>–<kbd>5</kbd> select · <kbd>←</kbd> back">
         <kbd>1</kbd>–<kbd>5</kbd> vælg · <kbd>←</kbd> tilbage
       </div>
@@ -352,10 +354,11 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--text); outline-
 
 <div class="screen" id="resultsScreen">
   <div class="container" id="resultsContainer">
-    <h1 id="resultHeading" tabindex="-1" data-en="Your past month">Din seneste måned</h1>
+    <h1 id="resultHeading" tabindex="-1" data-en="Result of the scoring check">Resultat af pointkontrollen</h1>
     <p class="result-score" id="resultScore"></p>
+    <p id="resultVersion"></p>
     <div id="resultDetails">
-      <p data-en="A higher score means that, overall, your answers describe more perceived stress during that month. A score on its own cannot establish a diagnosis or explain what caused the strain.">Et højere tal betyder, at dine svar samlet beskriver mere oplevet stress i den måned. Tallet alene kan hverken fastslå en diagnose eller vise, hvad der belastede dig.</p>
+      <p data-en="The ten fictional answers generate this score. On the PSS-10, higher scores describe greater perceived stress over the month covered. A diagnosis requires clinical assessment.">Tallet er beregnet fra de ti fiktive svar. Ved brug af PSS-10 beskriver et højere pointtal mere oplevet stress i den måned, besvarelsen dækker. En diagnose kræver en faglig vurdering.</p>
       <p data-en="Think of one situation in the past month that put you under pressure. What helped, or what support would you have liked?">Tænk på én situation i den seneste måned, hvor du følte dig presset. Hvad hjalp dig, eller hvilken støtte kunne du have brugt?</p>
       <p data-en="If the strain persists or affects your daily life, you can discuss what you are experiencing with your doctor, whatever your score.">Hvis belastningen varer ved eller påvirker din hverdag, kan du tale med din læge om, hvordan du har det, uanset dit pointtal.</p>
       <p data-en="Opening the conversation sheet stores your ten answers in this browser tab for the session. The sheet is in Danish.">Åbner du samtalearket, gemmes dine ti svar i denne browserfane under sessionen.</p>
@@ -370,22 +373,8 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--text); outline-
 <script src="../shared/stress-result.js"></script>
 <script src="../shared/profilecard.js"></script>
 <script>
-const items = [
-  { id: 1, da: "I den sidste måned, hvor ofte har du været oprørt over noget der skete uventet?", en: "In the last month, how often have you been upset because of something that happened unexpectedly?" },
-  { id: 2, da: "I den sidste måned, hvor ofte har du følt at du ikke kunne kontrollere de vigtige ting i dit liv?", en: "In the last month, how often have you felt unable to control the important things in your life?" },
-  { id: 3, da: "I den sidste måned, hvor ofte har du følt dig nervøs og stresset?", en: "In the last month, how often have you felt nervous and stressed?" },
-  { id: 4, da: "I den sidste måned, hvor ofte har du følt dig sikker på din evne til at håndtere dine personlige problemer?", en: "In the last month, how often have you felt confident about your ability to handle your personal problems?" },
-  { id: 5, da: "I den sidste måned, hvor ofte har du følt at tingene gik din vej?", en: "In the last month, how often have you felt that things were going your way?" },
-  { id: 6, da: "I den sidste måned, hvor ofte har du oplevet at du ikke kunne overkomme alt det du skulle?", en: "In the last month, how often have you found that you could not cope with all the things you had to do?" },
-  { id: 7, da: "I den sidste måned, hvor ofte har du kunnet kontrollere irritationsmomenter i dit liv?", en: "In the last month, how often have you been able to control irritations in your life?" },
-  { id: 8, da: "I den sidste måned, hvor ofte har du følt at du havde styr på tingene?", en: "In the last month, how often have you felt that you were on top of things?" },
-  { id: 9, da: "I den sidste måned, hvor ofte er du blevet vred over ting der lå uden for din kontrol?", en: "In the last month, how often have you been angered because of things that happened that were outside of your control?" },
-  { id: 10, da: "I den sidste måned, hvor ofte har du følt at vanskelighederne hobede sig op så du ikke kunne klare dem?", en: "In the last month, how often have you felt that difficulties were piling up so high that you could not overcome them?" }
-];
-const labels = {
-  da: ['Aldrig', 'Næsten aldrig', 'Ind imellem', 'Ret ofte', 'Meget ofte'],
-  en: ['Never', 'Almost never', 'Sometimes', 'Fairly often', 'Very often']
-};
+const itemCount = 10;
+const labels = ['Aldrig', 'Næsten aldrig', 'Ind imellem', 'Ret ofte', 'Meget ofte'];
 let lang = 'da';
 let currentQ = 0;
 let answers = {};
@@ -417,32 +406,30 @@ function startTest() {
 }
 
 function renderQuestion() {
-  const item = items[currentQ];
   const position = currentQ + 1;
-  document.getElementById('progressFill').style.width = (position / items.length * 100) + '%';
-  document.getElementById('progressText').textContent = position + ' / ' + items.length;
-  document.getElementById('qNumber').textContent = t('Spørgsmål ', 'Question ') + position;
+  document.getElementById('progressFill').style.width = (position / itemCount * 100) + '%';
+  document.getElementById('progressText').textContent = position + ' / ' + itemCount;
   const heading = document.getElementById('qText');
-  heading.textContent = item[lang];
+  heading.textContent = t('Vælg det fiktive svar til punkt ', 'Select the fictional answer to item ') + position;
   heading.focus();
   const options = document.getElementById('likertOptions');
   options.replaceChildren();
-  labels[lang].forEach((label, index) => {
+  labels.forEach((label, index) => {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'likert-option';
     button.textContent = label;
-    button.onclick = () => selectAnswer(item.id, index + 1);
+    button.onclick = () => selectAnswer(position, index + 1);
     options.appendChild(button);
   });
   showSelection();
   document.getElementById('btnPrev').disabled = currentQ === 0;
-  document.getElementById('btnNext').textContent = position === items.length
+  document.getElementById('btnNext').textContent = position === itemCount
     ? t('Se resultat →', 'See result →') : t('Næste →', 'Next →');
 }
 
 function showSelection() {
-  const choice = answers[items[currentQ].id];
+  const choice = answers[currentQ + 1];
   document.querySelectorAll('.likert-option').forEach((button, index) => {
     const selected = choice === index + 1;
     button.classList.toggle('selected', selected);
@@ -457,8 +444,8 @@ function selectAnswer(id, value) {
 }
 
 function nextQuestion() {
-  if (!answers[items[currentQ].id]) return;
-  if (currentQ === items.length - 1) return calculateAndShowResults();
+  if (!answers[currentQ + 1]) return;
+  if (currentQ === itemCount - 1) return calculateAndShowResults();
   currentQ++;
   renderQuestion();
 }
@@ -474,7 +461,7 @@ document.addEventListener('keydown', event => {
   if (event.altKey || event.ctrlKey || event.metaKey || event.repeat || event.target.closest('#site-nav, a')) return;
   if (/^[1-5]$/.test(event.key)) {
     event.preventDefault();
-    selectAnswer(items[currentQ].id, Number(event.key));
+    selectAnswer(currentQ + 1, Number(event.key));
   } else if (event.key === 'ArrowLeft') {
     event.preventDefault();
     prevQuestion();
@@ -488,13 +475,14 @@ function calculateAndShowResults() {
   resultData = {
     test_version: HB_STRESS.version, language: lang,
     metadata: { completed_at: new Date().toISOString() },
-    answers: items.map(item => ({ id: item.id, chosen: answers[item.id] }))
+    answers: Array.from({ length: itemCount }, (_, i) => ({ id: i + 1, chosen: answers[i + 1] }))
   };
   const points = HB_STRESS.score(resultData);
   resultData.pssTotal = points;
   document.getElementById('resultScore').textContent = points === null
     ? t('Der mangler gyldige svar til en samlet score.', 'More valid answers are needed to calculate a score.')
     : points + t(' af 40 point', ' out of 40 points');
+  document.getElementById('resultVersion').textContent = HB_STRESS.sourceLabel(resultData, lang);
   document.getElementById('resultDetails').hidden = points === null;
   document.getElementById('storageMessage').textContent = '';
   showScreen('resultsScreen');

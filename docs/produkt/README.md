@@ -6,9 +6,9 @@ Hvert fagligt område har sin egen [projektmappe](tests/). Stress og udbrændthe
 
 ## Arbejdsudkast til faglig gennemgang
 
-[ADHD-resultat](tests/adhd/README.md) · [Stressresultat](tests/oplevet-stress/README.md) · [Karriereside](tests/karriere/udkast.html) · [Supplerende research og konkrete prøveprofiler](grundlag/FAGLIG-OPFOELGNING.md)
+[Formularkontrol for ADHD](tests/adhd/DANSK-FORMULAR.md) · [Formularkontrol for oplevet stress](tests/oplevet-stress/DANSK-PSS-10.md) · [Kommerciel brugsret og faglig godkendelse](grundlag/DANSKE-FORMULARER-OG-BRUGSRET.md) · [Karriereside](tests/karriere/udkast.html) · [Supplerende research og konkrete prøveprofiler](grundlag/FAGLIG-OPFOELGNING.md)
 
-Kør `node scripts/vis-udkast.mjs` fra repoets rod og åbn den lokale adresse, der står i terminalen. De tre udkast kan gennemføres med fiktive svar. Visningen tillader lokale filer og blokerer kald til eksterne tjenester. Et frivilligt klik fra en klinisk resultatside åbner samtalearket i samme fane. Karrieresiden kan også hentes som en enkelt HTML-fil og åbnes offline.
+Kør `node scripts/vis-udkast.mjs` fra repoets rod og åbn den lokale adresse, der står i terminalen. De to kliniske prøver bruger fiktive svar. Åbn den danske kildeformular fra linket i prøven og overfør svarene efter nummer. Den lokale visning henter hverken kildeformularen eller data fra eksterne tjenester automatisk. Et frivilligt klik fra en klinisk resultatside åbner samtalearket i samme fane. Karrieresiden kan også hentes som en enkelt HTML-fil og åbnes offline.
 
 De automatiske scorekontroller kan gentages med `node --test tests/*.mjs`. Mens den lokale visning kører, kan en udvikler med Playwright og Chromium genprøve de tre almindelige brugerforløb med `node tests/faglige-forloeb.cjs http://127.0.0.1:PORT`. Brug det portnummer, der står i terminalen. En eksisterende Chromium-installation kan vælges med `CHROMIUM_EXECUTABLE`.
 

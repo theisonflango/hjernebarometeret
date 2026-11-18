@@ -1,13 +1,14 @@
 // Hjernebarometerets oprindelige svartrin er 1–5. PSS-10 tæller 0–4.
 (function () {
   const reverse = new Set([4, 5, 7, 8]);
-  const version = 'pss10-pilot-2';
+  const version = 'pss10-kontrol-3';
+  const earlierPilot = 'pss10-pilot-2';
   const sessionKey = 'hb_pilot_pss10';
 
   function score(data) {
     if (!data || !Array.isArray(data.answers)) return null;
-    if (data.test_version && !['v1.0', version].includes(data.test_version)) return null;
-    const pilot = data.test_version === version;
+    if (data.test_version && !['v1.0', earlierPilot, version].includes(data.test_version)) return null;
+    const pilot = data.test_version === version || data.test_version === earlierPilot;
     if (pilot && data.answers.length !== 10) return null;
     const seen = new Set();
     let sum = 0;
@@ -23,5 +24,13 @@
     return seen.size === 10 ? sum : null;
   }
 
-  window.HB_STRESS = { score, version, sessionKey };
+  function sourceLabel(data, lang = 'da') {
+    if (data.test_version === version) return lang === 'en'
+      ? 'Fictional scoring check 3 · Danish PSS-10 reference dated 16 October 2012'
+      : 'Fiktiv pointkontrol 3 · Kildeskema PSS-10, 16.10.2012';
+    if (data.test_version === earlierPilot) return 'Lokal pilot 2 · Tidligere webordlyd';
+    return 'Tidligere webbesvarelse · Hjernebarometerets egen ordlyd';
+  }
+
+  window.HB_STRESS = { score, sourceLabel, version, earlierPilot, sessionKey };
 })();

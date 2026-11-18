@@ -11,9 +11,22 @@ const address = path => new URL(path, preview).href;
 async function adhd(page) {
   await page.goto(address('/tests/adhd.html'));
   await page.getByRole('checkbox').check();
-  await page.getByRole('button', { name: 'Start screening' }).click();
-  for (const frequency of ['Sommetider', 'Sommetider', 'Sommetider', 'Ofte', 'Aldrig', 'Aldrig']) {
-    await page.getByRole('button', { name: frequency, exact: true }).click();
+  await page.getByRole('button', { name: 'Indtast prøvesvar' }).click();
+  const source = page.getByRole('link', { name: /Åbn dansk ASRS-formular/ });
+  assert.equal(await source.getAttribute('target'), '_blank');
+  assert.equal(await source.getAttribute('href'), 'https://www.sundhed.dk/content/cms/69/139669_asrs_dansk.pdf#page=2');
+  const frequencies = ['Aldrig', 'Sjældent', 'Nogle gange', 'Ofte', 'Meget ofte'];
+  const sample = [2, 2, 2, 3, 0, 0];
+  for (const [index, answer] of sample.entries()) {
+    assert.equal(await page.locator('#question-title').innerText(), 'Overfør svaret ved A' + (index + 1));
+    const expected = index < 3 ? [false, false, true, true, true] : [false, false, false, true, true];
+    for (const [option, shouldCount] of expected.entries()) {
+      const label = frequencies[option] + (shouldCount ? ' Tæller i optællingen' : '');
+      const button = page.getByRole('button', { name: label, exact: true });
+      assert.equal(await button.isVisible(), true);
+      assert.equal(await button.getAttribute('data-counts') === 'true', shouldCount);
+    }
+    await page.locator('#choices button').nth(answer).click();
     await page.getByRole('button', { name: /Næste|Se resultat/ }).click();
   }
   const result = '4 af 6 svar i screeningsområdet';
@@ -27,8 +40,14 @@ async function adhd(page) {
 
 async function stress(page) {
   await page.goto(address('/tests/stress.html'));
-  await page.getByRole('button', { name: 'Besvar spørgsmålene' }).click();
+  await page.getByRole('button', { name: 'Indtast fiktive svar' }).click();
+  const source = page.getByRole('link', { name: /Åbn det danske kildeskema/ });
+  assert.equal(await source.getAttribute('target'), '_blank');
+  assert.match(await source.getAttribute('href'), /pss-konsensusversion\.pdf$/);
   for (let i = 0; i < 10; i++) {
+    assert.equal(await page.locator('#qText').innerText(), 'Vælg det fiktive svar til punkt ' + (i + 1));
+    assert.deepEqual(await page.locator('#likertOptions button').allTextContents(),
+      ['Aldrig', 'Næsten aldrig', 'Ind imellem', 'Ret ofte', 'Meget ofte']);
     await page.getByRole('button', { name: 'Ind imellem', exact: true }).click();
     await page.locator('#btnNext').click();
   }
@@ -36,9 +55,13 @@ async function stress(page) {
   await page.getByRole('button', { name: 'Åbn samtalearket' }).click();
   await page.locator('#report').waitFor();
   assert.match(await page.locator('#score').innerText(), /20 af 40/);
+  assert.equal(await page.locator('#source-version').innerText(), 'Fiktiv pointkontrol 3 · Kildeskema PSS-10, 16.10.2012');
+  await page.reload();
+  await page.locator('#report').waitFor();
+  assert.equal(await page.locator('#report-title').innerText(), 'Eksempel på et samtaleark');
   const firstAttempt = page.url();
   await page.goto(address('/tests/stress.html'));
-  await page.getByRole('button', { name: 'Besvar spørgsmålene' }).click();
+  await page.getByRole('button', { name: 'Indtast fiktive svar' }).click();
   await page.goto(firstAttempt);
   await page.locator('#no-access').waitFor();
   assert.equal(await page.locator('#report').isVisible(), false);

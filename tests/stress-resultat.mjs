@@ -44,3 +44,28 @@ test('kræver ti identificerbare valide svar, selv når en gammel sum findes', (
   assert.equal(score({ answers: middle }), null);
   assert.equal(score({ test_version: 'ukendt', answers: middle }), null);
 });
+
+test('en op- eller nedjustering af et enkelt svar følger papirets nøgle for hvert punkt', () => {
+  const high = [22, 22, 22, 18, 18, 22, 18, 18, 22, 22];
+  for (let i = 0; i < high.length; i++) {
+    const answers = middle.map((row, j) => j === i ? { ...row, chosen: 5 } : row);
+    assert.equal(score({ test_version: version, answers }), high[i]);
+    answers[i].chosen = 1;
+    assert.equal(score({ test_version: version, answers }), 40 - high[i]);
+  }
+});
+
+test('tre udgaver med samme sum beholder hver sin kildebetegnelse', () => {
+  const { earlierPilot, sourceLabel } = window.HB_STRESS;
+  const fixtures = [
+    [version, 'Fiktiv pointkontrol 3 · Kildeskema PSS-10, 16.10.2012'],
+    [earlierPilot, 'Lokal pilot 2 · Tidligere webordlyd'],
+    ['v1.0', 'Tidligere webbesvarelse · Hjernebarometerets egen ordlyd']
+  ];
+  for (const [test_version, label] of fixtures) {
+    const record = { test_version, answers: middle };
+    assert.equal(score(record), 20);
+    assert.equal(sourceLabel(record), label);
+  }
+  assert.equal(score({ test_version: earlierPilot, answers: [...middle, { id: 11, chosen: 1 }] }), null);
+});

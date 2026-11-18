@@ -17,7 +17,7 @@ for (const name of ['adhd-result.js', 'stress-result.js', 'profilecard.js', 'sty
 const home = `<!doctype html><html lang="da"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Faglige udkast · Hjernebarometeret</title><main><h1>Faglige udkast</h1>
 <p>Gennemgå siderne med fiktive svar. Luk fanen, når du er færdig.</p>
-<ul><li><a href="/tests/adhd.html">ADHD-screening</a></li><li><a href="/tests/stress.html">Oplevet stress</a></li>
+<ul><li><a href="/tests/adhd.html">Kontrollér ASRS-optællingen</a></li><li><a href="/tests/stress.html">Kontrollér PSS-10-pointene</a></li>
 <li><a href="/karriere.html">Mit næste jobspor</a></li></ul></main></html>`;
 const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css' };
 const server = createServer(async (req, res) => {

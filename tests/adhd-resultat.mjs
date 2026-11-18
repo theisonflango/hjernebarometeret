@@ -44,3 +44,14 @@ test('tidligere ASRS-data bliver vist som en historisk optælling', () => {
   assert.equal(fromRecord({ ...old, answers:[] }), null);
   assert.doesNotMatch(JSON.stringify(result), /kombineret|80%/);
 });
+
+test('den tidligere pilot med omskrevne spørgsmål får sin egen historiske forklaring', () => {
+  const old = { ...draft([2, 2, 2, 3, 0, 0]), resultVersion: 'del-a-2' };
+  const result = fromRecord(old);
+  assert.equal(result.score, 4);
+  assert.equal(result.legacy, true);
+  assert.match(result.interpretation, /omskrevne/);
+  assert.doesNotMatch(result.draftNote, /overførte/);
+  assert.equal(fromRecord({ ...old, adultConfirmed: false }), null);
+  assert.equal(fromRecord({ ...old, answers: [...old.answers, { id: 7, part: 'B', chosen: 3 }] }), null);
+});

@@ -2,6 +2,8 @@
 
 [Ejeroversigt](../../START-HER.md) · [Fælles opgaver](../../FAELLES.md) · [Udviklingsproces](../../PIPELINE.md)
 
+**Seneste formularkontrol · 18. november 2026.** Seks lokale omformuleringer og ét svartrin afveg fra den danske behandlerformular. Arbejdssiden er nu et optællingsark for fiktive A1–A6-svar med link til selve formularen. En selvstændig dansk 6Q-patientudgave og dens konkrete kommercielle anvendelse skal afklares med NYU. Den efterfølgende tabel om det første udkast er historisk dokumentation. [Alle seks sammenligninger, rettigheder og godkendelser](DANSK-FORMULAR.md)
+
 **Ejer og fase.** Produktejeren har beslutningen. En kliniker med erfaring i ADHD-udredning hos voksne skal bedømme instrument og resultattekst. Den udgivne version kræver afskærmning. Aktuel port er fase 2, Instrument og rettigheder. Næste afgørelse i ADHD-2 er, om en bestemt dansk voksenudgave kan bruges til det planlagte formål. En lokal pilot afprøver allerede seks spørgsmål og en ny resultattekst. Næste faglige beslutning gælder den danske ordlyd og valget af scoringsmetode.
 
 **Anvendelse.** En voksen fra 18 år med vedvarende vanskeligheder kan bruge screeningen til at forberede en samtale med lægen. Ønsket besked efter en rettelse er eksempelvis: *“Fire af seks svar i del A ligger i screeningsområdet. Det kan være relevant at drøfte de seneste seks måneders vanskeligheder og deres betydning i din hverdag med din læge.”* Resultatet alene kan ikke afgøre, om personen har ADHD, en bestemt præsentation eller behov for behandling. En sådan forklaring og et forsvarligt næste skridt hører til gratisresultatet.
@@ -20,7 +22,7 @@
 | ADHD-4 · P1 | Gennemgå sprog og ensartet levering. | Kliniker + udvikler | ADHD-3, F-02 | 1–2 persondage | Kliniker har godkendt lave, positive og blandede eksempler. 0/6 tildeler ingen subtype. Skærm, evt. PDF og kort viser kun dokumenterede mål og samme gennemførsels data, også efter omvalg og genåbning. |
 | ADHD-5 · P2 | Afprøv betalingsværdien af en frivillig dagbog/samtaleside. | Produktansvarlig + kliniker | ADHD-4, F-04 og F-05 ved salg af PDF | 1–2 persondage + 7 dages opfølgning | Brugerne får hele screeningsforklaringen gratis. Pilotnotatet viser antal købere, hvor mange der faktisk udfyldte eller brugte siden og deres vigtigste indvending. Ejer vælger videre pilot eller kun gratis screening. |
 
-## Faglige fund og lokalt arbejdsudkast · 18. november 2026
+## Første udkast i c00333b · 18. november 2026
 
 **Status for formidling. Kræver rettelser før udgivelse.** Det lokale udkast bruger seks eksisterende spørgsmål til voksne fra 18 år, knyttet til de seneste seks måneder. En teknisk kontrol af optællingen er på plads. Faglig godkendelse af de seks danske formuleringer og dokumentation for brugsretten mangler. De offentlige HTML-filer på arbejdsgrenen viser fortsat F-01's pausestatus. [Spørgsmål og gratisresultat](../../../../paused-site/tests/adhd.html) · [Samtaleark](../../../../paused-site/rapporter/adhd.html)
 

@@ -41,7 +41,7 @@
       getHero: function(s) {
         var points = window.HB_STRESS && HB_STRESS.score(s);
         if (points == null) return null;
-        return { main: points + '/40', sub: 'Ti svar om måneden før besvarelsen', pct: null };
+        return { main: points + '/40', sub: HB_STRESS.sourceLabel(s), pct: null };
       },
       drawVisual: drawStressNote
     },
@@ -262,10 +262,10 @@
     ctx.fillStyle = '#fff';
     ctx.font = '400 29px Figtree, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(result.legacy ? 'Tallet stammer fra et tidligere spørgeskema.' : 'Arbejdsudkast · De seneste seks måneder', cx, cy - 26);
+    ctx.fillText(result.legacy ? 'Tallet stammer fra et tidligere spørgeskema.' : 'Fiktiv prøve · De seneste seks måneder', cx, cy - 26);
     ctx.fillText('Screeningen kan hverken fastslå eller udelukke ADHD.', cx, cy + 26);
     ctx.font = '400 23px Figtree, sans-serif';
-    ctx.fillText('Dansk ordlyd og brugsret afventer afklaring.', cx, cy + 78);
+    ctx.fillText(result.legacy ? 'Dansk ordlyd og brugsret afventer afklaring.' : 'Optalt fra afsnit A i den danske 18-spørgsmålsformular.', cx, cy + 78);
   }
 
   function drawAutismeScale(ctx, scores, cx, cy, w, h) {
@@ -419,7 +419,9 @@
     ctx.textAlign = 'center';
     ctx.fillStyle = 'rgba(255,255,255,0.8)';
     ctx.font = '400 28px Figtree, sans-serif';
-    ctx.fillText('Højere pointtal udtrykker mere oplevet stress.', cx, cy);
+    ctx.fillText(scores.test_version === HB_STRESS.version
+      ? 'Beregnet ud fra ti fiktive svar.'
+      : 'Et højere tal beskriver mere oplevet stress.', cx, cy);
     ctx.fillText('En diagnose kræver en faglig vurdering.', cx, cy + 48);
   }
 

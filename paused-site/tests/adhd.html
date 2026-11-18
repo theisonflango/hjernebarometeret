@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>ADHD-screening for voksne · Hjernebarometeret</title>
+  <title>Kontrol af ASRS-optælling · Hjernebarometeret</title>
   <link rel="stylesheet" href="../shared/styles.css">
   <style>
     * { box-sizing:border-box }
@@ -20,6 +20,11 @@
     button.primary,button[aria-pressed="true"] { background:#245b82; color:white }
     #choices { display:grid; gap:8px }
     #choices button { text-align:left }
+    #choices button[data-counts="true"] { border-left:5px solid #426077; background:#e4edf2 }
+    #choices button[aria-pressed="true"] { background:#245b82; color:white }
+    .count-note { display:block; font-size:.83rem; font-weight:400 }
+    a { color:#245b82 }
+    .source { margin-bottom:1rem }
     #progress { color:#4e615e }
     .actions { display:flex; flex-wrap:wrap; gap:12px; margin:18px 0 }
     #questions .actions { justify-content:space-between }
@@ -29,28 +34,29 @@
 </head>
 <body>
   <main>
+    <p class="source"><a href="https://www.sundhed.dk/content/cms/69/139669_asrs_dansk.pdf#page=2" target="_blank" rel="noopener noreferrer">Åbn dansk ASRS-formular på sundhed.dk (PDF, ny fane)</a></p>
     <section id="intro">
       <p>Hjernebarometeret · Lokalt arbejdsudkast</p>
-      <h1>ADHD-screening for voksne</h1>
-      <p>Tænk på de seneste seks måneder. Hvor ofte har du oplevet de situationer, som de seks spørgsmål beskriver?</p>
+      <h1>Kontrollér optællingen i ASRS</h1>
+      <p>Til faglig gennemgang med fiktive svar for en voksen. Åbn den danske formular og læs afsnit A på side 2. Brug de seks spørgsmål dér til at vælge ét svar pr. række ud fra de seneste seks måneder.</p>
       <div class="panel">
-        <p>Du får at vide, hvor mange af dine svar der ligger i screeningsområdet, og hvordan du kan tage resultatet op med din læge. En diagnose kræver en klinisk vurdering.</p>
-        <p>Grundlaget er del A i ASRS v1.1. Dette udkast bruger Hjernebarometerets hidtidige formuleringer. Den danske ordlyd og retten til at bruge den afventer afklaring.</p>
+        <p>Du kan afprøve, hvad en bruger ville læse ved et bestemt svarmønster. Spørgsmålene står i den danske 18-spørgsmålsformular. På denne side overfører du alene A1–A6.</p>
+        <p>Den officielle seks-spørgsmålsudgave af ASRS v1.1 er udviklet af Lenard Adler og Ronald Kessler som en del af det længere skema. © New York University and the President and Fellows of Harvard College. <a href="https://license.tov.med.nyu.edu/product/asrs6Qscreener" target="_blank" rel="noopener noreferrer">Instrument og brugsbetingelser hos NYU (ny fane)</a>.</p>
         <p>Svarene bliver i denne fane. Du vælger selv, om du vil åbne et samtaleark eller dele et resultatkort.</p>
-        <label><input id="adult" type="checkbox"> Jeg er fyldt 18 år.</label>
+        <label><input id="adult" type="checkbox"> Prøvebesvarelsen gælder en voksen på mindst 18 år.</label>
       </div>
-      <button id="start" type="button" class="primary" disabled>Start screening</button>
+      <button id="start" type="button" class="primary" disabled>Indtast prøvesvar</button>
     </section>
     <section id="questions" hidden>
       <p id="progress"></p>
-      <p>Hvor ofte i de seneste seks måneder?</p>
+      <p>Brug samme seksmånedersperiode som i formularen. Vælg den hyppighed, der står i din prøvebesvarelse.</p>
       <h1 id="question-title" tabindex="-1"></h1>
       <div id="choices" role="group" aria-labelledby="question-title"></div>
       <div class="actions"><button id="prev" type="button">Tilbage</button><button id="next" type="button" class="primary">Næste</button></div>
       <p class="subtle">Tasterne 1–5 vælger et svar. Enter fortsætter efter dit valg. Du kan gå tilbage og ændre svaret.</p>
     </section>
     <section id="result" hidden>
-      <h1 id="result-title" tabindex="-1">Dit resultat fra del A</h1>
+      <h1 id="result-title" tabindex="-1">Resultat for prøvebesvarelsen</h1>
       <div class="panel"><h2 id="score"></h2><p id="interpretation"></p><p id="limitation"></p><p id="draft-note"></p></div>
       <div class="panel"><h2>Tag et eksempel med til lægen</h2>
         <p>Tænk på en situation fra den seneste uge, du gerne vil have hjælp til. Hvad skete der, hvordan påvirkede det dig, og hvad gjorde det lettere eller sværere?</p>
@@ -66,17 +72,10 @@
   <script src="../shared/adhd-result.js"></script>
   <script src="../shared/profilecard.js"></script>
   <script>
-    // Eksisterende webordlyd. Dansk tekst og rettighedsgrundlag afventer gennemgang.
-    const items = [
-      "Hvor ofte har du svært ved at afslutte de sidste detaljer i et projekt, når de udfordrende dele er overstået?",
-      "Hvor ofte har du svært ved at få tingene i orden, når du skal lave en opgave der kræver organisering?",
-      "Hvor ofte har du problemer med at huske aftaler eller forpligtelser?",
-      "Når du har en opgave der kræver meget tankearbejde, hvor ofte undgår eller udskyder du at komme i gang?",
-      "Hvor ofte sidder du og piller ved ting eller vipper med fødderne, når du skal sidde stille i længere tid?",
-      "Hvor ofte føler du dig overdrevent aktiv og tvunget til at gøre ting, som om du var drevet af en motor?"
-];
-    const options = ['Aldrig', 'Sjældent', 'Sommetider', 'Ofte', 'Meget ofte'];
-    const answers = new Array(items.length).fill(null);
+    // Spørgsmålene læses fra den identificerede kildeformular.
+    const itemCount = 6;
+    const options = ['Aldrig', 'Sjældent', 'Nogle gange', 'Ofte', 'Meget ofte'];
+    const answers = new Array(itemCount).fill(null);
     const get = id => document.getElementById(id);
     let index = 0;
     let record;
@@ -100,27 +99,34 @@
     }
 
     function showQuestion() {
-      get('progress').textContent = 'Spørgsmål ' + (index + 1) + ' af ' + items.length;
-      get('question-title').textContent = items[index];
+      get('progress').textContent = 'Spørgsmål ' + (index + 1) + ' af ' + itemCount;
+      get('question-title').textContent = 'Overfør svaret ved A' + (index + 1);
       get('choices').replaceChildren();
       options.forEach((text, value) => {
         const button = document.createElement('button');
         button.type = 'button';
         button.dataset.choice = value;
         button.textContent = text;
+        if (HB_ADHD.countsInPartA(index + 1, value)) {
+          button.dataset.counts = 'true';
+          const note = document.createElement('span');
+          note.className = 'count-note';
+          note.textContent = 'Tæller i optællingen';
+          button.appendChild(note);
+        }
         button.setAttribute('aria-pressed', answers[index] === value);
         button.onclick = () => choose(value);
         get('choices').appendChild(button);
       });
       get('prev').disabled = index === 0;
       get('next').disabled = answers[index] === null;
-      get('next').textContent = index === items.length - 1 ? 'Se resultat' : 'Næste';
+      get('next').textContent = index === itemCount - 1 ? 'Se resultat' : 'Næste';
       get('question-title').focus();
     }
 
     function next() {
       if (get('questions').hidden || answers[index] === null) return;
-      if (index < items.length - 1) { index++; showQuestion(); return; }
+      if (index < itemCount - 1) { index++; showQuestion(); return; }
       record = { mode:'asrs', resultVersion:HB_ADHD.version, adultConfirmed:true, partATotal:6,
         answers:answers.map((chosen,i) => ({ id:i+1, part:'A', chosen })) };
       const result = HB_ADHD.fromRecord(record);
