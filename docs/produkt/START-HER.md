@@ -8,7 +8,7 @@
 
 ## De fem første opgaver
 
-Rækkefølgen angiver ejerens prioritet. Udvikleren kan arbejde på 2–3, mens ejeren forbereder 4–5. P0 angiver en alvorlig fejl, som skal sikres nu eller inden køb. P1 er nødvendig for næste valgte udgave. P2 kræver en senere investeringsbeslutning. Alle fem er **planlagte**. Ingen af de foreslåede ændringer er udgivet som del af denne analyse.
+Rækkefølgen angiver ejerens prioritet. Udvikleren kan arbejde på 2–3, mens ejeren forbereder 4–5. P0 angiver en alvorlig fejl, som skal sikres nu eller inden køb. P1 er nødvendig for næste valgte udgave. P2 kræver en senere investeringsbeslutning. F-01 er **i gang**. Ændringen er afprøvet lokalt og afventer beslutning om tidligere kunder og udgivelse. De fire øvrige opgaver er planlagte. [F-01 · pull request og kontroller](https://github.com/theisonflango/hjernebarometeret/pull/1)
 
 | Nr. | Åbn | Hvem tager den? | Hvad skal du kunne se? |
 |---|---|---|---|
@@ -20,7 +20,7 @@ Rækkefølgen angiver ejerens prioritet. Udvikleren kan arbejde på 2–3, mens 
 
 ## Porteføljen
 
-**Status pr. 18. november 2026.** Første kolonne linker til hele opgavelisten for området. Faserne er de åbne faglige spørgsmål for den ønskede udgave. Ved planens start er F-01 en anbefaling til handling, og lukket pilot er en planlagt arbejdsform.
+**Status pr. 18. november 2026.** Første kolonne linker til hele opgavelisten for området. Faserne er de åbne faglige spørgsmål for den ønskede udgave. Dispositionsforslaget for de direkte adgangs- og købsveje er afprøvet på F-01-grenen. En lukket karrierepilot er planlagt.
 
 | Område | Beslutning om projekt og timing | Næste faglige afgørelse |
 |---|---|---|
@@ -44,4 +44,4 @@ Kommende tilbud har korte statuskort for [EQ](tests/emotionel-intelligens/README
 - [Fælles opgaver · prioritering og færdigkriterier](FAELLES.md)
 - [Revisionskontrol, fiktive besvarelser og de to kildeundersøgelser](grundlag/KONTROL.md)
 
-**Mandag morgen:** Åbn denne fil og tag [F-01](FAELLES.md#f-01). Start med AQ og karriererapporten. Skriv ud for hver adgangsvej, hvad en ny besøgende og en allerede betalende bruger skal se. Giv beslutningen til udvikleren med de to fiktive kontrolprofiler. Første opgave er færdig, når de berørte veje er kontrolleret i den aftalte udgivelse, og ejer har dokumenteret hjælpen til tidligere købere. Hvis opgaven allerede er afsluttet på det tidspunkt, vælg den første åbne opgave i tabellen.
+**Næste ejerbeslutning.** Gennemgå [F-01 og kontrollen af de berørte adgangsveje](https://github.com/theisonflango/hjernebarometeret/pull/1). Aftal hjælp til tidligere købere, håndtering af åbne betalinger og hvad der skal ske med eksisterende abonnenters næste fornyelse. Dokumentér ejer og dato for dispositionen, når den er truffet.
