@@ -12,6 +12,12 @@
 
 **Næste ejerbeslutning.** Fastslå, hvem der råder over præcis den danske ordlyd, og hvilke vilkår der gælder for en kommerciel webudgave og rapport. Originalstudiet dokumenterer seks delskalaer. Senere forskning har undersøgt OCD- og hamstringsspørgsmål separat. Disse kilder kan ikke alene begrunde de fem lokale sværhedsgrader eller personlige behandlingsanvisninger. [Foa m.fl. om OCI-R](https://pubmed.ncbi.nlm.nih.gov/12501574/) · [Evaluering af særskilte skalaer](https://pubmed.ncbi.nlm.nih.gov/25664634/)
 
+## Fagligt fund · når samme sum dækker to forskellige hverdage
+
+OCI-R lægger vægt på, hvor plagsomme oplevelserne har været. Vis perioden og instruktionen før det første svar. To fiktive personer fik 12/72, én med alle point ved vask og én med alle point ved tjek. En generel besked om normalområdet overser i begge tilfælde, hvor svarene samlede sig. [OCI-R-originalstudiet](https://pubmed.ncbi.nlm.nih.gov/12501574/) · [Kontrolprofiler](../../grundlag/KONTROL.md)
+
+DOCS viser en måde at spørge til tidsforbrug, undgåelse og hverdagsbelastning. Brug dette som inspiration til et frivilligt opfølgende spørgsmål adskilt fra OCI-R-scoren. Til vask-profilen kunne det lyde: *“Du angav mest ubehag ved spørgsmålene om vask. Er der noget, du undgår, eller som tager længere tid i din hverdag?”* Kontrollen til OCD-3 og OCD-4 er, at tjek-profilen får den tilsvarende forklaring om tjek. Få en OCD-kyndig kliniker til at vurdere både denne tekst og den, der vises ved lave scorer. [DOCS fra udviklerne](https://docs.web.unc.edu/wp-content/uploads/sites/5147/2016/01/DOCS.pdf)
+
 | ID | Leverance | Ejer | Afhænger af | Skøn | Færdig når |
 |---|---|---|---|---|---|
 | OCD-1 · P0 | Afskærm modstridende normalitets-/alvorlighedsbeskeder og køb af rapport med disse udsagn. | Produktejer + udvikler | F-01 | 2–3 t | Både den fiktive vask- og tjekprofil møder en neutral status frem for en misvisende tekst. Direkte test- og købsvej er omfattet. Ejer har taget stilling til tidligere køb. |

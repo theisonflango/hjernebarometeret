@@ -1,720 +1,169 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="da">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ADHD-screening (ASRS) — Hjernebarometeret</title>
-  <meta name="description" content="Gratis ADHD-screening for voksne. Baseret på WHO's ASRS v1.1 — verdens mest anvendte ADHD-screeningsværktøj. 18 ASRS-spørgsmål plus 4 uddybende, ca. 6 minutter.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,500&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ADHD-screening for voksne · Hjernebarometeret</title>
   <link rel="stylesheet" href="../shared/styles.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    :root{--bg:#faf9f7;--bg-card:#fff;--bg-warm:#f5f2ee;--bg-dark:#1c1b1a;--text:#1c1b1a;--text-2:#5a5650;--text-3:#8a857e;--text-4:#b5b0a8;--border:#e8e5e0;--border-2:#d5d0c9;--accent:#2e6b9e;--accent-light:#d6e7f2;--accent-glow:rgba(46,107,158,0.08);--green:#3B9979;--yellow:#D4920B;--red:#C0392B;--serif:'Source Serif 4',Georgia,serif;--sans:'Figtree',system-ui,sans-serif;--radius:12px;--radius-lg:20px}
-    html,body,#root{min-height:100%;width:100%;margin:0}
-    body{background:var(--bg);font-family:var(--sans);-webkit-font-smoothing:antialiased;padding-top:64px}
-    ::selection{background:rgba(46,107,158,0.3);color:#fff}
-    input:focus,select:focus{border-color:rgba(46,107,158,0.5)!important;outline:none}
-    select option{background:#fff;color:var(--text)}
-    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-    @keyframes spin{to{transform:rotate(360deg)}}
-    @keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
-    ::-webkit-scrollbar{width:6px}
-    ::-webkit-scrollbar-track{background:transparent}
-    ::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.08);border-radius:3px}
-    button{font-family:var(--sans)}
-    button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+    * { box-sizing:border-box }
+    body { margin:0; background:#faf9f7; color:#202723; font:1rem/1.65 Figtree,system-ui,sans-serif }
+    main { max-width:680px; margin:clamp(30px,7vw,76px) auto; padding:0 20px }
+    h1,h2 { font-family:Georgia,serif; line-height:1.2; margin:0 0 16px }
+    h1 { font-size:clamp(1.8rem,5vw,2.7rem) }
+    h2 { font-size:clamp(1.35rem,4vw,1.7rem) }
+    p { margin:0 0 14px }
+    .panel { background:white; border:1px solid #d7dcd9; border-radius:14px; padding:clamp(18px,4vw,28px); margin:20px 0 }
+    button { padding:11px 16px; background:white; color:#244f6c; border:1px solid #54738a; border-radius:8px; font:inherit; font-weight:600; cursor:pointer }
+    button:disabled { opacity:.48; cursor:default }
+    button:focus-visible,input:focus-visible,a:focus-visible { outline:3px solid #2e6b9e; outline-offset:4px }
+    button.primary,button[aria-pressed="true"] { background:#245b82; color:white }
+    #choices { display:grid; gap:8px }
+    #choices button { text-align:left }
+    #progress { color:#4e615e }
+    .actions { display:flex; flex-wrap:wrap; gap:12px; margin:18px 0 }
+    #questions .actions { justify-content:space-between }
+    .subtle { color:#52615c; font-size:.9rem }
+    [hidden] { display:none!important }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-<div id="site-nav" data-test-mode="true"></div>
-<div id="root"></div>
-<div id="site-footer"></div>
-<script src="../shared/nav.js"></script>
-<script src="../shared/footer.js"></script>
-<script src="../shared/auth.js"></script>
-<script src="../shared/coupon.js"></script>
-<script src="../shared/payment.js"></script>
-<script src="../shared/analytics.js"></script>
-<script src="../shared/normdata.js"></script>
-<script src="../shared/profilecard.js"></script>
-<script type="text/babel">
-const{useState,useRef,useCallback,useEffect,useMemo}=React;
-
-/* ═══════════════════════════════════════════════════════
-   ASRS v1.1 — Adult ADHD Self-Report Scale
-   WHO / Kessler et al. (2005)
-   18 items, 5-point Likert
-   Copyright © World Health Organization
-   ═══════════════════════════════════════════════════════ */
-
-const ASRS_ITEMS = [
-  // Part A — Screening (6 items)
-  { id:1,  part:"A", domain:"inattention",
-    da:"Hvor ofte har du svært ved at afslutte de sidste detaljer i et projekt, når de udfordrende dele er overstået?",
-    en:"How often do you have trouble wrapping up the final details of a project, once the challenging parts have been done?",
-    threshold: 2 }, // "Sommetider" eller højere
-  { id:2,  part:"A", domain:"inattention",
-    da:"Hvor ofte har du svært ved at få tingene i orden, når du skal lave en opgave der kræver organisering?",
-    en:"How often do you have difficulty getting things in order when you have to do a task that requires organization?",
-    threshold: 2 },
-  { id:3,  part:"A", domain:"inattention",
-    da:"Hvor ofte har du problemer med at huske aftaler eller forpligtelser?",
-    en:"How often do you have problems remembering appointments or obligations?",
-    threshold: 2 },
-  { id:4,  part:"A", domain:"inattention",
-    da:"Når du har en opgave der kræver meget tankearbejde, hvor ofte undgår eller udskyder du at komme i gang?",
-    en:"When you have a task that requires a lot of thought, how often do you avoid or delay getting started?",
-    threshold: 3 }, // "Ofte" eller højere
-  { id:5,  part:"A", domain:"hyperactivity",
-    da:"Hvor ofte sidder du og piller ved ting eller vipper med fødderne, når du skal sidde stille i længere tid?",
-    en:"How often do you fidget or squirm with your hands or feet when you have to sit down for a long time?",
-    threshold: 3 },
-  { id:6,  part:"A", domain:"hyperactivity",
-    da:"Hvor ofte føler du dig overdrevent aktiv og tvunget til at gøre ting, som om du var drevet af en motor?",
-    en:"How often do you feel overly active and compelled to do things, like you were driven by a motor?",
-    threshold: 3 },
-
-  // Part B — Supplerende (12 items)
-  { id:7,  part:"B", domain:"inattention",
-    da:"Hvor ofte laver du skødesløse fejl, når du skal arbejde med et kedeligt eller svært projekt?",
-    en:"How often do you make careless mistakes when you have to work on a boring or difficult project?" },
-  { id:8,  part:"B", domain:"inattention",
-    da:"Hvor ofte har du svært ved at fastholde opmærksomheden, når du laver kedeligt eller gentaget arbejde?",
-    en:"How often do you have difficulty keeping your attention when you are doing boring or repetitive work?" },
-  { id:9,  part:"B", domain:"inattention",
-    da:"Hvor ofte har du svært ved at koncentrere dig om hvad folk siger til dig, selv når de taler direkte til dig?",
-    en:"How often do you have difficulty concentrating on what people say to you, even when they are speaking to you directly?" },
-  { id:10, part:"B", domain:"inattention",
-    da:"Hvor ofte forlægger du ting eller har svært ved at finde ting derhjemme eller på arbejdet?",
-    en:"How often do you misplace or have difficulty finding things at home or at work?" },
-  { id:11, part:"B", domain:"inattention",
-    da:"Hvor ofte bliver du distraheret af aktivitet eller støj omkring dig?",
-    en:"How often are you distracted by activity or noise around you?" },
-  { id:12, part:"B", domain:"hyperactivity",
-    da:"Hvor ofte rejser du dig fra din plads til møder eller i andre situationer, hvor du forventes at blive siddende?",
-    en:"How often do you leave your seat in meetings or other situations in which you are expected to remain seated?" },
-  { id:13, part:"B", domain:"hyperactivity",
-    da:"Hvor ofte føler du dig rastløs eller urolig?",
-    en:"How often do you feel restless or fidgety?" },
-  { id:14, part:"B", domain:"hyperactivity",
-    da:"Hvor ofte har du svært ved at slappe af og falde til ro, når du har fri?",
-    en:"How often do you have difficulty unwinding and relaxing when you have time to yourself?" },
-  { id:15, part:"B", domain:"hyperactivity",
-    da:"Hvor ofte oplever du at du taler for meget i sociale situationer?",
-    en:"How often do you find yourself talking too much when you are in social situations?" },
-  { id:16, part:"B", domain:"hyperactivity",
-    da:"Når du er i en samtale, hvor ofte kommer du til at gøre andres sætninger færdige, før de selv når det?",
-    en:"When you're in a conversation, how often do you find yourself finishing the sentences of the people you are talking to, before they can finish them themselves?" },
-  { id:17, part:"B", domain:"hyperactivity",
-    da:"Hvor ofte har du svært ved at vente på din tur i situationer, hvor det er nødvendigt?",
-    en:"How often do you have difficulty waiting your turn in situations when turn taking is required?" },
-  { id:18, part:"B", domain:"hyperactivity",
-    da:"Hvor ofte afbryder du andre, når de er optaget?",
-    en:"How often do you interrupt others when they are busy?" },
+  <main>
+    <section id="intro">
+      <p>Hjernebarometeret · Lokalt arbejdsudkast</p>
+      <h1>ADHD-screening for voksne</h1>
+      <p>Tænk på de seneste seks måneder. Hvor ofte har du oplevet de situationer, som de seks spørgsmål beskriver?</p>
+      <div class="panel">
+        <p>Du får at vide, hvor mange af dine svar der ligger i screeningsområdet, og hvordan du kan tage resultatet op med din læge. En diagnose kræver en klinisk vurdering.</p>
+        <p>Grundlaget er del A i ASRS v1.1. Dette udkast bruger Hjernebarometerets hidtidige formuleringer. Den danske ordlyd og retten til at bruge den afventer afklaring.</p>
+        <p>Svarene bliver i denne fane. Du vælger selv, om du vil åbne et samtaleark eller dele et resultatkort.</p>
+        <label><input id="adult" type="checkbox"> Jeg er fyldt 18 år.</label>
+      </div>
+      <button id="start" type="button" class="primary" disabled>Start screening</button>
+    </section>
+    <section id="questions" hidden>
+      <p id="progress"></p>
+      <p>Hvor ofte i de seneste seks måneder?</p>
+      <h1 id="question-title" tabindex="-1"></h1>
+      <div id="choices" role="group" aria-labelledby="question-title"></div>
+      <div class="actions"><button id="prev" type="button">Tilbage</button><button id="next" type="button" class="primary">Næste</button></div>
+      <p class="subtle">Tasterne 1–5 vælger et svar. Enter fortsætter efter dit valg. Du kan gå tilbage og ændre svaret.</p>
+    </section>
+    <section id="result" hidden>
+      <h1 id="result-title" tabindex="-1">Dit resultat fra del A</h1>
+      <div class="panel"><h2 id="score"></h2><p id="interpretation"></p><p id="limitation"></p><p id="draft-note"></p></div>
+      <div class="panel"><h2>Tag et eksempel med til lægen</h2>
+        <p>Tænk på en situation fra den seneste uge, du gerne vil have hjælp til. Hvad skete der, hvordan påvirkede det dig, og hvad gjorde det lettere eller sværere?</p>
+        <p>Skriv eksemplet ned til dig selv. Du kan tage det med, uanset hvor mange svar der ligger i screeningsområdet.</p>
+      </div>
+      <p>Du kan åbne et samtaleark med resultatet og plads til dine egne eksempler. Det gemmer midlertidigt dine seks svar i denne fane.</p>
+      <button id="open-sheet" type="button" class="primary">Åbn mit samtaleark</button>
+      <p id="sheet-error" role="status"></p>
+      <p>Et delt kort viser dit screeningstal til modtageren.</p>
+      <div class="actions"><button id="download" type="button">Gem resultatkort</button><button id="share" type="button">Del resultatkort</button></div>
+    </section>
+  </main>
+  <script src="../shared/adhd-result.js"></script>
+  <script src="../shared/profilecard.js"></script>
+  <script>
+    // Eksisterende webordlyd. Dansk tekst og rettighedsgrundlag afventer gennemgang.
+    const items = [
+      "Hvor ofte har du svært ved at afslutte de sidste detaljer i et projekt, når de udfordrende dele er overstået?",
+      "Hvor ofte har du svært ved at få tingene i orden, når du skal lave en opgave der kræver organisering?",
+      "Hvor ofte har du problemer med at huske aftaler eller forpligtelser?",
+      "Når du har en opgave der kræver meget tankearbejde, hvor ofte undgår eller udskyder du at komme i gang?",
+      "Hvor ofte sidder du og piller ved ting eller vipper med fødderne, når du skal sidde stille i længere tid?",
+      "Hvor ofte føler du dig overdrevent aktiv og tvunget til at gøre ting, som om du var drevet af en motor?"
 ];
+    const options = ['Aldrig', 'Sjældent', 'Sommetider', 'Ofte', 'Meget ofte'];
+    const answers = new Array(items.length).fill(null);
+    const get = id => document.getElementById(id);
+    let index = 0;
+    let record;
 
-const LIKERT5 = [
-  { value:0, da:"Aldrig",        en:"Never" },
-  { value:1, da:"Sjældent",      en:"Rarely" },
-  { value:2, da:"Sommetider",    en:"Sometimes" },
-  { value:3, da:"Ofte",          en:"Often" },
-  { value:4, da:"Meget ofte",    en:"Very Often" },
-];
+    get('adult').onchange = () => { get('start').disabled = !get('adult').checked; };
+    get('start').onclick = () => {
+      if (!get('adult').checked) return;
+      // Et nyt forløb må ikke genåbne det forrige samtaleark under pilotlinket.
+      try { sessionStorage.removeItem(HB_ADHD.sessionKey); } catch {}
+      get('intro').hidden = true;
+      get('questions').hidden = false;
+      showQuestion();
+    };
 
-/* ═══════════════════════════════════════════════════════
-   Supplerende spørgsmål — IKKE en del af ASRS-scoringen.
-   Belyser DSM-5-kriterium B (debut før 12), C (flere
-   sammenhænge) og D (funktionsnedsættelse), så rapporten
-   kan vurdere dem i stedet for kun at forklare dem.
-   ═══════════════════════════════════════════════════════ */
-const ONSET_OPTS = [
-  { value:0, da:"Nej, slet ikke" },
-  { value:1, da:"Måske enkelte" },
-  { value:2, da:"Ja, flere af dem" },
-  { value:3, da:"Ja, tydeligt" },
-];
-const IMPAIR_OPTS = [
-  { value:0, da:"Slet ikke" },
-  { value:1, da:"I mindre grad" },
-  { value:2, da:"En del" },
-  { value:3, da:"I høj grad" },
-];
-const SUPP_ITEMS = [
-  { id:19, part:"C", section:"onset", domain:"onset", options:ONSET_OPTS,
-    da:"Kan du genkende flere af disse vanskeligheder allerede fra din barndom eller skoletid (før 12-årsalderen)?" },
-  { id:20, part:"C", section:"impairment", domain:"impairment", options:IMPAIR_OPTS,
-    da:"I hvor høj grad påvirker vanskelighederne dit arbejde eller studie?" },
-  { id:21, part:"C", section:"impairment", domain:"impairment", options:IMPAIR_OPTS,
-    da:"I hvor høj grad påvirker de dine nære relationer (familie, venner, parforhold)?" },
-  { id:22, part:"C", section:"impairment", domain:"impairment", options:IMPAIR_OPTS,
-    da:"I hvor høj grad påvirker de din dagligdag (økonomi, husholdning, aftaler, tidsstyring)?" },
-];
-// Full question sequence (ASRS 18 + 4 supplementary). calcASRS still scores
-// only ASRS_ITEMS, so the supplementary answers never affect the ASRS result.
-const ALL_ITEMS = ASRS_ITEMS.concat(SUPP_ITEMS);
-
-/* ═══════ HELPERS ═══════ */
-function getAgeFromBirthYear(by) {
-  const now = new Date();
-  return now.getFullYear() - by - (now.getMonth() < 6 ? 1 : 0);
-}
-function getAgeGroup(age) {
-  if (age < 16) return "13-15";
-  if (age < 20) return "16-19";
-  if (age < 25) return "20-24";
-  if (age < 30) return "25-29";
-  if (age < 35) return "30-34";
-  if (age < 45) return "35-44";
-  if (age < 55) return "45-54";
-  if (age < 65) return "55-64";
-  return "65+";
-}
-
-/* ═══════ SCORING ═══════ */
-function calcASRS(answers) {
-  const partA = ASRS_ITEMS.filter(q => q.part === "A");
-  const partB = ASRS_ITEMS.filter(q => q.part === "B");
-
-  // Part A screening: count items above threshold
-  let partAAbove = 0;
-  partA.forEach(q => {
-    if ((answers[q.id] ?? 0) >= q.threshold) partAAbove++;
-  });
-
-  // Domain scores
-  const inattItems = ASRS_ITEMS.filter(q => q.domain === "inattention");
-  const hyperItems = ASRS_ITEMS.filter(q => q.domain === "hyperactivity");
-  const inattSum = inattItems.reduce((s,q) => s + (answers[q.id] ?? 0), 0);
-  const hyperSum = hyperItems.reduce((s,q) => s + (answers[q.id] ?? 0), 0);
-  const inattMax = inattItems.length * 4;
-  const hyperMax = hyperItems.length * 4;
-  const inattPct = Math.round((inattSum / inattMax) * 100);
-  const hyperPct = Math.round((hyperSum / hyperMax) * 100);
-  const totalSum = inattSum + hyperSum;
-  const totalMax = inattMax + hyperMax;
-  const totalPct = Math.round((totalSum / totalMax) * 100);
-
-  // Level based on Part A. ASRS is a BINARY screener: >=4 of 6 = positive screen.
-  // We keep an internal three-way band (for symptom-load nuance) but label it
-  // honestly — 2-3 is still a negative screen, just with some symptoms present.
-  let level, label, color;
-  if (partAAbove >= 4) {
-    level = "high"; label = "Positiv screening"; color = "#C0392B";
-  } else if (partAAbove >= 2) {
-    level = "moderate"; label = "Symptomer til stede"; color = "#D4920B";
-  } else {
-    level = "low"; label = "Negativ screening"; color = "#3B9979";
-  }
-
-  // DSM-5-style symptom counts: how many items in each domain are endorsed at
-  // "Ofte"(3) or "Meget ofte"(4). Adult diagnostic threshold is >=5 per domain.
-  const inattSymptoms = inattItems.filter(q => (answers[q.id] ?? 0) >= 3).length;
-  const hyperSymptoms = hyperItems.filter(q => (answers[q.id] ?? 0) >= 3).length;
-
-  // Profile type
-  let profileType;
-  if (inattPct > hyperPct + 15) profileType = "overvejende uopmærksom";
-  else if (hyperPct > inattPct + 15) profileType = "overvejende hyperaktiv/impulsiv";
-  else profileType = "kombineret";
-
-  return {
-    mode: "asrs",
-    partAScore: partAAbove,
-    partATotal: 6,
-    partAAboveThreshold: partAAbove >= 4,
-    inattPct, hyperPct, totalPct,
-    inattSum, hyperSum, totalSum,
-    inattMax, hyperMax, totalMax,
-    inattSymptoms, hyperSymptoms,
-    level, label, color, profileType,
-  };
-}
-
-/* Supplementary scoring — DSM-5 criteria B (onset), C (settings), D (impairment).
-   Self-report only; informs the report but never the ASRS screen. */
-function calcSupplementary(answers) {
-  const onset = answers[19];
-  const impW = answers[20], impR = answers[21], impD = answers[22];
-  const impVals = [impW, impR, impD].filter(v => v != null);
-  const settingsAffected = impVals.filter(v => v >= 2).length; // "En del" or higher
-  const maxImpair = impVals.length ? Math.max(...impVals) : null;
-  return {
-    childhoodOnset: onset != null ? onset : null,
-    onsetMeets: onset != null ? (onset >= 2) : null,               // "Ja, flere"+
-    impairWork: impW != null ? impW : null,
-    impairRel: impR != null ? impR : null,
-    impairDaily: impD != null ? impD : null,
-    settingsAffected: impVals.length ? settingsAffected : null,
-    settingsMeets: impVals.length ? (settingsAffected >= 2) : null, // criterion C proxy
-    impairmentMeets: maxImpair != null ? (maxImpair >= 2) : null,   // criterion D
-  };
-}
-
-/* ═══════ STYLES ═══════ */
-const S = {
-  container: { maxWidth:720, margin:'0 auto', padding:'0 20px' },
-  intro: { padding:'60px 0 80px', textAlign:'center' },
-  badge: { display:'inline-block', fontSize:'0.7rem', textTransform:'uppercase', letterSpacing:'0.12em', color:'var(--accent)', border:'1px solid var(--accent)', padding:'4px 14px', borderRadius:20, marginBottom:28, fontWeight:600 },
-  h1: { fontFamily:'var(--serif)', fontSize:'clamp(2rem,5vw,3rem)', fontWeight:700, lineHeight:1.15, letterSpacing:'-0.03em', marginBottom:18 },
-  lead: { fontSize:'1.05rem', color:'var(--text-2)', maxWidth:520, margin:'0 auto 36px', lineHeight:1.7 },
-  meta: { display:'flex', justifyContent:'center', gap:28, marginBottom:40, flexWrap:'wrap' },
-  metaItem: { fontSize:'0.82rem', color:'var(--text-3)' },
-  metaStrong: { color:'var(--text-2)', fontWeight:500 },
-  btn: (bg,c='#fff') => ({ display:'inline-flex', alignItems:'center', gap:8, background:bg, color:c, fontWeight:600, fontSize:'1rem', padding:'14px 36px', border:'none', borderRadius:50, cursor:'pointer', transition:'all 0.25s', fontFamily:'inherit' }),
-  btnSm: (bg,c='#fff') => ({ background:bg, color:c, fontWeight:500, fontSize:'0.88rem', padding:'10px 22px', border:'1px solid var(--border)', borderRadius:8, cursor:'pointer', fontFamily:'inherit', transition:'all 0.2s' }),
-  card: { background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:'var(--radius)', padding:20 },
-  cardLg: { background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:'var(--radius-lg)', padding:28 },
-  progress: { position:'sticky', top:64, zIndex:99, background:'var(--bg)', padding:'12px 0 8px' },
-  barBg: { height:4, background:'var(--border)', borderRadius:2, overflow:'hidden' },
-  barFill: (pct) => ({ height:'100%', background:`linear-gradient(90deg,#1e5580,var(--accent))`, borderRadius:2, transition:'width 0.4s cubic-bezier(.22,1,.36,1)', width:`${pct}%` }),
-  progressText: { fontSize:'0.75rem', color:'var(--text-3)', marginTop:6, textAlign:'right' },
-};
-
-/* ═══════ COMPONENTS ═══════ */
-function BirthYearSelect({ value, onChange }) {
-  const currentYear = new Date().getFullYear();
-  const years = [];
-  for (let y = currentYear - 13; y >= 1940; y--) years.push(y);
-  return React.createElement('div', { style: { margin:'0 auto 24px', maxWidth:320, textAlign:'left' } },
-    React.createElement('label', { style: { display:'block', fontWeight:600, fontSize:'0.9rem', marginBottom:6, color:'var(--text)' } }, 'Fødselsår'),
-    React.createElement('p', { style: { fontSize:'0.78rem', color:'var(--text-3)', marginBottom:10, lineHeight:1.5 } }, 'Bruges til at sammenligne din score med andre i din aldersgruppe'),
-    React.createElement('select', {
-      value, onChange: e => onChange(e.target.value),
-      style: { width:'100%', padding:'12px 16px', fontSize:'0.95rem', border:'1px solid var(--border)', borderRadius:8, background:'var(--bg-card)', color:'var(--text)', fontFamily:'inherit', appearance:'auto', cursor:'pointer' }
-    },
-      React.createElement('option', { value:'' }, 'Vælg fødselsår...'),
-      years.map(y => React.createElement('option', { key:y, value:y }, y))
-    )
-  );
-}
-
-function UnderAgeWarning({ age, onContinue }) {
-  if (age >= 16) return null;
-  return React.createElement('div', {
-    style: { background:'#fef9e7', border:'1px solid #f0d567', borderRadius:'var(--radius)', padding:20, margin:'20px auto', maxWidth:520, textAlign:'left' }
-  },
-    React.createElement('p', { style: { fontWeight:600, fontSize:'0.9rem', color:'#856404', marginBottom:8 } }, '⚠️ Aldersadvarsel'),
-    React.createElement('p', { style: { fontSize:'0.85rem', color:'#856404', lineHeight:1.6, marginBottom:16 } },
-      'Denne test er primært udviklet til voksne (16+). Dine resultater kan være mindre præcise for din aldersgruppe. Testens normdata er baseret på voksne.'),
-    React.createElement('button', {
-      onClick: onContinue,
-      style: { ...S.btnSm('var(--accent)'), borderColor:'var(--accent)' }
-    }, 'Jeg forstår — start testen')
-  );
-}
-
-function Intro({ onStart }) {
-  const [birthYear, setBirthYear] = useState('');
-  const [showWarning, setShowWarning] = useState(false);
-
-  const handleStart = () => {
-    if (!birthYear) return;
-    const age = getAgeFromBirthYear(parseInt(birthYear));
-    if (age < 16) {
-      setShowWarning(true);
-      return;
-    }
-    onStart(parseInt(birthYear));
-  };
-
-  return React.createElement('div', { style: S.container },
-    React.createElement('div', { style: S.intro },
-      React.createElement('div', { style: S.badge }, 'ADHD-screening'),
-      React.createElement('h1', { style: S.h1 },
-        'Har du ', React.createElement('em', { style: { fontStyle:'italic', color:'var(--accent)' } }, 'ADHD'), '-træk?'
-      ),
-      React.createElement('p', { style: S.lead },
-        'Verdens mest anvendte ADHD-screeningsværktøj for voksne. Udviklet af WHO i samarbejde med førende ADHD-forskere. 18 ASRS-spørgsmål plus 4 uddybende om barndom og funktion — ca. 6 minutter.'
-      ),
-      React.createElement('div', { style: S.meta },
-        React.createElement('span', { style: S.metaItem }, React.createElement('strong', { style: S.metaStrong }, '22'), ' spørgsmål'),
-        React.createElement('span', { style: S.metaItem }, React.createElement('strong', { style: S.metaStrong }, '6'), ' minutter'),
-        React.createElement('span', { style: S.metaItem }, React.createElement('strong', { style: S.metaStrong }, '2'), ' domæner'),
-        React.createElement('span', { style: S.metaItem }, React.createElement('strong', { style: S.metaStrong }, 'Gratis'), ' resultat')
-      ),
-      React.createElement(BirthYearSelect, { value: birthYear, onChange: setBirthYear }),
-      !showWarning && React.createElement('button', {
-        style: { ...S.btn('var(--accent)'), opacity: birthYear ? 1 : 0.4, pointerEvents: birthYear ? 'auto' : 'none' },
-        onClick: handleStart
-      }, 'Start screeningen →'),
-      showWarning && React.createElement(UnderAgeWarning, {
-        age: getAgeFromBirthYear(parseInt(birthYear)),
-        onContinue: () => onStart(parseInt(birthYear))
-      }),
-      React.createElement('div', { style: { ...S.cardLg, marginTop:60, textAlign:'left' } },
-        React.createElement('h3', { style: { fontFamily:'var(--serif)', fontSize:'1.1rem', marginBottom:10, fontWeight:500 } }, '🔬 Videnskabeligt grundlag'),
-        React.createElement('p', { style: { fontSize:'0.88rem', color:'var(--text-2)', lineHeight:1.7 } },
-          'Denne screening bruger ', React.createElement('strong', null, 'ASRS v1.1'), ' (Adult ADHD Self-Report Scale) — udviklet af Verdenssundhedsorganisationen (WHO) og valideret af Kessler et al. (2005). ASRS er det mest anvendte ADHD-screeningsværktøj i verden med tusindvis af kliniske valideringer. ',
-          'Testen måler to kerndomæner: ', React.createElement('strong', null, 'uopmærksomhed'), ' og ', React.createElement('strong', null, 'hyperaktivitet/impulsivitet'), ', i overensstemmelse med DSM-5-kriterierne.'
-        ),
-        React.createElement('div', { style: { display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginTop:24 } },
-          React.createElement('div', { style: { ...S.card, textAlign:'center' } },
-            React.createElement('div', { style: { width:10, height:10, borderRadius:'50%', background:'#2e6b9e', margin:'0 auto 8px' } }),
-            React.createElement('h4', { style: { fontSize:'0.82rem', fontWeight:600, marginBottom:3 } }, 'Uopmærksomhed'),
-            React.createElement('p', { style: { fontSize:'0.72rem', color:'var(--text-3)' } }, 'Fokus, hukommelse, organisering')
-          ),
-          React.createElement('div', { style: { ...S.card, textAlign:'center' } },
-            React.createElement('div', { style: { width:10, height:10, borderRadius:'50%', background:'#e8873c', margin:'0 auto 8px' } }),
-            React.createElement('h4', { style: { fontSize:'0.82rem', fontWeight:600, marginBottom:3 } }, 'Hyperaktivitet / Impulsivitet'),
-            React.createElement('p', { style: { fontSize:'0.72rem', color:'var(--text-3)' } }, 'Uro, rastløshed, impulskontrol')
-          )
-        )
-      ),
-      React.createElement('p', { style: { textAlign:'center', fontSize:'0.78rem', color:'var(--text-3)', marginTop:28, lineHeight:1.6 } },
-        'Denne screening er ikke et diagnostisk værktøj og erstatter ikke professionel vurdering. Ingen data gemmes uden dit samtykke. Dine svar forbliver på din enhed.'
-      ),
-      React.createElement('p', { style: { textAlign:'center', fontSize:'0.68rem', color:'var(--text-4)', marginTop:16 } },
-        'Kessler, R.C. et al. (2005). Psychological Medicine, 35(2), 245-256. Copyright © World Health Organization.'
-      )
-    )
-  );
-}
-
-function Question({ item, value, onSelect, index, total, onPrev, onNext, canNext }) {
-  const pct = ((index + 1) / total) * 100;
-  const opts = item.options || LIKERT5;
-  const partLabel = item.part === "A" ? "Del A · Screening"
-    : item.part === "B" ? "Del B · Supplerende vurdering"
-    : item.section === "onset" ? "Uddybende · Barndom"
-    : "Uddybende · Funktion i hverdagen";
-  return React.createElement('div', { style: S.container },
-    React.createElement('div', { style: S.progress },
-      React.createElement('div', { style: S.barBg },
-        React.createElement('div', { style: S.barFill(pct) })
-      ),
-      React.createElement('div', { style: S.progressText }, `${index + 1} / ${total}`)
-    ),
-    React.createElement('div', { style: { padding:'40px 0 100px', animation:'fadeIn 0.3s ease-out' } },
-      React.createElement('div', { style: { fontSize:'0.75rem', color:'var(--text-3)', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:6 } }, `Spørgsmål ${index + 1}`),
-      React.createElement('div', { style: { fontSize:'0.68rem', color:'var(--accent)', textTransform:'uppercase', letterSpacing:'0.15em', marginBottom:16, fontWeight:600 } }, partLabel),
-      React.createElement('div', { style: { fontFamily:'var(--serif)', fontSize:'clamp(1.2rem,3.5vw,1.55rem)', fontWeight:500, lineHeight:1.4, marginBottom:36, letterSpacing:'-0.01em', minHeight:80 } }, item.da),
-      React.createElement('div', { style: { display:'flex', flexDirection:'column', gap:10 } },
-        opts.map(opt =>
-          React.createElement('button', {
-            key: opt.value,
-            onClick: () => onSelect(opt.value),
-            style: {
-              display:'flex', alignItems:'center', gap:14, padding:'14px 18px',
-              background: value === opt.value ? 'var(--accent-glow)' : 'var(--bg-card)',
-              border: `1px solid ${value === opt.value ? 'var(--accent)' : 'var(--border)'}`,
-              borderRadius:'var(--radius)', cursor:'pointer', fontFamily:'inherit',
-              fontSize:'0.92rem', color:'var(--text)', textAlign:'left', width:'100%',
-              transition:'all 0.2s'
-            }
-          },
-            React.createElement('div', {
-              style: {
-                width:20, height:20, borderRadius:'50%', flexShrink:0, transition:'all 0.2s',
-                border: value === opt.value ? '2px solid var(--accent)' : '2px solid var(--text-3)',
-                background: value === opt.value ? 'var(--accent)' : 'transparent',
-                boxShadow: value === opt.value ? 'inset 0 0 0 3px var(--bg-card)' : 'none'
-              }
-            }),
-            opt.da
-          )
-        )
-      ),
-      React.createElement('div', { style: { display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:32, gap:12 } },
-        React.createElement('button', {
-          onClick: onPrev, disabled: index === 0,
-          style: { ...S.btnSm('transparent','var(--text-2)'), opacity: index === 0 ? 0.3 : 1 }
-        }, '← Tilbage'),
-        React.createElement('button', {
-          onClick: onNext, disabled: !canNext,
-          style: { ...S.btnSm('var(--accent)'), opacity: canNext ? 1 : 0.4 }
-        }, index === total - 1 ? 'Se resultat →' : 'Næste →')
-      ),
-      React.createElement('div', { style: { textAlign:'center', fontSize:'0.72rem', color:'var(--text-3)', marginTop:20 } },
-        React.createElement('kbd', { style: { background:'var(--bg-card)', border:'1px solid var(--border)', padding:'2px 6px', borderRadius:4, fontFamily:'monospace', fontSize:'0.68rem' } }, '1'),
-        '–',
-        React.createElement('kbd', { style: { background:'var(--bg-card)', border:'1px solid var(--border)', padding:'2px 6px', borderRadius:4, fontFamily:'monospace', fontSize:'0.68rem' } }, String(opts.length)),
-        ' vælg · ',
-        React.createElement('kbd', { style: { background:'var(--bg-card)', border:'1px solid var(--border)', padding:'2px 6px', borderRadius:4, fontFamily:'monospace', fontSize:'0.68rem' } }, 'Enter'),
-        ' næste · ',
-        React.createElement('kbd', { style: { background:'var(--bg-card)', border:'1px solid var(--border)', padding:'2px 6px', borderRadius:4, fontFamily:'monospace', fontSize:'0.68rem' } }, '←'),
-        ' tilbage'
-      )
-    )
-  );
-}
-
-function Calculating({ onDone }) {
-  const [step, setStep] = useState(0);
-  useEffect(() => {
-    const steps = [400, 800, 1200, 1600];
-    const timers = steps.map((ms, i) => setTimeout(() => setStep(i + 1), ms));
-    const done = setTimeout(onDone, 2000);
-    return () => { timers.forEach(clearTimeout); clearTimeout(done); };
-  }, []);
-  const labels = ["Scorer Part A (screening)", "Analyserer symptomprofil", "Beregner domæne-scores", "Genererer din profil"];
-  return React.createElement('div', { style: { ...S.container, padding:'120px 0', textAlign:'center' } },
-    React.createElement('div', { style: { width:48, height:48, border:'3px solid var(--border)', borderTopColor:'var(--accent)', borderRadius:'50%', animation:'spin 0.8s linear infinite', margin:'0 auto 24px' } }),
-    React.createElement('p', { style: { color:'var(--text-2)' } }, 'Analyserer dine svar...'),
-    React.createElement('div', { style: { maxWidth:260, margin:'24px auto 0', textAlign:'left' } },
-      labels.map((l, i) =>
-        React.createElement('div', { key:i, style: { display:'flex', alignItems:'center', gap:10, padding:'6px 0', fontSize:'0.82rem', color: i < step ? 'var(--green)' : i === step ? 'var(--accent)' : 'var(--text-3)', transition:'color 0.3s' } },
-          React.createElement('div', { style: { width:7, height:7, borderRadius:'50%', flexShrink:0, background: i < step ? 'var(--green)' : i === step ? 'var(--accent)' : 'var(--text-3)', transition:'background 0.3s' } }),
-          l
-        )
-      )
-    )
-  );
-}
-
-function DomainBar({ label, pct, color }) {
-  return React.createElement('div', { style: { marginBottom:16 } },
-    React.createElement('div', { style: { display:'flex', justifyContent:'space-between', marginBottom:6 } },
-      React.createElement('span', { style: { fontSize:'0.85rem', fontWeight:500 } }, label),
-      React.createElement('span', { style: { fontSize:'0.85rem', fontWeight:600, color } }, `${pct}%`)
-    ),
-    React.createElement('div', { style: { height:8, background:'var(--border)', borderRadius:4, overflow:'hidden' } },
-      React.createElement('div', { style: { height:'100%', width:`${pct}%`, background:color, borderRadius:4, transition:'width 0.8s ease-out' } })
-    )
-  );
-}
-
-function Results({ profile, birthYear, answers, testStartId, testStartedAt, itemTimerRef }) {
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    if (window.HB_PAY) {
-      const age = getAgeFromBirthYear(birthYear);
-      const data = {
-        ...profile,
-        birth_year: birthYear,
-        age,
-        age_group: getAgeGroup(age),
-        answers: ALL_ITEMS.map(q => ({
-          id: q.id, part: q.part, domain: q.domain, text: q.da, chosen: answers[q.id] ?? null
-        }))
-      };
-      data.test_version = 'v1.1';
-      data.metadata = window.HB_ANALYTICS ? HB_ANALYTICS.buildMetadata(testStartedAt, 'da') : {};
-      data.demographics = window.HB_ANALYTICS ? HB_ANALYTICS.buildDemographics(birthYear, null) : null;
-      if (itemTimerRef.current && data.answers) {
-        data.answers = HB_ANALYTICS.enrichAnswersWithTiming(data.answers, itemTimerRef.current);
+    function choose(value) {
+      answers[index] = value;
+      for (const button of get('choices').children) {
+        button.setAttribute('aria-pressed', Number(button.dataset.choice) === value);
       }
-      if (window.HB_ANALYTICS && testStartId) {
-        HB_ANALYTICS.updateTestStart(testStartId, { completed: true, last_item_index: ALL_ITEMS.length });
-      }
-      HB_PAY.saveResults('adhd', data);
-      HB_PAY.renderSavePrompt('hb-save-prompt-adhd', 'adhd');
+      get('next').disabled = false;
     }
-  }, []);
 
-  const age = getAgeFromBirthYear(birthYear);
-
-  return React.createElement('div', { style: { ...S.container, padding:'40px 0 80px' } },
-    // Header
-    React.createElement('div', { style: { textAlign:'center', marginBottom:32 } },
-      React.createElement('div', {
-        style: { display:'inline-block', padding:'5px 16px', borderRadius:20, fontSize:'0.72rem', fontWeight:600, textTransform:'uppercase', letterSpacing:'1.5px', marginBottom:14, color:'#fff', background:profile.color }
-      }, profile.label),
-      React.createElement('h2', { style: { fontFamily:'var(--serif)', fontSize:'clamp(1.6rem,4vw,2.2rem)', fontWeight:700, letterSpacing:'-0.03em', marginBottom:8 } }, 'Din ADHD-screening'),
-      React.createElement('p', { style: { color:'var(--text-2)', fontSize:'0.9rem', maxWidth:500, margin:'0 auto', lineHeight:1.65 } },
-        profile.level === 'high' ? 'Din screening er positiv: 4 eller flere af de 6 nøglespørgsmål ligger i det klinisk signifikante område. Det bekræfter ikke en ADHD-diagnose, men en formel udredning er relevant.' :
-        profile.level === 'moderate' ? 'Din screening er under tærsklen for en positiv screening (≥4 af 6), men du har nogle symptomer til stede. Hvis de påvirker din hverdag, kan du drøfte det med din læge.' :
-        'Din screening er negativ — få symptomer i det klinisk signifikante område. Oplever du alligevel vedvarende vanskeligheder, så tal med din læge.'
-      )
-    ),
-
-    // Part A Score
-    React.createElement('div', { style: { ...S.cardLg, textAlign:'center', marginBottom:24 } },
-      React.createElement('h3', { style: { fontFamily:'var(--serif)', fontSize:'1.1rem', fontWeight:600, marginBottom:6 } }, 'Part A — Screening'),
-      React.createElement('p', { style: { fontSize:'0.78rem', color:'var(--text-3)', marginBottom:16 } }, 'De 6 mest forudsigelige spørgsmål for ADHD'),
-      React.createElement('div', { style: { width:110, height:110, borderRadius:'50%', margin:'0 auto 12px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', border:`3px solid ${profile.color}` } },
-        React.createElement('span', { style: { fontFamily:'var(--serif)', fontSize:'2.2rem', fontWeight:700, lineHeight:1, color:profile.color } }, profile.partAScore),
-        React.createElement('span', { style: { fontSize:'0.78rem', color:'var(--text-3)' } }, `af ${profile.partATotal}`)
-      ),
-      React.createElement('p', { style: { fontSize:'0.85rem', color:'var(--text-2)', lineHeight:1.6, maxWidth:420, margin:'0 auto' } },
-        profile.partAAboveThreshold
-          ? `${profile.partAScore} af 6 screening-spørgsmål ligger i det klinisk signifikante område. Score ≥ 4 er en positiv screening og taler for videre udredning — men er ikke i sig selv en diagnose.`
-          : `${profile.partAScore} af 6 screening-spørgsmål ligger i det klinisk signifikante område. Score under 4 er en negativ screening — det udelukker dog ikke ADHD, hvis du oplever vedvarende vanskeligheder.`
-      )
-    ),
-
-    // Domain bars
-    React.createElement('div', { style: { ...S.cardLg, marginBottom:24 } },
-      React.createElement('h3', { style: { fontFamily:'var(--serif)', fontSize:'1.1rem', fontWeight:600, marginBottom:6, textAlign:'center' } }, 'Symptomprofil'),
-      React.createElement('p', { style: { fontSize:'0.78rem', color:'var(--text-3)', marginBottom:20, textAlign:'center' } }, 'Baseret på alle 18 ASRS-spørgsmål'),
-      React.createElement(DomainBar, { label:'Uopmærksomhed', pct:profile.inattPct, color:'#2e6b9e' }),
-      React.createElement(DomainBar, { label:'Hyperaktivitet / Impulsivitet', pct:profile.hyperPct, color:'#e8873c' }),
-      React.createElement('div', { style: { marginTop:20, padding:'12px 16px', background:'var(--accent-glow)', borderRadius:8, fontSize:'0.82rem', color:'var(--text-2)', textAlign:'center' } },
-        'Profil: ', React.createElement('strong', null,
-          profile.profileType === 'overvejende uopmærksom' ? 'Overvejende uopmærksom' :
-          profile.profileType === 'overvejende hyperaktiv/impulsiv' ? 'Overvejende hyperaktiv/impulsiv' :
-          'Kombineret (uopmærksom + hyperaktiv)'
-        )
-      )
-    ),
-
-    // Paywall — the deep breakdown (per-item, subtype, differential, treatment,
-    // action plan, doctor letter, PDF) lives in the paid report at /rapporter/adhd.html.
-    React.createElement('div', { style: { marginTop:8, marginBottom:24, padding:'28px 24px', borderRadius:16, background:'linear-gradient(135deg,#fff 0%,#eaf1f7 100%)', border:'1.5px solid rgba(46,107,158,0.28)', textAlign:'center' } },
-      React.createElement('div', { style: { fontSize:30, marginBottom:6 } }, '🔒'),
-      React.createElement('h3', { style: { fontFamily:'var(--serif)', fontSize:'1.2rem', fontWeight:600, marginBottom:6 } }, 'Få din fulde ADHD-rapport'),
-      React.createElement('p', { style: { color:'var(--text-2)', fontSize:'0.82rem', marginBottom:16, lineHeight:1.6, maxWidth:440, marginLeft:'auto', marginRight:'auto' } }, 'Dybdegående rapport med subtypeanalyse, differentialdiagnoser, per-spørgsmål-gennemgang, behandlingsguide (medicin + terapi), personlig handlingsplan, samtaleguide til din læge og PDF-download.'),
-      React.createElement('div', { style: { fontSize:'1.75rem', fontWeight:700, color:'#2e6b9e', marginBottom:4 } }, '49 kr ', React.createElement('span', { style: { fontSize:'0.8rem', fontWeight:400, color:'var(--text-3)' } }, 'engangskøb')),
-      React.createElement('table', { style: { width:'100%', maxWidth:380, margin:'16px auto', fontSize:'0.72rem', borderCollapse:'collapse', textAlign:'left' } },
-        React.createElement('thead', null,
-          React.createElement('tr', { style: { borderBottom:'1px solid var(--border-2)' } },
-            React.createElement('th', { style: { padding:'6px 8px', color:'var(--text-3)', fontWeight:500 } }, 'Indhold'),
-            React.createElement('th', { style: { padding:'6px 8px', textAlign:'center', color:'var(--text-3)', fontWeight:500 } }, 'Gratis'),
-            React.createElement('th', { style: { padding:'6px 8px', textAlign:'center', color:'#2e6b9e', fontWeight:600 } }, 'Rapport')
-          )
-        ),
-        React.createElement('tbody', null,
-          [['Part A screening-resultat','✓','✓'],['Symptomprofil (2 domæner)','✓','✓'],['Subtypeklassificering','—','✓'],['Per-spørgsmål-gennemgang','—','✓'],['Differentialdiagnoser','—','✓'],['Behandlingsguide (medicin + terapi)','—','✓'],['Personlig handlingsplan','—','✓'],['Samtaleguide til lægen','—','✓'],['PDF-rapport','—','✓']].map((row, i) =>
-            React.createElement('tr', { key:i, style: { borderBottom:'1px solid var(--border)' } },
-              React.createElement('td', { style: { padding:'6px 8px', color:'var(--text-2)' } }, row[0]),
-              React.createElement('td', { style: { padding:'6px 8px', textAlign:'center', color: row[1]==='✓' ? '#2c5f4b' : 'var(--text-4)' } }, row[1]),
-              React.createElement('td', { style: { padding:'6px 8px', textAlign:'center', color: row[2]==='✓' ? '#2e6b9e' : 'var(--text-4)' } }, row[2])
-            )
-          )
-        )
-      ),
-      React.createElement('button', { onClick: () => { if (window.HB_PAY) HB_PAY.checkout('single', 'adhd'); }, style: { background:'var(--bg-dark)', color:'#fff', border:'none', padding:'13px 28px', borderRadius:10, fontSize:14, fontWeight:600, width:'100%', maxWidth:340, cursor:'pointer', marginBottom:8, fontFamily:'var(--sans)' } }, 'Køb rapport — 49 kr'),
-      React.createElement('br'),
-      React.createElement('button', { onClick: () => { if (window.HB_PAY) HB_PAY.checkout('unlimited', 'adhd'); }, style: { background:'transparent', color:'#2e6b9e', border:'1.5px solid #2e6b9e', padding:'11px 24px', borderRadius:10, fontSize:13, fontWeight:500, cursor:'pointer', marginTop:4, fontFamily:'var(--sans)' } }, 'Eller: Ubegrænset — 89 kr/md'),
-      React.createElement('div', { style: { display:'flex', justifyContent:'center', gap:14, marginTop:12, fontSize:11, color:'var(--text-4)' } },
-        React.createElement('span', null, '🔒 Sikker betaling'),
-        React.createElement('span', null, '⚡ Øjeblikkelig adgang')
-      ),
-      React.createElement('div', { style: { marginTop:14 } },
-        React.createElement('a', { href:'/rapporter/adhd.html', style: { fontSize:'0.72rem', color:'var(--text-3)', textDecoration:'underline' } }, 'Har du allerede adgang eller credits? Se din fulde rapport →')
-      )
-    ),
-
-    // Share / Download
-    React.createElement('div', { style: { textAlign:'center', marginBottom:32 } },
-      React.createElement('button', {
-        onClick: () => { if (window.HB_CARD) HB_CARD.share('adhd', profile); },
-        style: S.btn('var(--accent)')
-      }, '📤 Del dit profilkort'),
-      React.createElement('button', {
-        onClick: () => { if (window.HB_CARD) HB_CARD.download('adhd', profile); },
-        style: { ...S.btnSm('transparent', 'var(--accent)'), marginLeft:12, borderColor:'var(--accent)' }
-      }, '📥 Download')
-    ),
-
-    // Save prompt for anonymous users
-    React.createElement('div', { id: 'hb-save-prompt-adhd' }),
-
-    // Cross-sell
-    React.createElement('div', { style: { ...S.cardLg, textAlign:'center', marginBottom:24 } },
-      React.createElement('h3', { style: { fontFamily:'var(--serif)', fontSize:'1rem', fontWeight:600, marginBottom:8 } }, 'Andre tests du måske er interesseret i'),
-      React.createElement('div', { style: { display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap', marginTop:16 } },
-        [
-          { name:'Stress & Udbrændthed', url:'stress.html', color:'#c2553a' },
-          { name:'Autisme (AQ-50)', url:'autisme.html', color:'#3a7d5e' },
-          { name:'Personlighed', url:'personlighed.html', color:'#b8860b' },
-        ].map(t =>
-          React.createElement('a', { key:t.name, href:t.url, style: { padding:'8px 18px', borderRadius:20, border:`1px solid ${t.color}`, color:t.color, fontSize:'0.82rem', fontWeight:500, textDecoration:'none', transition:'all 0.2s' } }, t.name)
-        )
-      )
-    ),
-
-    // Disclaimer
-    React.createElement('div', { style: { ...S.card, marginBottom:24 } },
-      React.createElement('p', { style: { fontSize:'0.75rem', color:'var(--text-3)', lineHeight:1.7 } },
-        React.createElement('strong', null, 'Disclaimer: '),
-        'Denne ADHD-screening er baseret på WHO\'s Adult ADHD Self-Report Scale (ASRS v1.1) og er udelukkende beregnet til selvvurdering og oplysning. Den erstatter ikke en professionel klinisk vurdering, diagnose eller behandling. Konsultér altid en kvalificeret sundhedsprofessionel for diagnostik og behandling af ADHD.'
-      ),
-      React.createElement('p', { style: { fontSize:'0.68rem', color:'var(--text-4)', marginTop:10 } },
-        'Kessler, R.C., Adler, L., Ames, M., Demler, O., Faraone, S., Hiripi, E., ... & Walters, E. E. (2005). The World Health Organization Adult ADHD Self-Report Scale (ASRS): a short screening scale for use in the general population. Psychological Medicine, 35(2), 245-256. Copyright © World Health Organization.'
-      )
-    )
-  );
-}
-
-/* ═══════ APP ═══════ */
-function App() {
-  const [phase, setPhase] = useState("intro"); // intro, test, calculating, results
-  const [birthYear, setBirthYear] = useState(null);
-  const [currentQ, setCurrentQ] = useState(0);
-  const [answers, setAnswers] = useState({});
-  const [profile, setProfile] = useState(null);
-  const [testStartId, setTestStartId] = useState(null);
-  const [testStartedAt, setTestStartedAt] = useState(null);
-  const itemTimerRef = useRef(null);
-
-  const handleStart = (by) => {
-    setBirthYear(by);
-    setPhase("test");
-    window.scrollTo({ top: 0 });
-    if (window.HB_ANALYTICS) {
-      HB_ANALYTICS.logTestStart('adhd', 'v1.1').then(function(r) {
-        if (r) { setTestStartId(r.startId); setTestStartedAt(r.startedAt); }
+    function showQuestion() {
+      get('progress').textContent = 'Spørgsmål ' + (index + 1) + ' af ' + items.length;
+      get('question-title').textContent = items[index];
+      get('choices').replaceChildren();
+      options.forEach((text, value) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.dataset.choice = value;
+        button.textContent = text;
+        button.setAttribute('aria-pressed', answers[index] === value);
+        button.onclick = () => choose(value);
+        get('choices').appendChild(button);
       });
-      itemTimerRef.current = HB_ANALYTICS.createItemTimer();
+      get('prev').disabled = index === 0;
+      get('next').disabled = answers[index] === null;
+      get('next').textContent = index === items.length - 1 ? 'Se resultat' : 'Næste';
+      get('question-title').focus();
     }
-  };
 
-  const handleSelect = (val) => {
-    if (itemTimerRef.current) itemTimerRef.current.mark(String(ALL_ITEMS[currentQ].id));
-    setAnswers(prev => ({ ...prev, [ALL_ITEMS[currentQ].id]: val }));
-  };
-
-  const handleNext = () => {
-    if (currentQ < ALL_ITEMS.length - 1) {
-      setCurrentQ(currentQ + 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      setPhase("calculating");
+    function next() {
+      if (get('questions').hidden || answers[index] === null) return;
+      if (index < items.length - 1) { index++; showQuestion(); return; }
+      record = { mode:'asrs', resultVersion:HB_ADHD.version, adultConfirmed:true, partATotal:6,
+        answers:answers.map((chosen,i) => ({ id:i+1, part:'A', chosen })) };
+      const result = HB_ADHD.fromRecord(record);
+      if (!result) return;
+      record.partAScore = result.score;
+      get('score').textContent = result.score + ' af 6 svar i screeningsområdet';
+      get('interpretation').textContent = result.interpretation;
+      get('limitation').textContent = result.limitation;
+      get('draft-note').textContent = result.draftNote;
+      get('questions').hidden = true;
+      get('result').hidden = false;
+      get('result-title').focus();
     }
-  };
 
-  const handlePrev = () => {
-    if (currentQ > 0) {
-      setCurrentQ(currentQ - 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  };
+    get('next').onclick = next;
+    get('prev').onclick = () => { if (index > 0) { index--; showQuestion(); } };
+    document.addEventListener('keydown', e => {
+      if (get('questions').hidden || e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+      if (!/^[1-5]$/.test(e.key) && e.key !== 'Enter' && e.key !== 'ArrowLeft') return;
+      if (e.repeat) { e.preventDefault(); return; }
+      if (e.key === 'Enter' && (e.target === get('prev') || e.target === get('next'))) return;
+      e.preventDefault();
+      if (/^[1-5]$/.test(e.key)) {
+        const value = Number(e.key) - 1;
+        choose(value);
+        get('choices').children[value].focus();
+      }
+      else if (e.key === 'ArrowLeft') get('prev').click();
+      else if (e.target.hasAttribute?.('data-choice') && Number(e.target.dataset.choice) !== answers[index]) choose(Number(e.target.dataset.choice));
+      else next();
+    });
 
-  // Keyboard nav
-  useEffect(() => {
-    if (phase !== "test") return;
-    const handler = (e) => {
-      const optCount = (ALL_ITEMS[currentQ].options || LIKERT5).length;
-      const num = parseInt(e.key);
-      if (num >= 1 && num <= optCount) {
-        handleSelect(num - 1);
-      } else if (e.key === "Enter" && answers[ALL_ITEMS[currentQ].id] !== undefined) {
-        handleNext();
-      } else if (e.key === "ArrowLeft") {
-        handlePrev();
+    get('open-sheet').onclick = () => {
+      try {
+        record.attemptId = record.attemptId || crypto.randomUUID();
+        sessionStorage.setItem(HB_ADHD.sessionKey, JSON.stringify(record));
+        location.href = '../rapporter/adhd.html?pilot=1&forloeb=' + encodeURIComponent(record.attemptId);
+      } catch {
+        get('sheet-error').textContent = 'Browseren tillader ikke midlertidig lagring. Du kan stadig bruge resultatet og spørgsmålene her på siden.';
       }
     };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [phase, currentQ, answers]);
-
-  if (phase === "intro") return React.createElement(Intro, { onStart: handleStart });
-  if (phase === "test") return React.createElement(Question, {
-    item: ALL_ITEMS[currentQ],
-    value: answers[ALL_ITEMS[currentQ].id],
-    onSelect: handleSelect,
-    index: currentQ,
-    total: ALL_ITEMS.length,
-    onPrev: handlePrev,
-    onNext: handleNext,
-    canNext: answers[ALL_ITEMS[currentQ].id] !== undefined
-  });
-  if (phase === "calculating") return React.createElement(Calculating, {
-    onDone: () => {
-      setProfile({ ...calcASRS(answers), ...calcSupplementary(answers) });
-      setPhase("results");
-    }
-  });
-  if (phase === "results") return React.createElement(Results, { profile, birthYear, answers, testStartId, testStartedAt, itemTimerRef });
-  return null;
-}
-
-ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
-</script>
+    get('download').onclick = () => HB_CARD.download('adhd', record);
+    get('share').onclick = () => HB_CARD.share('adhd', record);
+  </script>
 </body>
 </html>

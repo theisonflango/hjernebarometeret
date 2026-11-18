@@ -17,8 +17,11 @@
     adhd: {
       accent: '#2e6b9e', accentDark: '#152535', accentLight: '#7db5e0',
       name: 'ADHD-Screening', icon: '\u26A1',
-      getHero: function(s) { return { main: s.totalPct + '%', sub: s.profileType || s.level, pct: null }; },
-      drawVisual: drawADHDBars
+      getHero: function(s) {
+        var result = window.HB_ADHD && HB_ADHD.fromRecord(s);
+        return result ? { main: result.score + ' af 6', sub: 'Svar i screeningsområdet i del A' } : null;
+      },
+      drawVisual: drawADHDScreening
     },
     autisme: {
       accent: '#3a7d5e', accentDark: '#152e22', accentLight: '#7dc4a0',
@@ -34,9 +37,13 @@
     },
     stress: {
       accent: '#c2553a', accentDark: '#351a14', accentLight: '#e88a70',
-      name: 'Stress & Udbr\u00e6ndthed', icon: '\uD83D\uDD25',
-      getHero: function(s) { return { main: s.pssTotal + '/40', sub: s.burnoutProfile || s.level, pct: null }; },
-      drawVisual: drawStressRadar
+      name: 'Oplevet stress',
+      getHero: function(s) {
+        var points = window.HB_STRESS && HB_STRESS.score(s);
+        if (points == null) return null;
+        return { main: points + '/40', sub: 'Ti svar om måneden før besvarelsen', pct: null };
+      },
+      drawVisual: drawStressNote
     },
     eq: {
       accent: '#7a6b3a', accentDark: '#2e2816', accentLight: '#c4b070',
@@ -250,56 +257,15 @@
     }
   }
 
-  function drawADHDBars(ctx, scores, cx, cy, w, h) {
-    var bars;
-    if (scores.mode === 'diva') {
-      bars = [
-        { label: 'Opm\u00e6rksomhed', pct: scores.aPct || 0 },
-        { label: 'Hyperaktivitet', pct: scores.hiPct || 0 },
-        { label: 'Funktionsniveau', pct: scores.funcPct || 0 }
-      ];
-    } else {
-      bars = [
-        { label: 'Opm\u00e6rksomhed', pct: scores.attention || 0 },
-        { label: 'Hyperaktivitet', pct: scores.hyperactivity || 0 },
-        { label: 'Regulering', pct: scores.regulation || 0 },
-        { label: 'Funktionsniveau', pct: scores.functioning || 0 }
-      ];
-    }
-
-    var barH = 28;
-    var gap = 20;
-    var totalH = bars.length * (barH + gap) - gap;
-    var startY = cy - totalH / 2;
-    var barW = w * 0.7;
-    var barX = cx - barW / 2;
-
-    for (var i = 0; i < bars.length; i++) {
-      var by = startY + i * (barH + gap);
-      // Label
-      ctx.font = '400 22px Figtree, sans-serif';
-      ctx.fillStyle = 'rgba(255,255,255,0.6)';
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'bottom';
-      ctx.fillText(bars[i].label, barX, by - 4);
-
-      // Pct label
-      ctx.textAlign = 'right';
-      ctx.fillStyle = '#fff';
-      ctx.font = '600 22px Figtree, sans-serif';
-      ctx.fillText(bars[i].pct + '%', barX + barW, by - 4);
-
-      // Background bar
-      drawRoundedRect(ctx, barX, by, barW, barH, barH / 2);
-      ctx.fillStyle = 'rgba(255,255,255,0.08)';
-      ctx.fill();
-
-      // Fill bar
-      var fillW = Math.max(barH, barW * bars[i].pct / 100);
-      drawRoundedRect(ctx, barX, by, fillW, barH, barH / 2);
-      ctx.fillStyle = 'rgba(255,255,255,0.25)';
-      ctx.fill();
-    }
+  function drawADHDScreening(ctx, scores, cx, cy) {
+    var result = HB_ADHD.fromRecord(scores);
+    ctx.fillStyle = '#fff';
+    ctx.font = '400 29px Figtree, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(result.legacy ? 'Tallet stammer fra et tidligere spørgeskema.' : 'Arbejdsudkast · De seneste seks måneder', cx, cy - 26);
+    ctx.fillText('Screeningen kan hverken fastslå eller udelukke ADHD.', cx, cy + 26);
+    ctx.font = '400 23px Figtree, sans-serif';
+    ctx.fillText('Dansk ordlyd og brugsret afventer afklaring.', cx, cy + 78);
   }
 
   function drawAutismeScale(ctx, scores, cx, cy, w, h) {
@@ -449,16 +415,12 @@
     drawRadar(ctx, dims, cx, cy, Math.min(w, h) * 0.34);
   }
 
-  function drawStressRadar(ctx, scores, cx, cy, w, h) {
-    var dims = [
-      { label: 'Stress', pct: scores.pssPct || 0 },
-      { label: 'Hj\u00e6lpel\u00f8shed', pct: scores.helpPct || 0 },
-      { label: 'Self-eff.\u2193', pct: scores.effPct || 0 },
-      { label: 'Udmattelse', pct: scores.exhPct || 0 },
-      { label: 'Kynisme', pct: scores.cynPct || 0 },
-      { label: 'Pr\u00e6station\u2193', pct: scores.accPct || 0 }
-    ];
-    drawRadar(ctx, dims, cx, cy, Math.min(w, h) * 0.34);
+  function drawStressNote(ctx, scores, cx, cy) {
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    ctx.font = '400 28px Figtree, sans-serif';
+    ctx.fillText('Højere pointtal udtrykker mere oplevet stress.', cx, cy);
+    ctx.fillText('En diagnose kræver en faglig vurdering.', cx, cy + 48);
   }
 
   // ─── Personlighed: get profile label ────────────────────────
@@ -488,6 +450,7 @@
     var H = format === 'square' ? 1080 : 1920;
     var cfg = CONFIG[testType];
     var hero = cfg.getHero(scores);
+    if (!hero) return null;
 
     await ensureFonts();
     var baroImg = await loadBarometerImage();
@@ -598,8 +561,7 @@
       var normResult = null;
       if (testType === 'iq') {
         normResult = HB_NORM.getPercentile('iq', scores.iq);
-      } else if (testType === 'stress') {
-        normResult = HB_NORM.getPercentile('stress', scores.pssTotal);
+
       } else if (testType === 'autisme') {
         normResult = HB_NORM.getPercentile('autisme', scores.t);
       } else if (testType === 'eq') {
